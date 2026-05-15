@@ -15,6 +15,9 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" />
   <link rel="stylesheet" href="./styles.css" />
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <!-- Set window.QSI_API_BASE to your deployed backend (e.g. https://your-app.up.railway.app).
+       Leave empty to run the frontend as a static demo. -->
+  <script>window.QSI_API_BASE = "";</script>
 </head>
 <body>
   <div class="bg-grid" aria-hidden="true"></div>
@@ -188,12 +191,14 @@
     <nav class="bottom-nav" aria-label="Навигация">
       <button type="button" data-action="reset"><span>◔</span>Обзор</button>
       <button type="button" data-action="open-signals"><span>⌁</span>Сигналы</button>
-      <button type="button" data-action="open-coins"><span>▥</span>Рынок</button>
-      <button type="button" data-action="open-derivs"><span>▣</span>Портфель</button>
-      <button type="button" data-action="open-about"><span>♙</span>Профиль</button>
+      <button type="button" data-action="open-matrix"><span>▥</span>Рынок</button>
+      <button type="button" data-action="open-ai"><span>⌬</span>AI</button>
+      <button type="button" data-action="open-profile"><span>♙</span>Профиль</button>
     </nav>
   </main>
 
+  <script src="./i18n.js" defer></script>
+  <script src="./api.js" defer></script>
   <script src="./app.js" defer></script>
 </body>
 </html>
