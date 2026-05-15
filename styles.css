@@ -192,17 +192,10 @@ a { -webkit-tap-highlight-color: transparent; }
 
 h1 {
   margin: 0;
-  /* Exo 2's "Q" carries a long stylized descender. When "QUANTSIGNAL AI"
-     wrapped onto two lines, the descender of the Q on line 1 dropped into
-     the cap-line of "AI" on line 2 and read as a stray white sliver above
-     the "A". The font size is now clamped to fit on a single line at all
-     supported widths, and line-height has room for the descender. */
-  font: 900 clamp(28px, 7vw, 72px)/1.2 var(--font-display);
-  letter-spacing: .03em;
+  font: 900 clamp(28px, 7vw, 72px)/1.08 var(--font-body);
+  letter-spacing: .015em;
   text-transform: uppercase;
-  /* Single soft halo. The previous hard 0 3px 0 white offset also caused a
-     visible sliver under short glyphs. */
-  text-shadow: 0 0 28px rgba(255, 255, 255, .12);
+  text-shadow: 0 0 22px rgba(255, 255, 255, .10);
 }
 
 h1 span {
@@ -212,22 +205,15 @@ h1 span {
 
 .neon-line {
   position: relative;
+  width: min(520px, 88%);
   height: 2px;
-  margin: 22px 0 18px;
-  background: linear-gradient(90deg, var(--cyan), rgba(36,231,242,.2), var(--orange));
-  box-shadow: 0 0 14px rgba(36,231,242,.55);
+  margin: 18px 0 18px;
+  background: linear-gradient(90deg, var(--cyan), rgba(36,231,242,.35), rgba(255,148,24,.65));
+  box-shadow: 0 0 12px rgba(36,231,242,.38);
 }
 
 .neon-line::after {
-  content: "";
-  position: absolute;
-  right: -2px;
-  top: -4px;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--orange);
-  box-shadow: 0 0 16px var(--orange);
+  content: none;
 }
 
 .brand-copy p {
@@ -736,14 +722,14 @@ h1 span {
   z-index: 5;
   left: max(12px, calc(50% - 445px));
   right: max(12px, calc(50% - 445px));
-  bottom: calc(12px + var(--safe-bottom));
+  bottom: calc(22px + var(--safe-bottom));
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 4px;
   padding: 9px;
   border: 1px solid var(--border);
   border-radius: 24px;
-  background: rgba(5, 10, 16, .86);
+  background: linear-gradient(180deg, rgba(8, 16, 25, .98), rgba(3, 8, 13, .98));
   backdrop-filter: blur(18px);
   box-shadow: 0 16px 50px rgba(0,0,0,.48), 0 0 28px rgba(36,231,242,.13);
 }
@@ -796,12 +782,12 @@ h1 span {
   .app-shell { padding-left: 12px; padding-right: 12px; }
   .brand-lockup { grid-template-columns: 76px 1fr; }
   .q-mark { transform: translateY(-7px); }
-  h1 { font-size: 28px; letter-spacing: .02em; line-height: 1.2; }
+  h1 { font-size: 28px; letter-spacing: .01em; line-height: 1.08; }
   .brand-copy p { font-size: 24px; }
   .hero-actions .cta { flex: 1 1 auto; }
   .market-card { margin-left: 0; margin-right: 0; }
   .chart-wrap { height: 142px; }
-  .bottom-nav { left: 8px; right: 8px; }
+  .bottom-nav { left: 8px; right: 8px; bottom: calc(18px + var(--safe-bottom)); }
 }
 
 @media (prefers-reduced-motion: reduce) {
