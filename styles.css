@@ -67,21 +67,27 @@ a { -webkit-tap-highlight-color: transparent; }
 .bg-orbits::after {
   content: "";
   position: absolute;
-  width: 1100px;
-  height: 220px;
+  width: 1400px;
+  height: 260px;
   left: 50%;
-  bottom: -90px;
+  /* Push curves well below the viewport so only a soft glow bleeds up. */
+  bottom: -260px;
   border-radius: 50%;
-  transform: translateX(-50%) rotate(-11deg);
-  border-top: 2px solid rgba(36, 231, 242, 0.55);
-  box-shadow: 0 -18px 45px rgba(36, 231, 242, 0.18);
+  transform: translateX(-50%) rotate(-9deg);
+  border-top: 1px solid rgba(36, 231, 242, 0.32);
+  box-shadow: 0 -22px 60px rgba(36, 231, 242, 0.10);
+  /* Fade the edges so the arc reads as ambient light, not a hard line. */
+  -webkit-mask-image: radial-gradient(ellipse at 50% 0%, #000 35%, transparent 78%);
+          mask-image: radial-gradient(ellipse at 50% 0%, #000 35%, transparent 78%);
+  opacity: .85;
 }
 
 .bg-orbits::after {
-  bottom: -118px;
-  transform: translateX(-50%) rotate(-7deg);
-  border-top-color: rgba(255, 148, 24, 0.62);
-  box-shadow: 0 -18px 45px rgba(255, 148, 24, 0.2);
+  bottom: -300px;
+  transform: translateX(-50%) rotate(-5deg);
+  border-top-color: rgba(255, 148, 24, 0.30);
+  box-shadow: 0 -22px 60px rgba(255, 148, 24, 0.09);
+  opacity: .7;
 }
 
 .app-shell {
@@ -153,8 +159,8 @@ a { -webkit-tap-highlight-color: transparent; }
 
 .brand-lockup {
   display: grid;
-  grid-template-columns: 120px 1fr;
-  gap: 18px;
+  grid-template-columns: 100px 1fr;
+  gap: 14px;
   align-items: center;
 }
 
@@ -186,10 +192,17 @@ a { -webkit-tap-highlight-color: transparent; }
 
 h1 {
   margin: 0;
-  font: 900 clamp(42px, 10vw, 82px)/.9 var(--font-display);
-  letter-spacing: .035em;
+  /* Exo 2's "Q" carries a long stylized descender. When "QUANTSIGNAL AI"
+     wrapped onto two lines, the descender of the Q on line 1 dropped into
+     the cap-line of "AI" on line 2 and read as a stray white sliver above
+     the "A". The font size is now clamped to fit on a single line at all
+     supported widths, and line-height has room for the descender. */
+  font: 900 clamp(28px, 7vw, 72px)/1.2 var(--font-display);
+  letter-spacing: .03em;
   text-transform: uppercase;
-  text-shadow: 0 3px 0 rgba(255,255,255,.08), 0 0 30px rgba(255,255,255,.13);
+  /* Single soft halo. The previous hard 0 3px 0 white offset also caused a
+     visible sliver under short glyphs. */
+  text-shadow: 0 0 28px rgba(255, 255, 255, .12);
 }
 
 h1 span {
@@ -783,7 +796,7 @@ h1 span {
   .app-shell { padding-left: 12px; padding-right: 12px; }
   .brand-lockup { grid-template-columns: 76px 1fr; }
   .q-mark { transform: translateY(-7px); }
-  h1 { font-size: 34px; letter-spacing: .02em; }
+  h1 { font-size: 28px; letter-spacing: .02em; line-height: 1.2; }
   .brand-copy p { font-size: 24px; }
   .hero-actions .cta { flex: 1 1 auto; }
   .market-card { margin-left: 0; margin-right: 0; }
