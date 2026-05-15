@@ -3,74 +3,118 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#0b0f14" />
-  <meta name="description" content="QUANTSIGNAL AI — Telegram Mini App для AI-аналитики крипторынка, сигналов, монет, деривативов и рыночных движений." />
+  <meta name="theme-color" content="#05080d" />
+  <meta name="description" content="QUANTSIGNAL AI — Telegram Mini App для сигналов, рынка и AI-анализа криптовалют." />
   <meta property="og:title" content="QUANTSIGNAL AI" />
-  <meta property="og:description" content="AI-аналитика крипторынка внутри Telegram." />
+  <meta property="og:description" content="Сигналы, рынок и AI-анализ внутри Telegram." />
   <meta property="og:type" content="website" />
   <title>QUANTSIGNAL AI — Telegram Mini App</title>
   <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" />
   <link rel="stylesheet" href="./styles.css" />
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
   <div class="bg-grid" aria-hidden="true"></div>
-  <div class="bg-glow" aria-hidden="true"></div>
+  <div class="bg-orbits" aria-hidden="true"></div>
 
-  <main class="wrap" id="app">
-    <!-- Header -->
-    <header class="topbar">
-      <a class="logo" href="#" aria-label="QUANTSIGNAL AI" data-action="reset">
-        <svg class="logo-mark" viewBox="0 0 32 32" width="28" height="28" fill="none" aria-hidden="true">
-          <path d="M4 22 L10 10 L16 18 L22 6 L28 22" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
-          <circle cx="22" cy="6" r="2.4" fill="currentColor"/>
-        </svg>
-        <span class="logo-text">QUANTSIGNAL <em>AI</em></span>
+  <main class="app-shell" id="app">
+    <header class="app-header">
+      <button class="icon-button" type="button" aria-label="Меню" data-action="reset">
+        <span></span><span></span><span></span>
+      </button>
+      <a class="brand-mini" href="#" aria-label="QUANTSIGNAL AI" data-action="reset">
+        QUANTSIGNAL <b>AI</b>
       </a>
-      <div class="status" title="Состояние подключения">
-        <span class="dot"></span>
-        <span class="status-text">LIVE</span>
-      </div>
+      <button class="notify" type="button" aria-label="Уведомления" data-action="refresh">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true">
+          <path d="M18 9a6 6 0 1 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+          <path d="M10 21h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+        </svg>
+        <i></i>
+      </button>
     </header>
 
-    <!-- Hero -->
-    <section class="hero">
-      <div class="badge">
-        <span class="badge-dot"></span>
-        QUANTSIGNAL AI • Telegram Mini App
-      </div>
-      <h1 class="title">
-        AI&#8209;аналитика крипторынка<br/>
-        <span class="title-accent">внутри Telegram</span>
-      </h1>
-      <p class="subtitle">
-        Сигналы, анализ монет и категорий, деривативы и рыночные движения — всё в одном мини&#8209;приложении, прямо в чате.
-      </p>
-
-      <!-- Live ticker -->
-      <div class="ticker" aria-label="Рыночный тикер">
-        <div class="ticker-track" id="ticker-track">
-          <!-- Filled by app.js -->
+    <section class="hero-stage">
+      <div class="brand-lockup">
+        <div class="q-mark" aria-hidden="true">
+          <svg viewBox="0 0 120 120" fill="none">
+            <circle cx="55" cy="55" r="40" stroke="currentColor" stroke-width="10"/>
+            <path d="M82 83l24 24" stroke="currentColor" stroke-width="10" stroke-linecap="round"/>
+            <path d="M28 76l18-25 16 14 28-38" stroke="#ff9f1c" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M28 92h12V76H28v16Zm21 0h12V63H49v29Zm21 0h12V51H70v41Z" fill="#26e6f2" opacity=".92"/>
+            <path d="M88 28l16-6-4 17" stroke="#ffbd2e" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="brand-copy">
+          <div class="eyebrow">
+            <span class="live-dot"></span>
+            live crypto intelligence
+          </div>
+          <h1>QUANTSIGNAL <span>AI</span></h1>
+          <div class="neon-line"></div>
+          <p>Сигналы, рынок, <strong>AI-анализ</strong></p>
         </div>
       </div>
 
-      <div class="cta-row">
-        <button class="cta primary" type="button" data-action="open-signals">
-          <span>Открыть сигналы</span>
-          <svg viewBox="0 0 20 20" width="18" height="18" fill="none" aria-hidden="true">
-            <path d="M4 10h12M11 5l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
-        <button class="cta ghost" type="button" data-action="open-about">
-          О приложении
-        </button>
+      <div class="hero-actions">
+        <button class="cta primary" type="button" data-action="open-signals">Открыть сигналы</button>
+        <button class="cta secondary" type="button" data-action="open-about">О приложении</button>
       </div>
     </section>
 
-    <!-- KPI strip -->
+    <section class="terminal-card market-card" aria-label="Обзор рынка">
+      <div class="pair-row">
+        <div class="coin-badge">₿</div>
+        <div>
+          <div class="pair-name">BTC/USDT</div>
+          <div class="price-line">67,842.31</div>
+          <div class="price-delta">+1,243.18 (+1.86%)</div>
+        </div>
+        <div class="time-tabs" aria-label="Таймфрейм">
+          <span>1H</span><span>4H</span><b>1D</b><span>1W</span>
+        </div>
+      </div>
+
+      <div class="chart-wrap" aria-label="Демо график">
+        <div class="chart-grid"></div>
+        <div class="candle c1 up"></div>
+        <div class="candle c2 up"></div>
+        <div class="candle c3 dn"></div>
+        <div class="candle c4 up"></div>
+        <div class="candle c5 up"></div>
+        <div class="candle c6 dn"></div>
+        <div class="candle c7 up"></div>
+        <div class="candle c8 up"></div>
+        <div class="price-marker">67,842.31</div>
+      </div>
+    </section>
+
+    <section class="ticker" aria-label="Рыночный тикер">
+      <div class="ticker-track" id="ticker-track"></div>
+    </section>
+
+    <section class="benefits" aria-label="Преимущества">
+      <article class="benefit accent-orange">
+        <span class="benefit-icon">◎</span>
+        <b>Точные сигналы</b>
+      </article>
+      <article class="benefit">
+        <span class="benefit-icon">⌬</span>
+        <b>AI-анализ рынка</b>
+      </article>
+      <article class="benefit">
+        <span class="benefit-icon">▥</span>
+        <b>Глубокая аналитика</b>
+      </article>
+      <article class="benefit accent-orange">
+        <span class="benefit-icon">◇</span>
+        <b>Управление рисками</b>
+      </article>
+    </section>
+
     <section class="kpis" aria-label="Ключевые метрики">
       <div class="kpi">
         <div class="kpi-label">Активных сигналов</div>
@@ -89,112 +133,65 @@
       </div>
     </section>
 
-    <!-- Feature grid -->
-    <section class="section" aria-labelledby="features-title">
-      <div class="section-head">
-        <h2 id="features-title" class="section-title">Что внутри</h2>
-        <span class="section-hint">Нажмите карточку, чтобы открыть раздел</span>
+    <section class="terminal-card ai-card" aria-label="AI-анализ">
+      <h2>AI-анализ</h2>
+      <div class="ai-content">
+        <div class="ai-icon">🧠</div>
+        <p>Рынок в бычьем тренде. Объёмы растут, ключевые уровни поддержки удерживаются. Индикаторы указывают на продолжение роста в краткосрочной перспективе.</p>
       </div>
-
-      <div class="grid">
-        <button class="card feature" type="button" data-action="open-signals">
-          <div class="card-icon icon-signals" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
-              <path d="M3 17l5-7 4 5 4-9 5 11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <div class="card-body">
-            <b>Сигналы</b>
-            <span>Точки входа, направление и краткие AI&#8209;подсказки по рынку.</span>
-          </div>
-          <span class="card-arrow" aria-hidden="true">→</span>
-        </button>
-
-        <button class="card feature" type="button" data-action="open-coins">
-          <div class="card-icon icon-coins" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
-              <circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="2"/>
-              <path d="M9 12h6M12 9v6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-          </div>
-          <div class="card-body">
-            <b>Монеты и категории</b>
-            <span>Быстрый обзор токенов, секторов и текущих трендов.</span>
-          </div>
-          <span class="card-arrow" aria-hidden="true">→</span>
-        </button>
-
-        <button class="card feature" type="button" data-action="open-derivs">
-          <div class="card-icon icon-derivs" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
-              <path d="M4 20V8M4 8l4 4M4 8l-2 2M20 4v12M20 16l-4-4M20 16l2-2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <div class="card-body">
-            <b>Деривативы</b>
-            <span>Открытый интерес, фандинг и импульсные движения.</span>
-          </div>
-          <span class="card-arrow" aria-hidden="true">→</span>
-        </button>
-
-        <button class="card feature" type="button" data-action="open-movers">
-          <div class="card-icon icon-movers" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
-              <path d="M3 12h4l3-7 4 14 3-7h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <div class="card-body">
-            <b>Рыночные движения</b>
-            <span>Лидеры роста и падения, аномалии объёма и волатильность.</span>
-          </div>
-          <span class="card-arrow" aria-hidden="true">→</span>
-        </button>
+      <div class="chips">
+        <span>Тренд: <b>Бычий</b></span>
+        <span>Уверенность: <b>78%</b></span>
+        <span>Волатильность: средняя</span>
       </div>
     </section>
 
-    <!-- Dynamic content panel -->
-    <section class="section panel" id="content-panel" aria-live="polite">
+    <section class="terminal-card signal-card" aria-label="Активный сигнал">
+      <div class="signal-head">
+        <div>
+          <div class="pair-name">₿ BTC/USDT</div>
+          <div class="signal-type">LONG</div>
+        </div>
+        <span class="signal-status">Активный сигнал</span>
+      </div>
+      <div class="signal-grid">
+        <span>Точка входа</span><b>67,250.00</b>
+        <span>Тейк-профит 1</span><b>68,800.00</b>
+        <span>Тейк-профит 2</span><b>70,500.00</b>
+        <span class="danger">Стоп-лосс</span><b class="danger">65,400.00</b>
+      </div>
+      <div class="signal-potential">
+        <strong>↗ +2.31%</strong>
+        <span>Потенциал</span>
+      </div>
+      <button class="details-button" type="button" data-action="open-signals">Подробнее</button>
+    </section>
+
+    <section class="section panel terminal-card" id="content-panel" aria-live="polite">
       <div class="section-head">
         <h2 class="section-title" id="panel-title">Главное сейчас</h2>
-        <button class="chip" type="button" data-action="refresh">
-          <svg viewBox="0 0 20 20" width="14" height="14" fill="none" aria-hidden="true">
-            <path d="M3 10a7 7 0 0 1 12-5l2 2M17 4v4h-4M17 10a7 7 0 0 1-12 5l-2-2M3 16v-4h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          Обновить
-        </button>
+        <button class="chip" type="button" data-action="refresh">Обновить</button>
       </div>
-      <div class="panel-body" id="panel-body">
-        <!-- Filled dynamically -->
-      </div>
+      <div class="panel-body" id="panel-body"></div>
     </section>
 
-    <!-- About -->
     <section class="section about" id="about-section">
-      <div class="section-head">
-        <h2 class="section-title">О приложении</h2>
-      </div>
-      <p class="about-text">
-        QUANTSIGNAL AI — это лёгкое Telegram Mini App для трейдеров и инвесторов. Под капотом — Telegram Web App SDK,
-        бесшовная интеграция с темой клиента и тактильный отклик кнопок. Это стартовая версия интерфейса,
-        готовая к подключению реальных источников данных.
-      </p>
+      <h2 class="section-title">О приложении</h2>
+      <p class="about-text">QUANTSIGNAL AI — стартовая версия Telegram Mini App в стиле premium crypto terminal: сигналы, рыночный обзор, AI-анализ и быстрый доступ к ключевым разделам.</p>
       <ul class="bullets">
-        <li><span>Telegram Web App SDK</span> подключён и инициализирован</li>
-        <li><span>Адаптивная тема</span> синхронизируется с клиентом Telegram</li>
-        <li><span>Без cookies, localStorage и внешних логинов</span></li>
+        <li><span>Надёжно</span> — Telegram Web App SDK подключён и инициализирован</li>
+        <li><span>Безопасно</span> — без cookies, localStorage и внешних логинов</li>
+        <li><span>Быстро</span> — статический интерфейс, готовый к подключению API</li>
       </ul>
     </section>
 
-    <footer class="footer">
-      <div class="footer-row">
-        <span>© QUANTSIGNAL AI</span>
-        <span class="dotsep">•</span>
-        <span id="platform-info">Telegram Mini App</span>
-      </div>
-      <div class="footer-row mono">
-        <span id="version-info">v0.1.0</span>
-      </div>
-    </footer>
+    <nav class="bottom-nav" aria-label="Навигация">
+      <button type="button" data-action="reset"><span>◔</span>Обзор</button>
+      <button type="button" data-action="open-signals"><span>⌁</span>Сигналы</button>
+      <button type="button" data-action="open-coins"><span>▥</span>Рынок</button>
+      <button type="button" data-action="open-derivs"><span>▣</span>Портфель</button>
+      <button type="button" data-action="open-about"><span>♙</span>Профиль</button>
+    </nav>
   </main>
 
   <script src="./app.js" defer></script>
