@@ -1826,6 +1826,7 @@
       setText("#combat-level", String(s.level));
       setText("#combat-balance", String(s.balance));
       setText("#combat-cta-balance", String(s.balance));
+      setText("#combat-cta-level", String(s.level));
       setText("#combat-combo", "×" + Math.max(1, Math.round(s.combo + 1)));
 
       var moodEl = el("combat-boss-mood");

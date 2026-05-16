@@ -2484,3 +2484,603 @@ body:not(.boot-done) .bg-stack {
   .combat-avatar__ring,
   .combat-tap__pulse { animation: none; }
 }
+
+/* =====================================================================
+   DESIGN SYSTEM v2 — premium polish layer
+   Refines spacing, hierarchy, glass surfaces, gradients, typography
+   and component rhythm without touching legacy selectors above.
+   Safe to load after the v1 styles: only adds or tightens visuals.
+   ===================================================================== */
+
+:root {
+  /* Extended palette */
+  --accent-1: #26e6f2;
+  --accent-2: #ff8a2b;
+  --accent-3: #7b6cff;
+  --pos-soft: rgba(45, 214, 144, .14);
+  --neg-soft: rgba(255, 85, 119, .14);
+  --warn-soft: rgba(255, 181, 71, .14);
+  --teal-soft-bg: rgba(38, 230, 242, .10);
+
+  /* Glass / surface system */
+  --glass-1: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015));
+  --glass-2: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+  --glass-3: linear-gradient(180deg, rgba(38,230,242,.08), rgba(38,230,242,.015));
+  --surface-1: rgba(11, 18, 28, 0.72);
+  --surface-2: rgba(7, 12, 21, 0.82);
+  --border-soft: rgba(126, 198, 224, 0.14);
+  --border-strong: rgba(126, 198, 224, 0.28);
+
+  /* Shadows */
+  --shadow-card: 0 8px 24px rgba(0,0,0,.32), 0 1px 0 rgba(255,255,255,.04) inset;
+  --shadow-cta: 0 10px 28px rgba(255, 138, 43, .28), 0 1px 0 rgba(255,255,255,.18) inset;
+  --shadow-glow: 0 0 24px rgba(38,230,242,.30);
+
+  /* Type rhythm */
+  --tap-min: 44px;
+}
+
+/* Smoother base type & wider tracking on headings for a more premium feel */
+body { letter-spacing: 0.005em; }
+h1, h2, h3, .screen__title, .brand-title, .boot-splash__title {
+  letter-spacing: -0.012em;
+}
+.screen__title { font-weight: 800; }
+
+/* Touch-target safety net */
+.tab, .cta, .chip, .combat-pack__buy, .combat-stat__btn,
+.topbar__btn, .toggle, .lang-grid > * {
+  min-height: var(--tap-min);
+}
+.chip { min-height: 32px; }   /* compact inline chips */
+
+/* ---------- Cards: subtle glass + hairline border ---------- */
+.card, .hero-card, .last-signal, .signal-card, .matrix-cell,
+.ai-summary, .market-top, .ai-intro, .profile-card, .combat-board,
+.combat-pack, .combat-arena, .combat-avatar {
+  border-color: var(--border-soft);
+}
+.hero-card, .last-signal, .ai-summary, .market-top, .profile-card,
+.combat-arena, .combat-board {
+  box-shadow: var(--shadow-card);
+}
+
+/* ---------- Bottom tabbar: deeper glass + active glow ---------- */
+.tabbar {
+  background: linear-gradient(180deg, rgba(7,12,21,.65), rgba(7,12,21,.92));
+  backdrop-filter: blur(12px) saturate(1.05);
+  -webkit-backdrop-filter: blur(12px) saturate(1.05);
+  border-top: 1px solid var(--border-soft);
+}
+.tab.is-active {
+  color: var(--accent-1);
+}
+.tab.is-active .tab__ico {
+  filter: drop-shadow(0 0 6px rgba(38,230,242,.55));
+}
+
+/* ---------- Topbar refinement ---------- */
+.topbar {
+  background: linear-gradient(180deg, rgba(7,12,21,.78), rgba(7,12,21,.0));
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* ---------- Buttons / CTAs ---------- */
+.cta {
+  transition: transform .15s ease, box-shadow .2s ease, background .2s ease;
+}
+.cta:active { transform: translateY(1px) scale(.985); }
+.cta--strong, .cta.cta--strong {
+  box-shadow: var(--shadow-cta);
+}
+
+/* ---------- Chips & badges harmonised ---------- */
+.chip {
+  border-color: var(--border-soft);
+}
+.chip:hover { border-color: var(--border-strong); }
+
+/* =====================================================================
+   Crypto Combat — v2 premium arena
+   ===================================================================== */
+
+/* Overview CTA — more premium card */
+.combat-cta {
+  margin: 14px 16px 4px;
+  padding: 16px 16px 14px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 138, 43, .28);
+  background:
+    radial-gradient(120% 100% at 0% 0%, rgba(255, 138, 43, .22), transparent 55%),
+    radial-gradient(120% 100% at 100% 100%, rgba(38, 230, 242, .14), transparent 60%),
+    linear-gradient(180deg, rgba(255, 255, 255, .035), rgba(255, 255, 255, .01));
+  box-shadow: var(--shadow-card), 0 0 0 1px rgba(255, 138, 43, .06) inset;
+}
+.combat-cta__body { gap: 10px; }
+.combat-cta__badge {
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.combat-cta__badge::before {
+  content: "";
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #ffb547;
+  box-shadow: 0 0 8px #ffb547;
+}
+.combat-cta__sub {
+  font-size: 13px; line-height: 1.45;
+}
+.combat-cta__row {
+  margin-top: 6px;
+  align-items: center;
+}
+.combat-cta__stats {
+  display: inline-flex; align-items: center; gap: 10px;
+  flex-wrap: wrap;
+}
+.combat-cta__stat {
+  display: inline-flex; flex-direction: column;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  padding: 4px 10px 5px;
+  border-radius: 10px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--border-soft);
+  min-height: 38px;
+}
+.combat-cta__stat em {
+  font-style: normal;
+  font-size: 9.5px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.55);
+}
+.combat-cta__stat b {
+  font-size: 14px; font-weight: 800;
+  color: #fff;
+}
+.combat-cta__stat--qp b { color: #ffb547; }
+.combat-cta__stat--lvl b { color: #26e6f2; }
+
+.cta.cta--combat {
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 13px;
+  letter-spacing: .04em;
+  background: linear-gradient(135deg, #ff8a2b 0%, #ffb547 50%, #ff8a2b 100%);
+  background-size: 200% 100%;
+  background-position: 0% 50%;
+  transition: background-position .35s ease, transform .15s ease, box-shadow .2s ease;
+  box-shadow: var(--shadow-cta);
+}
+.cta.cta--combat:hover { background-position: 100% 50%; }
+
+/* Full-screen combat overlay — wrap + scrollable body */
+.sheet--combat .sheet__panel--wide.combat-panel {
+  max-width: 720px;
+}
+.combat-panel {
+  background:
+    radial-gradient(70% 50% at 50% -8%, rgba(38, 230, 242, .18), transparent 70%),
+    radial-gradient(60% 40% at 50% 108%, rgba(255, 138, 43, .14), transparent 70%),
+    linear-gradient(180deg, #050912 0%, #04070d 60%);
+}
+
+/* Combat head — better hierarchy & chips */
+.combat-head {
+  flex-wrap: wrap;
+  gap: 10px 12px;
+}
+.combat-head__title {
+  display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  font-size: 19px;
+  background: linear-gradient(90deg, #fff 0%, #b9e8ee 60%, #ffb547 130%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.combat-head__meta {
+  flex-wrap: wrap; gap: 8px;
+}
+.combat-head__lvl, .combat-head__qp {
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--border-soft);
+}
+.combat-head__round {
+  margin-left: 4px;
+  background: rgba(38,230,242,.10);
+  color: #5ef9ff;
+  border: 1px solid rgba(38,230,242,.25);
+  letter-spacing: .08em;
+}
+.combat-head__xp {
+  width: 100%;
+  margin-top: 4px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--glass-1);
+  border: 1px solid var(--border-soft);
+}
+.combat-head__xp .combat-bar--xp { height: 6px; border-radius: 999px; }
+.combat-bar--xp .combat-bar__fill {
+  background: linear-gradient(90deg, #5ef9ff, #26e6f2 60%, #7b6cff);
+  box-shadow: 0 0 12px rgba(94,249,255,.45);
+}
+.combat-head__xp-num { font-size: 11.5px; }
+
+/* Combat status badges (mode/sync) — refined */
+.combat-mode {
+  padding: 4px 10px;
+  font-weight: 700;
+  border-radius: 999px;
+}
+.combat-mode.is-verified {
+  box-shadow: 0 0 12px rgba(38,230,242,.22);
+}
+.combat-sync { vertical-align: 1px; }
+
+/* Arena — game-arena composition */
+.combat-arena {
+  padding: 16px 14px 18px;
+  border-radius: 22px;
+  border: 1px solid var(--border-soft);
+  background:
+    radial-gradient(120% 80% at 50% -10%, rgba(255, 85, 119, .12), transparent 60%),
+    radial-gradient(120% 80% at 50% 110%, rgba(38, 230, 242, .10), transparent 60%),
+    linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.01));
+  box-shadow: var(--shadow-card);
+  gap: 12px;
+}
+
+/* HP rows — clearer typographic hierarchy */
+.combat-row__label {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: .12em;
+  color: rgba(255,255,255,.6);
+}
+.combat-row__hp { font-size: 12.5px; }
+.combat-row__hp b { color: #fff; font-weight: 800; }
+
+/* HP / energy bars — taller, glow, rounded */
+.combat-bar {
+  height: 10px;
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.15)),
+    rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.05);
+}
+.combat-bar__fill { border-radius: 999px; }
+.combat-bar--boss .combat-bar__fill {
+  background: linear-gradient(90deg, #ff3b6e 0%, #ff5577 40%, #ff8a2b 100%);
+  box-shadow: 0 0 12px rgba(255,85,119,.40);
+}
+.combat-bar--player .combat-bar__fill {
+  background: linear-gradient(90deg, #5ef9ff 0%, #26e6f2 60%, #7b6cff 100%);
+  box-shadow: 0 0 12px rgba(38,230,242,.40);
+}
+.combat-bar--energy { height: 7px; }
+.combat-bar--energy .combat-bar__fill {
+  background: linear-gradient(90deg, #ffb547, #ffe28a);
+  box-shadow: 0 0 10px rgba(255,181,71,.35);
+}
+
+/* Avatars — fighter & boss */
+.combat-avatar {
+  min-height: 122px;
+  border-radius: 18px;
+  background:
+    radial-gradient(80% 60% at 50% 0%, rgba(255,255,255,.04), transparent 70%),
+    rgba(255,255,255,.03);
+}
+.combat-avatar--boss {
+  background:
+    radial-gradient(80% 60% at 50% 0%, rgba(255, 85, 119, .18), transparent 70%),
+    linear-gradient(180deg, rgba(255, 85, 119, .08), rgba(255, 138, 43, .04));
+  border-color: rgba(255, 85, 119, .22);
+}
+.combat-avatar--fighter {
+  background:
+    radial-gradient(80% 60% at 50% 100%, rgba(38, 230, 242, .18), transparent 70%),
+    linear-gradient(180deg, rgba(38, 230, 242, .10), rgba(38, 230, 242, .02));
+  border-color: rgba(38, 230, 242, .25);
+}
+.combat-avatar__ring {
+  width: 108px; height: 108px;
+  border: 1px dashed rgba(255,255,255,.16);
+}
+.combat-avatar__tag {
+  margin-top: 8px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid var(--border-soft);
+  font-size: 11.5px;
+}
+.combat-avatar__mood {
+  margin-top: 6px;
+  font-weight: 700;
+  font-size: 9.5px;
+  color: rgba(255,255,255,.5);
+}
+
+/* Tap target — big, glowing, stable */
+.combat-tap {
+  width: 184px; height: 184px;
+  min-height: var(--tap-min);
+  border-width: 2px;
+  border-color: rgba(38, 230, 242, .55);
+  background:
+    radial-gradient(closest-side, rgba(38, 230, 242, .26), rgba(38, 230, 242, .05) 60%, transparent 80%),
+    radial-gradient(120% 120% at 30% 30%, rgba(255,255,255,.08), transparent 50%);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.04) inset,
+    0 18px 50px rgba(38, 230, 242, .25),
+    0 0 60px rgba(38, 230, 242, .18);
+  font-size: 12.5px;
+  letter-spacing: .14em;
+  transition: transform .12s ease, border-color .15s ease, box-shadow .25s ease;
+}
+.combat-tap:active { transform: scale(.96); }
+.combat-tap.is-active {
+  border-color: #ffb547;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.06) inset,
+    0 18px 48px rgba(255, 138, 43, .35),
+    0 0 60px rgba(255, 138, 43, .22);
+}
+.combat-tap__pulse { inset: -8px; }
+.combat-tap__core {
+  inset: 26px;
+  background: radial-gradient(closest-side, rgba(255, 138, 43, .40), transparent 70%);
+}
+.combat-tap[disabled] { opacity: .35; box-shadow: none; }
+
+/* Combat status — pill-style, more readable */
+.combat-status {
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.03);
+  border: 1px solid var(--border-soft);
+  font-size: 12.5px;
+  align-self: center;
+  display: inline-block;
+}
+.combat-status:empty { display: none; }
+.combat-status.is-win {
+  background: rgba(38,230,242,.08);
+  border-color: rgba(38,230,242,.30);
+}
+.combat-status.is-loss {
+  background: rgba(255,85,119,.10);
+  border-color: rgba(255,85,119,.30);
+}
+
+/* Stars boost packs — premium card row */
+.combat-stars__head h2 {
+  font-size: 15px;
+  letter-spacing: .02em;
+}
+.combat-stars__head .muted { font-size: 12.5px; }
+.combat-pack {
+  grid-template-columns: 44px 1fr auto;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid var(--border-soft);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.01)),
+    rgba(255,255,255,.02);
+  transition: border-color .2s ease, transform .15s ease;
+}
+.combat-pack:hover { border-color: var(--border-strong); }
+.combat-pack[data-pack="energy"]  .combat-pack__ico {
+  background: linear-gradient(135deg, rgba(255,181,71,.20), rgba(255,181,71,.05));
+  color: #ffb547;
+}
+.combat-pack[data-pack="damage"]  .combat-pack__ico {
+  background: linear-gradient(135deg, rgba(255,85,119,.20), rgba(255,85,119,.05));
+  color: #ff7a93;
+}
+.combat-pack[data-pack="revive"]  .combat-pack__ico {
+  background: linear-gradient(135deg, rgba(38,230,242,.20), rgba(38,230,242,.05));
+  color: #5ef9ff;
+}
+.combat-pack__ico {
+  width: 44px; height: 44px;
+  border-radius: 14px;
+  border: 1px solid var(--border-soft);
+}
+.combat-pack__body b { font-size: 13.5px; letter-spacing: .01em; }
+.combat-pack__body p { margin-top: 3px; font-size: 11.5px; line-height: 1.45; }
+.combat-pack__owned {
+  margin-top: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--border-soft);
+  display: inline-block;
+  font-size: 10px;
+  letter-spacing: .04em;
+}
+.combat-pack__buy {
+  padding: 10px 14px;
+  border-radius: 14px;
+  min-width: 84px;
+  min-height: var(--tap-min);
+  background: linear-gradient(135deg, #ff8a2b 0%, #ffb547 100%);
+  box-shadow: 0 6px 18px rgba(255, 138, 43, .32), 0 1px 0 rgba(255,255,255,.18) inset;
+  transition: transform .15s ease, box-shadow .2s ease, opacity .2s ease;
+}
+.combat-pack__buy:active { transform: translateY(1px) scale(.97); }
+.combat-pack__price { font-size: 14px; letter-spacing: .02em; }
+.combat-stars__note { color: rgba(255,255,255,.62); }
+
+/* Combat daily / claim chip — match pill system */
+.combat-stats { gap: 16px; }
+.combat-stat b { font-size: 17px; }
+.combat-stat__btn {
+  padding: 8px 14px;
+  min-height: var(--tap-min);
+  font-size: 11.5px;
+  letter-spacing: .06em;
+  background: linear-gradient(135deg, rgba(38,230,242,.18), rgba(38,230,242,.06));
+  box-shadow: 0 0 0 1px rgba(38,230,242,.18) inset;
+}
+
+/* Leaderboard placeholder — visually richer */
+.combat-board {
+  margin-top: 16px;
+  padding: 14px;
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.01)),
+    rgba(255,255,255,.02);
+  border: 1px solid var(--border-soft);
+}
+.combat-board h2 { font-size: 13px; }
+.combat-board__self {
+  margin-top: 6px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(38,230,242,.06);
+  border: 1px solid rgba(38,230,242,.18);
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+.combat-board__rank {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(38,230,242,.12);
+  border: 1px solid rgba(38,230,242,.30);
+}
+.combat-board__qp b, .combat-board__lvl b { font-size: 14px; }
+
+/* =====================================================================
+   Cross-screen polish — Market, Signals, AI, Profile
+   ===================================================================== */
+
+/* Hero card — slightly richer */
+.hero-card {
+  border-radius: 22px;
+  background:
+    radial-gradient(80% 60% at 0% 0%, rgba(38, 230, 242, .08), transparent 65%),
+    linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.012));
+}
+
+/* Last-signal card — accent edge */
+.last-signal {
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.012));
+}
+
+/* AI radar card — accent ring */
+.ai-summary--radar {
+  border-radius: 18px;
+}
+
+/* Market matrix cells — subtler border, glassier */
+.matrix-cell {
+  background: var(--glass-1);
+  border-radius: 14px;
+}
+.matrix-cell:hover { border-color: var(--border-strong); }
+
+/* Coin chips */
+.coin-chip {
+  border-radius: 999px;
+  border-color: var(--border-soft);
+}
+.coin-chip.is-active {
+  background: rgba(38,230,242,.10);
+  border-color: rgba(38,230,242,.35);
+}
+
+/* Market search */
+.market-search__input {
+  border-radius: 12px;
+  border-color: var(--border-soft);
+}
+.market-search__input:focus {
+  border-color: var(--border-strong);
+  box-shadow: 0 0 0 3px rgba(38,230,242,.10);
+}
+
+/* Signals list cards */
+.signal-card {
+  border-radius: 16px;
+  background: var(--glass-1);
+  border-color: var(--border-soft);
+  box-shadow: var(--shadow-card);
+}
+
+/* AI screen */
+.ai-intro {
+  border-radius: 16px;
+  background: var(--glass-1);
+  border: 1px solid var(--border-soft);
+}
+.ai-compose {
+  border-radius: 14px;
+  background: var(--surface-1);
+  border: 1px solid var(--border-soft);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.ai-compose input {
+  background: transparent;
+}
+
+/* Profile */
+.profile-card {
+  border-radius: 18px;
+  background: var(--glass-1);
+}
+.row-line {
+  border-color: var(--border-soft);
+}
+
+/* KPI cards */
+.kpi {
+  border-radius: 16px;
+  background: var(--glass-1);
+  border: 1px solid var(--border-soft);
+  box-shadow: var(--shadow-card);
+}
+
+/* Boot splash polish — slightly richer ambient */
+.boot-splash {
+  background:
+    radial-gradient(60% 40% at 50% 0%, rgba(38,230,242,.10), transparent 70%),
+    radial-gradient(60% 40% at 50% 100%, rgba(255,138,43,.08), transparent 70%),
+    #04070d;
+}
+
+/* Reduced motion safety net — disable decorative animations */
+@media (prefers-reduced-motion: reduce) {
+  .combat-cta__glow,
+  .combat-avatar__ring,
+  .combat-tap__pulse,
+  .combat-bar__fill,
+  .cta.cta--combat,
+  .combat-pack__buy { animation: none !important; transition: none !important; }
+}
+
+/* Narrow phones */
+@media (max-width: 360px) {
+  .combat-tap { width: 152px; height: 152px; }
+  .combat-cta { margin: 12px 12px 0; padding: 14px; }
+  .combat-cta__stat { padding: 3px 8px; }
+  .combat-head__title { font-size: 17px; }
+}
+
+/* Slightly wider phones — more breathing room */
+@media (min-width: 420px) {
+  .combat-arena { padding: 18px 18px 22px; }
+  .combat-tap { width: 200px; height: 200px; }
+}
+

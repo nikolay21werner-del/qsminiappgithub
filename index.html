@@ -170,9 +170,18 @@
             <span class="combat-cta__badge" data-i18n="combatTitle">Crypto Combat</span>
             <p class="combat-cta__sub" data-i18n="combatSub">Tap-to-fight the market boss</p>
             <div class="combat-cta__row">
-              <span class="combat-cta__qp">
-                <b id="combat-cta-balance">0</b>
-                <em data-i18n="combatRewardName">QP</em>
+              <span class="combat-cta__stats">
+                <span class="combat-cta__stat combat-cta__stat--qp">
+                  <em data-i18n="combatRewardName">QP</em>
+                  <b id="combat-cta-balance">0</b>
+                </span>
+                <span class="combat-cta__stat combat-cta__stat--lvl">
+                  <em data-i18n="combatLevel">Level</em>
+                  <b id="combat-cta-level">1</b>
+                </span>
+                <span class="combat-cta__qp" hidden aria-hidden="true">
+                  <b>0</b><em>QP</em>
+                </span>
               </span>
               <button class="cta cta--combat" type="button" data-action="open-combat" data-testid="combat-cta-button">
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
