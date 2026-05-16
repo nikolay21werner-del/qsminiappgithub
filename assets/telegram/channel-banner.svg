@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720" role="img" aria-label="QUANTSIGNAL AI — канал">
+  <defs>
+    <linearGradient id="cbg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#05060A"/>
+      <stop offset="55%" stop-color="#0A0F1C"/>
+      <stop offset="100%" stop-color="#101a2e"/>
+    </linearGradient>
+    <radialGradient id="cglow" cx="20%" cy="20%" r="60%">
+      <stop offset="0%" stop-color="#3A8DFF" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#3A8DFF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="cqStroke" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#5EF9FF"/>
+      <stop offset="100%" stop-color="#3A8DFF"/>
+    </linearGradient>
+    <pattern id="cgrid" x="0" y="0" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0 L0 0 0 48" fill="none" stroke="#8A9BB5" stroke-opacity="0.06" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="1280" height="720" fill="url(#cbg)"/>
+  <rect width="1280" height="720" fill="url(#cgrid)"/>
+  <rect width="1280" height="720" fill="url(#cglow)"/>
+
+  <g transform="translate(640 300)">
+    <circle cx="0" cy="0" r="120" fill="none" stroke="url(#cqStroke)" stroke-width="34" stroke-linecap="round"/>
+    <path d="M60 60 L132 132" stroke="url(#cqStroke)" stroke-width="34" stroke-linecap="round"/>
+  </g>
+
+  <text x="640" y="510" fill="#E9EEF7" font-family="Inter, Segoe UI, sans-serif" font-size="68" font-weight="800" letter-spacing="10" text-anchor="middle">QUANTSIGNAL AI</text>
+  <text x="640" y="556" fill="#7AB4FF" font-family="Inter, Segoe UI, sans-serif" font-size="22" letter-spacing="6" text-anchor="middle">ПРЕМИУМ-АНАЛИТИКА КРИПТОРЫНКА</text>
+  <text x="640" y="612" fill="#8A9BB5" font-family="Inter, Segoe UI, sans-serif" font-size="18" letter-spacing="2" text-anchor="middle">t.me/QUANTSIGNAL_AI · @QUANTSIGNAL_AI_BOT</text>
+</svg>

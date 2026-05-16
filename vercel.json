@@ -14,6 +14,10 @@
     "api/channel/post.js": {
       "memory": 256,
       "maxDuration": 20
+    },
+    "api/telegram/bot-webhook.js": {
+      "memory": 256,
+      "maxDuration": 15
     }
   },
   "headers": [

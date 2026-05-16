@@ -157,9 +157,12 @@ must("app.js still wires Bybit market",
   /\/api\/bybit\//.test(app) || /bybit/.test(app));
 must("app.js still wires AI chat",
   /\/api\/ai\/chat/.test(app) || /QSI_AI|aiChat|ai-chat/.test(app));
-must("no Stars boost or combat endpoints in vercel.json",
+// Only legacy game endpoints are forbidden; the QUANTSIGNAL AI bot
+// brand webhook (api/telegram/bot-webhook.js) is allowed.
+must("no Stars boost / combat / legacy game-webhook endpoints in vercel.json",
   !Object.keys(vercel.functions || {}).some(f =>
-    f.startsWith("api/combat/") || f.startsWith("api/stars/") || f.startsWith("api/telegram/")));
+    f.startsWith("api/combat/") || f.startsWith("api/stars/") ||
+    f === "api/telegram/webhook.js" || f.startsWith("api/telegram/webhook")));
 must("no resurrected combat module in app.js",
   !/QSI_COMBAT/.test(app) && !/var\s+combat\s*=\s*\(function/.test(app));
 

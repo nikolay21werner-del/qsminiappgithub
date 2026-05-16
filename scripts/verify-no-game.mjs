@@ -79,14 +79,19 @@ must("no api/combat/* function in vercel.json",
   !fns.some(f => f.startsWith("api/combat/")));
 must("no api/stars/* function in vercel.json",
   !fns.some(f => f.startsWith("api/stars/")));
-must("no api/telegram/webhook function in vercel.json",
-  !fns.some(f => f.startsWith("api/telegram/")));
+// The QUANTSIGNAL AI bot-webhook (api/telegram/bot-webhook.js) is a
+// brand/onboarding endpoint, not a game webhook. Only the legacy
+// game webhook path is forbidden here.
+must("no legacy api/telegram/webhook (game) function in vercel.json",
+  !fns.some(f => f === "api/telegram/webhook.js" || f.startsWith("api/telegram/webhook")));
 
 // ---- 6. Filesystem: removed endpoint files / verify scripts ------------
 const removedPaths = [
   "api/combat",
   "api/stars",
-  "api/telegram",
+  // api/telegram/ is allowed for non-game endpoints (bot brand webhook).
+  // The legacy game webhook file is the only thing forbidden:
+  "api/telegram/webhook.js",
   "api/_lib/combat-logic.js",
   "api/_lib/telegram-auth.js",
   "scripts/verify-game.mjs",
@@ -135,9 +140,13 @@ function walk(dir, out = []) {
   return out;
 }
 const apiFiles = existsSync(join(root, "api")) ? walk(join(root, "api")) : [];
-must("api/ tree contains no combat/stars/telegram files",
-  apiFiles.every(p => !/\/(combat|stars|telegram)\//.test(p)
-                   && !/combat-logic|telegram-auth/.test(p)));
+// Only forbid game-related api files. The bot brand webhook
+// (api/telegram/bot-webhook.js) is allowed; legacy game telegram
+// webhook (api/telegram/webhook.js) is not.
+must("api/ tree contains no combat/stars/legacy-telegram-game files",
+  apiFiles.every(p => !/\/(combat|stars)\//.test(p)
+                   && !/combat-logic|telegram-auth/.test(p)
+                   && !/\/api\/telegram\/webhook\.js$/.test(p)));
 for (const p of [join(root, "app.js"), join(root, "i18n.js"), join(root, "api.js"), ...apiFiles]) {
   try {
     execFileSync(process.execPath, ["--check", p], { stdio: "pipe" });

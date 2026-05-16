@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720" role="img" aria-label="QUANTSIGNAL AI — приветствие">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#05060A"/>
+      <stop offset="60%" stop-color="#0A0F1C"/>
+      <stop offset="100%" stop-color="#101a2e"/>
+    </linearGradient>
+    <radialGradient id="glowL" cx="12%" cy="8%" r="40%">
+      <stop offset="0%" stop-color="#8A5CFF" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#8A5CFF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowR" cx="92%" cy="92%" r="50%">
+      <stop offset="0%" stop-color="#22D3C0" stop-opacity="0.40"/>
+      <stop offset="100%" stop-color="#22D3C0" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="qStroke" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#5EF9FF"/>
+      <stop offset="50%" stop-color="#22D3C0"/>
+      <stop offset="100%" stop-color="#3A8DFF"/>
+    </linearGradient>
+    <linearGradient id="arrow" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#8A5CFF"/>
+      <stop offset="100%" stop-color="#3A8DFF"/>
+    </linearGradient>
+    <linearGradient id="chartUp" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#22D38A" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#22D38A" stop-opacity="0.7"/>
+    </linearGradient>
+    <pattern id="grid" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0 L0 0 0 40" fill="none" stroke="#8A9BB5" stroke-opacity="0.06" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1280" height="720" fill="#05060A"/>
+  <rect x="32" y="32" width="1216" height="656" rx="28" ry="28" fill="url(#bg)" stroke="#8A9BB5" stroke-opacity="0.22"/>
+  <rect x="32" y="32" width="1216" height="656" rx="28" ry="28" fill="url(#grid)"/>
+  <rect x="32" y="32" width="1216" height="656" rx="28" ry="28" fill="url(#glowL)"/>
+  <rect x="32" y="32" width="1216" height="656" rx="28" ry="28" fill="url(#glowR)"/>
+
+  <!-- Q mark, left -->
+  <g transform="translate(180 300)">
+    <circle cx="0" cy="0" r="110" fill="none" stroke="url(#qStroke)" stroke-width="32" stroke-linecap="round"/>
+    <path d="M55 55 L120 120" stroke="url(#qStroke)" stroke-width="32" stroke-linecap="round"/>
+    <path d="M-50 40 L30 -40" stroke="url(#arrow)" stroke-width="22" stroke-linecap="round"/>
+    <path d="M30 -40 L30 -76 M30 -40 L-6 -40" stroke="url(#arrow)" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Brand wordmark -->
+  <g transform="translate(340 220)">
+    <text x="0" y="0" fill="#E9EEF7" font-family="Inter, Segoe UI, sans-serif" font-size="64" font-weight="800" letter-spacing="6">QUANTSIGNAL</text>
+    <text x="0" y="64" fill="#7AB4FF" font-family="Inter, Segoe UI, sans-serif" font-size="52" font-weight="800" letter-spacing="20">AI</text>
+    <text x="0" y="118" fill="#8A9BB5" font-family="Inter, Segoe UI, sans-serif" font-size="22" letter-spacing="3">Премиум-аналитика крипторынка</text>
+  </g>
+
+  <!-- Russian welcome line -->
+  <text x="340" y="430" fill="#E9EEF7" font-family="Inter, Segoe UI, sans-serif" font-size="34" font-weight="700">Добро пожаловать в торговый терминал</text>
+  <text x="340" y="472" fill="#8A9BB5" font-family="Inter, Segoe UI, sans-serif" font-size="22">Живой рынок · AI-аналитика · Сигналы · Управление риском</text>
+
+  <!-- Feature pills -->
+  <g transform="translate(340 510)" font-family="Inter, Segoe UI, sans-serif" font-size="18" font-weight="700">
+    <g transform="translate(0 0)">
+      <rect x="0" y="0" rx="14" ry="14" width="148" height="40" fill="#3A8DFF" fill-opacity="0.20" stroke="#3A8DFF" stroke-opacity="0.75"/>
+      <text x="74" y="26" fill="#7AB4FF" text-anchor="middle">📈 Живой рынок</text>
+    </g>
+    <g transform="translate(164 0)">
+      <rect x="0" y="0" rx="14" ry="14" width="172" height="40" fill="#8A5CFF" fill-opacity="0.20" stroke="#8A5CFF" stroke-opacity="0.75"/>
+      <text x="86" y="26" fill="#C9B6FF" text-anchor="middle">🤖 AI-аналитика</text>
+    </g>
+    <g transform="translate(352 0)">
+      <rect x="0" y="0" rx="14" ry="14" width="136" height="40" fill="#22D3C0" fill-opacity="0.20" stroke="#22D3C0" stroke-opacity="0.75"/>
+      <text x="68" y="26" fill="#7CE5DA" text-anchor="middle">⚡️ Сигналы</text>
+    </g>
+  </g>
+
+  <!-- Candle chart, right -->
+  <g transform="translate(780 250)">
+    <rect x="0" y="0" rx="16" ry="16" width="420" height="240" fill="#070B14" fill-opacity="0.55" stroke="#8A9BB5" stroke-opacity="0.18"/>
+    <!-- grid lines -->
+    <g stroke="#8A9BB5" stroke-opacity="0.18" stroke-width="1">
+      <line x1="10" y1="50"  x2="410" y2="50"/>
+      <line x1="10" y1="100" x2="410" y2="100"/>
+      <line x1="10" y1="150" x2="410" y2="150"/>
+      <line x1="10" y1="200" x2="410" y2="200"/>
+    </g>
+    <!-- area under trend -->
+    <path d="M20 200 L60 180 L100 190 L140 160 L180 150 L220 130 L260 120 L300 90 L340 80 L380 50 L400 60 L400 220 L20 220 Z"
+          fill="url(#chartUp)" opacity="0.65"/>
+    <!-- trend line -->
+    <path d="M20 200 L60 180 L100 190 L140 160 L180 150 L220 130 L260 120 L300 90 L340 80 L380 50 L400 60"
+          fill="none" stroke="#22D38A" stroke-width="3"/>
+    <!-- candles -->
+    <g>
+      <rect x="40"  y="170" width="10" height="20" fill="#22D38A"/>
+      <line x1="45" y1="160" x2="45" y2="200" stroke="#22D38A" stroke-width="1.5"/>
+      <rect x="90"  y="180" width="10" height="14" fill="#FF5C7A"/>
+      <line x1="95" y1="170" x2="95" y2="200" stroke="#FF5C7A" stroke-width="1.5"/>
+      <rect x="140" y="148" width="10" height="22" fill="#22D38A"/>
+      <line x1="145" y1="138" x2="145" y2="178" stroke="#22D38A" stroke-width="1.5"/>
+      <rect x="190" y="130" width="10" height="26" fill="#22D38A"/>
+      <line x1="195" y1="120" x2="195" y2="170" stroke="#22D38A" stroke-width="1.5"/>
+      <rect x="240" y="118" width="10" height="20" fill="#22D38A"/>
+      <line x1="245" y1="110" x2="245" y2="145" stroke="#22D38A" stroke-width="1.5"/>
+      <rect x="290" y="88"  width="10" height="20" fill="#22D38A"/>
+      <line x1="295" y1="78"  x2="295" y2="120" stroke="#22D38A" stroke-width="1.5"/>
+      <rect x="340" y="68"  width="10" height="22" fill="#22D38A"/>
+      <line x1="345" y1="58"  x2="345" y2="102" stroke="#22D38A" stroke-width="1.5"/>
+      <rect x="380" y="50"  width="10" height="22" fill="#22D38A"/>
+      <line x1="385" y1="40"  x2="385" y2="84"  stroke="#22D38A" stroke-width="1.5"/>
+    </g>
+    <!-- price chip -->
+    <g transform="translate(330 36)">
+      <rect x="0" y="0" rx="6" ry="6" width="86" height="28" fill="#3A8DFF"/>
+      <text x="43" y="19" fill="#FFFFFF" font-family="Inter, Segoe UI, sans-serif" font-size="14" font-weight="700" text-anchor="middle">BTC ▲</text>
+    </g>
+  </g>
+
+  <!-- Bot footer -->
+  <text x="64" y="660" fill="#8A9BB5" font-family="Inter, Segoe UI, sans-serif" font-size="14">Не финансовая рекомендация. Управляйте риском.</text>
+  <text x="1216" y="660" fill="#7AB4FF" font-family="Inter, Segoe UI, sans-serif" font-size="14" font-weight="700" letter-spacing="2" text-anchor="end">t.me/QUANTSIGNAL_AI_BOT</text>
+</svg>
