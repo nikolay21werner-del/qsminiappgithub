@@ -1268,6 +1268,15 @@
 
   function wireEvents() {
     document.addEventListener("click", function (e) {
+      var tapBtn = e.target.closest("#combat-tap");
+      if (tapBtn) {
+        if (!tapBtn.hasAttribute("disabled")) {
+          tapBtn.classList.add("is-active");
+          setTimeout(function () { tapBtn.classList.remove("is-active"); }, 120);
+          combat.tap(e);
+        }
+        return;
+      }
       var navBtn = e.target.closest("[data-nav]");
       if (navBtn) {
         haptic("light");
@@ -1389,6 +1398,7 @@
       if (e.key === "Escape") {
         closeSheet("#signal-sheet");
         closeSheet("#roadmap-sheet");
+        if (combat && combat.isOpen && combat.isOpen()) combat.close();
       }
     });
   }
@@ -1432,6 +1442,22 @@
         closeSheet("#roadmap-sheet");
         haptic("selection");
         break;
+      case "open-combat":
+        combat.open();
+        break;
+      case "close-combat":
+        combat.close();
+        break;
+      case "combat-reset":
+        combat.reset();
+        break;
+      case "combat-claim":
+        combat.claim();
+        break;
+      case "combat-buy":
+        var packId = el && el.getAttribute && el.getAttribute("data-pack");
+        combat.buy(packId);
+        break;
       default: break;
     }
   }
@@ -1466,6 +1492,7 @@
     applyHeroSnapshot();
     if (state.screen === "market") renderMarketScreen();
     if (state.screen === "signals") renderSignalsScreen();
+    if (combat && combat.onTickerUpdate) combat.onTickerUpdate();
     renderKPIs();
     applyConnectionStatus();
   }
@@ -1478,6 +1505,432 @@
     if (st.lastUpdateTs) state.status.lastUpdateTs = st.lastUpdateTs;
     applyConnectionStatus();
   }
+
+  // ---------- Crypto Combat (in-app tap-to-fight game) ----------
+  //
+  // Mobile-first tap game. Reads the LIVE ticker for state.selectedSymbol when
+  // available so the boss's HP / mood derive from the actual 24h move and
+  // volatility. Gracefully falls back to neutral defaults if the market store
+  // is empty (e.g. cold start / network issues).
+  //
+  // Stars payments: the FE NEVER hard-codes a token. We POST to the same-origin
+  // /api/stars/create-invoice endpoint, then call Telegram.WebApp.openInvoice
+  // with the returned invoice link. Outside Telegram we show a non-broken
+  // fallback message and disable the buy buttons.
+  var combat = (function () {
+    var STARS_ENDPOINT = (window.QSI_API_BASE || "") + "/api/stars/create-invoice";
+
+    var s = {
+      open: false,
+      level: 1,
+      balance: 0,
+      playerHpMax: 100,
+      playerHp: 100,
+      bossHpMax: 100,
+      bossHp: 100,
+      energyMax: 100,
+      energy: 100,
+      combo: 0,
+      comboTimer: 0,
+      damageBoost: false,
+      dailyClaimedTs: 0,
+      lastSym: null,
+      _energyTimer: null,
+      _statusTimer: null
+    };
+
+    function el(id) { return document.getElementById(id); }
+    function pct(v, m) { return Math.max(0, Math.min(100, (v / m) * 100)); }
+
+    function pickTicker() {
+      try {
+        var sym = state.selectedSymbol || "BTCUSDT";
+        return state.tickerMap && state.tickerMap[sym] ? state.tickerMap[sym] : null;
+      } catch (e) { return null; }
+    }
+
+    function bossParamsFromTicker(t) {
+      // Boss HP scales with level. Mood/volatility reflects 24h change magnitude.
+      var base = 100 + (s.level - 1) * 40;
+      var moodKey = "combatVolatilityMid";
+      if (t && typeof t.change_pct_24h === "number") {
+        var mag = Math.abs(t.change_pct_24h);
+        if (mag >= 4)      { base = Math.round(base * 1.35); moodKey = "combatVolatilityHi"; }
+        else if (mag >= 1.5) { moodKey = "combatVolatilityMid"; }
+        else                 { base = Math.round(base * 0.9);  moodKey = "combatVolatilityLow"; }
+      }
+      return { hpMax: base, moodKey: moodKey };
+    }
+
+    function applyAvatars() {
+      var sym = state.selectedSymbol || "BTCUSDT";
+      var key = coinKey(sym);
+      var label = coinBrand(sym).label;
+      var mark = el("combat-fighter-mark");
+      var avatar = el("combat-fighter-avatar");
+      var tag = el("combat-fighter-tag");
+      if (mark) mark.innerHTML = coinLogoSVG(sym);
+      if (avatar) avatar.setAttribute("data-coin", key);
+      if (tag) tag.textContent = label;
+
+      // Boss avatar derives from a peer of the player's coin so the fight
+      // feels different per selection without ever clashing identities.
+      var bossSym = bossSymbolFor(sym);
+      var bossKey = coinKey(bossSym);
+      var bossLabel = coinBrand(bossSym).label;
+      var bossMark = el("combat-boss-mark");
+      var bossAvatar = el("combat-boss-avatar");
+      var bossTag = el("combat-boss-tag");
+      if (bossMark) bossMark.innerHTML = coinLogoSVG(bossSym);
+      if (bossAvatar) bossAvatar.setAttribute("data-coin", bossKey);
+      if (bossTag) bossTag.textContent = bossLabel;
+    }
+
+    function bossSymbolFor(sym) {
+      var short = shortSym(sym).toUpperCase();
+      var ladder = ["BTC", "ETH", "SOL", "BNB", "TON", "XRP", "DOGE", "ADA", "AVAX"];
+      var idx = ladder.indexOf(short);
+      if (idx < 0) return "BTCUSDT";
+      var nextIdx = (idx + 1) % ladder.length;
+      return ladder[nextIdx] + "USDT";
+    }
+
+    function render() {
+      var bossBar = el("combat-boss-bar");
+      var playerBar = el("combat-player-bar");
+      var energyBar = el("combat-energy-bar");
+      if (bossBar) bossBar.style.width = pct(s.bossHp, s.bossHpMax) + "%";
+      if (playerBar) playerBar.style.width = pct(s.playerHp, s.playerHpMax) + "%";
+      if (energyBar) energyBar.style.width = pct(s.energy, s.energyMax) + "%";
+
+      setText("#combat-boss-hp", String(Math.max(0, Math.round(s.bossHp))));
+      setText("#combat-boss-hp-max", String(s.bossHpMax));
+      setText("#combat-player-hp", String(Math.max(0, Math.round(s.playerHp))));
+      setText("#combat-player-hp-max", String(s.playerHpMax));
+      setText("#combat-energy", String(Math.max(0, Math.round(s.energy))));
+      setText("#combat-energy-max", String(s.energyMax));
+      setText("#combat-level", String(s.level));
+      setText("#combat-balance", String(s.balance));
+      setText("#combat-cta-balance", String(s.balance));
+      setText("#combat-combo", "×" + Math.max(1, Math.round(s.combo + 1)));
+
+      var moodEl = el("combat-boss-mood");
+      if (moodEl && moodEl.getAttribute("data-i18n")) {
+        moodEl.textContent = I18N.t(moodEl.getAttribute("data-i18n"));
+      }
+      var tap = el("combat-tap");
+      if (tap) {
+        var dead = s.playerHp <= 0 || s.bossHp <= 0 || s.energy < 1;
+        if (dead) tap.setAttribute("disabled", "disabled");
+        else tap.removeAttribute("disabled");
+      }
+      var claimBtn = el("combat-claim-btn");
+      if (claimBtn) {
+        var today = new Date().toISOString().slice(0, 10);
+        var lastDay = s.dailyClaimedTs ? new Date(s.dailyClaimedTs).toISOString().slice(0, 10) : null;
+        if (lastDay === today) {
+          claimBtn.setAttribute("disabled", "disabled");
+          claimBtn.firstElementChild && (claimBtn.firstElementChild.textContent = I18N.t("combatClaimed"));
+        } else {
+          claimBtn.removeAttribute("disabled");
+          claimBtn.firstElementChild && (claimBtn.firstElementChild.textContent = I18N.t("combatClaim"));
+        }
+      }
+    }
+
+    function setStatus(msg, cls) {
+      var st = el("combat-status");
+      if (!st) return;
+      st.classList.remove("is-win", "is-loss");
+      if (cls) st.classList.add(cls);
+      st.textContent = msg || "";
+      if (s._statusTimer) clearTimeout(s._statusTimer);
+      if (msg) {
+        s._statusTimer = setTimeout(function () {
+          if (st && st.textContent === msg) st.textContent = "";
+        }, 3500);
+      }
+    }
+
+    function syncFromMarket() {
+      var t = pickTicker();
+      var p = bossParamsFromTicker(t);
+      // Only re-roll boss stats when the symbol changes or a new round starts —
+      // never on every realtime tick (that would yank the game out from under
+      // the player's tap). This preserves tap stability.
+      var sym = state.selectedSymbol;
+      if (sym !== s.lastSym) {
+        s.lastSym = sym;
+        s.bossHpMax = p.hpMax;
+        s.bossHp = p.hpMax;
+        applyAvatars();
+      }
+      // Mood text always reflects live volatility.
+      var moodEl = el("combat-boss-mood");
+      if (moodEl) moodEl.setAttribute("data-i18n", p.moodKey);
+    }
+
+    function tapAttack(evt) {
+      if (!s.open) return;
+      if (s.playerHp <= 0 || s.bossHp <= 0) return;
+      if (s.energy < 1) {
+        setStatus(I18N.t("combatEnergy") + " 0", "is-loss");
+        return;
+      }
+      s.energy = Math.max(0, s.energy - 1);
+      s.combo += 1;
+      s.comboTimer = Date.now();
+      var crit = Math.random() < 0.15;
+      var base = 8 + Math.floor(Math.random() * 5);
+      var dmg = base + Math.min(10, Math.floor(s.combo / 3));
+      if (crit) dmg = Math.round(dmg * 2.2);
+      if (s.damageBoost) dmg = Math.round(dmg * 1.5);
+      s.bossHp = Math.max(0, s.bossHp - dmg);
+
+      spawnFx(dmg, crit, evt);
+      shake("combat-boss-avatar");
+      haptic(crit ? "success" : "light");
+
+      // Boss counter-attack: small chance, never lethal in one tap.
+      if (Math.random() < 0.18 && s.bossHp > 0) {
+        var counter = 3 + Math.floor(Math.random() * 4);
+        s.playerHp = Math.max(0, s.playerHp - counter);
+        shake("combat-fighter-avatar");
+      }
+
+      if (s.bossHp <= 0) {
+        winRound();
+      } else if (s.playerHp <= 0) {
+        loseRound();
+      }
+      render();
+    }
+
+    function shake(id) {
+      var n = el(id);
+      if (!n) return;
+      n.classList.remove("is-hit");
+      // Force reflow without breaking event delegation paths.
+      void n.offsetWidth;
+      n.classList.add("is-hit");
+    }
+
+    function spawnFx(dmg, crit, evt) {
+      var fx = el("combat-fx");
+      if (!fx) return;
+      var span = document.createElement("span");
+      span.className = "combat-fx__pop" + (crit ? " is-crit" : "");
+      span.textContent = (crit ? "CRIT " : "") + "-" + dmg;
+      // Position around the tap circle horizontally
+      var rect = fx.getBoundingClientRect();
+      var x = 50;
+      if (evt && evt.clientX && rect.width) {
+        x = ((evt.clientX - rect.left) / rect.width) * 100;
+        x = Math.max(15, Math.min(85, x));
+      }
+      span.style.left = x + "%";
+      span.style.top = "-32px";
+      fx.appendChild(span);
+      setTimeout(function () {
+        if (span.parentNode) span.parentNode.removeChild(span);
+      }, 800);
+    }
+
+    function winRound() {
+      var reward = 10 + s.level * 5;
+      s.balance += reward;
+      s.level += 1;
+      s.damageBoost = false;
+      setStatus(I18N.t("combatVictory") + " +" + reward + " " + I18N.t("combatRewardName"), "is-win");
+      haptic("success");
+      // Next boss appears immediately, but we re-derive HP from live volatility.
+      var t = pickTicker();
+      var p = bossParamsFromTicker(t);
+      s.bossHpMax = p.hpMax;
+      s.bossHp = p.hpMax;
+      s.combo = 0;
+    }
+
+    function loseRound() {
+      setStatus(I18N.t("combatDefeat"), "is-loss");
+      haptic("error");
+      s.combo = 0;
+    }
+
+    function resetRound() {
+      s.playerHp = s.playerHpMax;
+      s.energy = s.energyMax;
+      s.combo = 0;
+      var t = pickTicker();
+      var p = bossParamsFromTicker(t);
+      s.bossHpMax = p.hpMax;
+      s.bossHp = p.hpMax;
+      setStatus("", null);
+      render();
+      haptic("selection");
+    }
+
+    function startEnergyRegen() {
+      if (s._energyTimer) clearInterval(s._energyTimer);
+      s._energyTimer = setInterval(function () {
+        if (!s.open) return;
+        if (s.energy < s.energyMax) {
+          s.energy = Math.min(s.energyMax, s.energy + 1);
+          render();
+        }
+      }, 1500);
+    }
+
+    function claimDaily() {
+      var today = new Date().toISOString().slice(0, 10);
+      var lastDay = s.dailyClaimedTs ? new Date(s.dailyClaimedTs).toISOString().slice(0, 10) : null;
+      if (lastDay === today) return;
+      s.dailyClaimedTs = Date.now();
+      s.balance += 25;
+      setStatus("+25 " + I18N.t("combatRewardName"), "is-win");
+      haptic("success");
+      render();
+    }
+
+    function isInsideTelegram() {
+      try {
+        return !!(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData);
+      } catch (e) { return false; }
+    }
+
+    function applyPaidBoost(packId) {
+      if (packId === "energy") {
+        s.energy = s.energyMax;
+      } else if (packId === "damage") {
+        s.damageBoost = true;
+      } else if (packId === "revive") {
+        s.playerHp = s.playerHpMax;
+        s.energy = Math.max(s.energy, Math.round(s.energyMax * 0.6));
+      } else if (packId === "starter") {
+        s.energy = s.energyMax;
+        s.damageBoost = true;
+      }
+      setStatus(I18N.t("combatPaid"), "is-win");
+      haptic("success");
+      render();
+    }
+
+    function setBuyButtonsBusy(busy) {
+      var btns = document.querySelectorAll('[data-action="combat-buy"]');
+      for (var i = 0; i < btns.length; i++) {
+        if (busy) btns[i].setAttribute("disabled", "disabled");
+        else btns[i].removeAttribute("disabled");
+      }
+    }
+
+    function setStarsNote(msg) {
+      var n = el("combat-stars-note");
+      if (n) n.textContent = msg || "";
+    }
+
+    async function buyPack(packId) {
+      if (!packId) return;
+      // Non-Telegram fallback: never break the flow, never auto-open anything.
+      if (!isInsideTelegram() || !window.Telegram.WebApp.openInvoice) {
+        setStarsNote(I18N.t("combatNotInTelegram"));
+        return;
+      }
+      setBuyButtonsBusy(true);
+      setStarsNote(I18N.t("combatBuying"));
+      var payload = {
+        pack: packId,
+        symbol: state.selectedSymbol || "BTCUSDT"
+      };
+      var resp, data;
+      try {
+        resp = await fetch(STARS_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        data = await resp.json();
+      } catch (e) {
+        setStarsNote(I18N.t("combatPayFailed"));
+        setBuyButtonsBusy(false);
+        return;
+      }
+      if (!resp.ok || !data || !data.invoice_link) {
+        if (data && data.error === "stars_not_configured") {
+          setStarsNote(I18N.t("combatNotConfigured"));
+        } else {
+          setStarsNote(I18N.t("combatPayFailed"));
+        }
+        setBuyButtonsBusy(false);
+        return;
+      }
+      try {
+        window.Telegram.WebApp.openInvoice(data.invoice_link, function (status) {
+          setBuyButtonsBusy(false);
+          if (status === "paid") {
+            applyPaidBoost(packId);
+            setStarsNote("");
+          } else if (status === "cancelled" || status === "failed") {
+            setStarsNote(I18N.t("combatCancelled"));
+          } else {
+            setStarsNote(I18N.t("combatCancelled"));
+          }
+        });
+      } catch (e) {
+        setBuyButtonsBusy(false);
+        setStarsNote(I18N.t("combatPayFailed"));
+      }
+    }
+
+    function open() {
+      var sheet = el("combat-sheet");
+      if (!sheet) return;
+      s.open = true;
+      sheet.classList.add("is-open");
+      sheet.setAttribute("aria-hidden", "false");
+      syncFromMarket();
+      if (!isInsideTelegram()) setStarsNote(I18N.t("combatNotInTelegram"));
+      else setStarsNote("");
+      render();
+      startEnergyRegen();
+      haptic("selection");
+    }
+    function close() {
+      var sheet = el("combat-sheet");
+      if (!sheet) return;
+      s.open = false;
+      sheet.classList.remove("is-open");
+      sheet.setAttribute("aria-hidden", "true");
+      if (s._energyTimer) { clearInterval(s._energyTimer); s._energyTimer = null; }
+      haptic("selection");
+    }
+
+    function onTickerUpdate() {
+      // Realtime ticks only refresh derived numbers, never re-mount the tap node.
+      if (!s.open) {
+        // Always keep the CTA balance in sync even when closed.
+        setText("#combat-cta-balance", String(s.balance));
+        return;
+      }
+      syncFromMarket();
+      // Refresh mood/avatars labels without rebuilding the DOM.
+      var moodEl = el("combat-boss-mood");
+      if (moodEl && moodEl.getAttribute("data-i18n")) {
+        moodEl.textContent = I18N.t(moodEl.getAttribute("data-i18n"));
+      }
+    }
+
+    return {
+      open: open,
+      close: close,
+      tap: tapAttack,
+      reset: resetRound,
+      claim: claimDaily,
+      buy: buyPack,
+      onTickerUpdate: onTickerUpdate,
+      isOpen: function () { return s.open; }
+    };
+  })();
+  window.QSI_COMBAT = combat;
 
   // ---------- Splash / boot screen ----------
   // The splash shows the QUANTSIGNAL Q-mark, an animated progress bar, and a

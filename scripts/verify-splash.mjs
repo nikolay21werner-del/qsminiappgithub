@@ -60,6 +60,17 @@ must("topnav__tab class absent in HTML",
 must("bottom tabbar still wired",
   /<nav\s+class="tabbar"/.test(html) && /class="tab[^"]*"[^>]*data-nav="overview"/.test(html),
   "bottom .tabbar must remain as the sole nav");
+// Crypto Combat must live ONLY as a CTA on the Overview screen — never as a
+// new bottom-nav item. Allow the existing 5 tabs (overview/signals/market/ai/profile).
+const tabbarBlock = (html.match(/<nav[^>]*class="tabbar"[\s\S]*?<\/nav>/) || [""])[0];
+must("no new combat/tap entry in bottom nav",
+  !/data-nav="combat"/.test(tabbarBlock) &&
+  !/data-nav="tap"/.test(tabbarBlock) &&
+  !/data-nav="game"/.test(tabbarBlock),
+  "Crypto Combat must NOT be added as a bottom-nav item");
+must("overview combat CTA present",
+  /id="combat-cta-card"/.test(html) && /data-action="open-combat"/.test(html),
+  "Overview must include the Crypto Combat CTA button");
 
 // --- Last-signal card ----------------------------------------------------
 must("last-signal card", /id="last-signal-card"[^>]*data-testid="last-signal-card"/.test(html));

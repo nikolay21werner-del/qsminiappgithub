@@ -10,6 +10,10 @@
     "api/bybit/[endpoint].js": {
       "memory": 128,
       "maxDuration": 10
+    },
+    "api/stars/create-invoice.js": {
+      "memory": 128,
+      "maxDuration": 15
     }
   },
   "headers": [
