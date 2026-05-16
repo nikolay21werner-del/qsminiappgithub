@@ -26,19 +26,18 @@
       <div class="boot-splash__glow boot-splash__glow--orange"></div>
     </div>
     <div class="boot-splash__inner">
-      <div class="boot-splash__mark" data-testid="boot-qmark" aria-hidden="true">
-        <span class="boot-splash__halo"></span>
-        <img src="./assets/qmark.svg" alt="" width="148" height="148" />
+      <div class="boot-splash__mark" data-testid="boot-brand">
+        <span class="boot-splash__halo" aria-hidden="true"></span>
+        <img
+          class="boot-splash__label"
+          data-testid="brand-label"
+          src="./assets/telegram/quantsignal-label.jpeg"
+          alt="QUANTSIGNAL AI"
+          width="560" height="400"
+          loading="eager"
+          decoding="async" />
       </div>
-      <img
-        class="boot-splash__label"
-        data-testid="brand-label"
-        src="./assets/telegram/quantsignal-label.jpeg"
-        alt="QUANTSIGNAL AI"
-        width="560" height="400"
-        loading="eager"
-        decoding="async" />
-      <h1 class="boot-splash__title">QUANTSIGNAL <span class="boot-splash__ai">AI</span></h1>
+      <h1 class="boot-splash__title visually-hidden">QUANTSIGNAL <span class="boot-splash__ai">AI</span></h1>
       <p class="boot-splash__tagline" id="boot-tagline" data-i18n="bootTagline">Сигналы, рынок, AI-анализ</p>
       <div class="boot-splash__features" aria-hidden="true">
         <span class="boot-splash__feat"><i class="boot-splash__feat-ico boot-splash__feat-ico--target"></i><b data-i18n="bootFeatSignals">Точные сигналы</b></span>
@@ -67,10 +66,15 @@
         <span></span><span></span><span></span>
       </button>
       <div class="topbar__brand" data-action="go-overview">
-        <span class="topbar__qmark" aria-hidden="true">
-          <img src="./assets/qmark.svg" alt="" width="22" height="22" />
-        </span>
-        <span class="topbar__brand-text">
+        <img
+          class="topbar__label"
+          data-testid="topbar-label"
+          src="./assets/telegram/quantsignal-label.jpeg"
+          alt="QUANTSIGNAL AI"
+          width="140" height="32"
+          loading="eager"
+          decoding="async" />
+        <span class="topbar__brand-text visually-hidden">
           <span class="topbar__brand-line">
             <span class="dot-live" id="dot-live" aria-hidden="true"></span>
             QUANTSIGNAL <b>AI</b>

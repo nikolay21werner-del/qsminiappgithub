@@ -6,7 +6,7 @@
 
    Exits non-zero on any failure. */
 
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 
@@ -26,16 +26,21 @@ function must(label, predicate, info) {
 const html = read("index.html");
 const css = read("styles.css");
 const i18n = read("i18n.js");
-const qmark = read("assets/qmark.svg");
 
 // --- Splash markup --------------------------------------------------------
 must("splash root present",
   /id="boot-splash"[^>]*data-testid="boot-splash"/.test(html),
   "missing #boot-splash root with data-testid");
-must("splash Q-mark img", /<img\s+src="\.\/assets\/qmark\.svg"/.test(html),
-  "expected <img src=./assets/qmark.svg> inside splash");
-must("splash title element",
-  /class="boot-splash__title"[^>]*>QUANTSIGNAL\s+<span class="boot-splash__ai">AI<\/span>/.test(html),
+// The animated Q-mark glyph was removed in favour of the user-provided
+// QUANTSIGNAL AI label JPEG, which is now the canonical splash brand.
+must("splash brand label img",
+  /<img[\s\S]*?class="boot-splash__label"[\s\S]*?src="\.\/assets\/telegram\/quantsignal-label\.jpeg"/.test(html),
+  "expected the QUANTSIGNAL AI label JPEG as the splash brand image");
+must("old qmark.svg no longer used as splash primary",
+  !/<img\s+src="\.\/assets\/qmark\.svg"/.test(html),
+  "splash should not show the old qmark.svg above the label");
+must("splash title element (kept for a11y/i18n)",
+  /class="boot-splash__title[^"]*"[^>]*>QUANTSIGNAL\s+<span class="boot-splash__ai">AI<\/span>/.test(html),
   "splash title block missing");
 must("splash status data-i18n", /id="boot-status"[^>]*data-i18n="bootStep1"/.test(html),
   "boot-status must default to bootStep1 i18n key");
@@ -44,9 +49,14 @@ must("splash progress bar", /id="boot-progress-bar"/.test(html),
 must("splash features grid", /class="boot-splash__features"/.test(html));
 must("splash hint i18n", /data-i18n="bootHint"/.test(html));
 
-// --- Topbar Q-mark / mini app label --------------------------------------
-must("topbar Q-mark", /class="topbar__qmark"[\s\S]*?qmark\.svg/.test(html),
-  "topbar must include Q-mark identity");
+// --- Topbar brand label --------------------------------------------------
+// The topbar Q-mark was replaced by the canonical QUANTSIGNAL AI label.
+must("topbar brand label",
+  /class="topbar__label"[\s\S]*?quantsignal-label\.jpeg/.test(html),
+  "topbar must include the QUANTSIGNAL AI label image as brand");
+must("old topbar qmark removed",
+  !/class="topbar__qmark"/.test(html),
+  "topbar must not include the old .topbar__qmark glyph");
 must("mini app subtitle i18n", /data-i18n="miniAppSub"/.test(html));
 
 // --- Top section nav removed by user request -----------------------------
@@ -88,10 +98,13 @@ must("last-signal entry/tp1/tp2/stop",
 must("AI summary radar variant", /class="card ai-summary ai-summary--radar"[\s\S]*?data-testid="ai-summary-card"/.test(html));
 must("AI radar core text", /class="ai-radar__core">AI<\/span>/.test(html));
 
-// --- Q-mark SVG sanity ----------------------------------------------------
-must("qmark.svg has teal+orange tones",
-  /#26e6f2|#5ef9ff/.test(qmark) && /#ff8a2b|#ffb547|#f7a330/.test(qmark),
-  "qmark.svg must include teal Q + orange arrow palette");
+// --- Brand label asset sanity --------------------------------------------
+// The canonical brand asset is the user-provided QUANTSIGNAL AI label JPEG.
+// The old qmark.svg may still exist on disk for backwards-compat but is
+// no longer a required visible brand element.
+must("brand label JPEG asset present",
+  existsSync(resolve(root, "assets/telegram/quantsignal-label.jpeg")),
+  "assets/telegram/quantsignal-label.jpeg must exist");
 
 // --- i18n keys for all three languages -----------------------------------
 const requiredKeys = [
