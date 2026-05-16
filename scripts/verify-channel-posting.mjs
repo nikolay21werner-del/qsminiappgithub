@@ -75,6 +75,12 @@ must("uses Russian premium copy",
   /Сводка рынка/.test(endpoint) && /Настроение/.test(endpoint));
 must("disclaimer line present",
   /Не финансовая рекомендация/.test(endpoint));
+must("caption footer links to QUANTSIGNAL AI bot",
+  /<a href="https:\/\/t\.me\/QUANTSIGNAL_AI_BOT">Сигналы QUANTSIGNAL AI<\/a>/.test(endpoint));
+must("old in-app footer phrase removed from caption",
+  !/Сигналы и идеи — внутри приложения QUANTSIGNAL AI/.test(endpoint));
+must("old UTC/MAG timestamp line removed from caption",
+  !/escapeHtml\(ts\.utc\)\s*\+\s*"\s*·\s*"\s*\+\s*escapeHtml\(ts\.mag\)/.test(endpoint));
 must("preview returns image base64",
   /image_svg_base64/.test(endpoint));
 must("authorization check via QSI_CRON_SECRET / CRON_SECRET",

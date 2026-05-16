@@ -252,8 +252,7 @@ function buildCaption(rows, mood, headline, ts) {
   lines.push("");
   lines.push(narrativeFor(rows, mood));
   lines.push("");
-  lines.push("<i>Сигналы и идеи — внутри приложения QUANTSIGNAL AI.</i>");
-  lines.push("<i>" + escapeHtml(ts.utc) + " · " + escapeHtml(ts.mag) + "</i>");
+  lines.push('<a href="https://t.me/QUANTSIGNAL_AI_BOT">Сигналы QUANTSIGNAL AI</a>');
   lines.push("");
   lines.push("⚠️ Не финансовая рекомендация. Управляйте риском.");
   return lines.join("\n");
