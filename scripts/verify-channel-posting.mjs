@@ -85,6 +85,35 @@ must("banner draws a dashed current price line",
   /stroke-dasharray="6 6"/.test(endpoint));
 must("banner shows a current price chip on the chart",
   /priceChipW\b/.test(endpoint));
+// Layout safety: the price chip must live in a reserved right gutter so it
+// can never overlap the candle plot area (validator regression from previous
+// pass). The chip x must be derived from plotRightX (chart end), not from
+// (chartX + chartW - chipW) which would place it on top of the last candles.
+must("chart reserves a right gutter for axis + price chip",
+  /rightGutter\b/.test(endpoint) &&
+  /plotRightX\s*=\s*chartX\s*\+\s*chartW/.test(endpoint));
+must("price chip is anchored past plotRightX (outside candle plot)",
+  /priceChipX\s*=\s*plotRightX\s*\+/.test(endpoint));
+// Header overlap safety: pair text width drives the perpetual-pill x and
+// the pair font shrinks for long tickers (e.g. DOGEUSDT) so they never
+// collide with "Бессрочный".
+must("perpetual pill x is computed from rendered pair width",
+  /pillX\s*=\s*74\s*\+\s*Math\.ceil\(pairWidth\)/.test(endpoint));
+must("pair font shrinks for long tickers (DOGEUSDT/etc.)",
+  /pairFont\s*=\s*pair\.length\s*>=\s*8/.test(endpoint));
+// KPI badge readability: previous pass shipped 12px text on 0.18 fill which
+// failed phone-preview QA. Lock in larger text and stronger contrast.
+must("KPI badges use >=14px text for readability",
+  /font-size="14"[^>]*font-weight="700"[^>]*text-anchor="middle"/.test(endpoint));
+must("KPI badge fill-opacity raised for contrast (>=0.30)",
+  /fill-opacity="0\.3[4-9]"/.test(endpoint) ||
+  /fill-opacity="0\.[4-9]\d*"\s+stroke="' \+ chipColor/.test(endpoint) ||
+  /chipColor\s*\+\s*'"\s*fill-opacity="0\.34"/.test(endpoint));
+// RSI bar and MACD bars must be tall/wide enough to read on mobile.
+must("RSI mini bar is at least 10px tall",
+  /rsiBarH\s*=\s*1[0-9]/.test(endpoint));
+must("MACD mini bars are at least 8px wide",
+  /width="8"\s+height="'\s*\+\s*bh/.test(endpoint));
 must("KPI cards present: RSI(14), MACD, Объём 24ч",
   /RSI \(14\)/.test(endpoint) && /MACD/.test(endpoint) && /Объём 24ч/.test(endpoint));
 must("RSI status uses ru terms (перекуплен/перепродан/нейтрально)",

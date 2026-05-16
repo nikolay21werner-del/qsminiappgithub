@@ -393,10 +393,14 @@ function buildSvg(rows, mood, headline, ts) {
   // Card geometry
   const cardX = 32, cardY = 32, cardW = W - 64, cardH = H - 64, cardR = 28;
 
-  // Chart area
+  // Chart area. We reserve a right gutter so the current-price chip and the
+  // axis price labels live outside the candle plot — preventing the chip from
+  // ever covering the last few candles.
   const chartX = 64;
   const chartY = 290;
-  const chartW = W - 128;
+  const rightGutter = 132;
+  const chartW = W - 128 - rightGutter;
+  const plotRightX = chartX + chartW;
   const chartH = 260;
   const gridLines = 5;
 
@@ -406,17 +410,17 @@ function buildSvg(rows, mood, headline, ts) {
     return chartY + chartH - ((p - lo) / priceRange) * chartH;
   }
 
-  // Grid + axis labels
+  // Grid + axis labels (labels go into the reserved right gutter)
   const gridSvg = [];
   for (let i = 0; i <= gridLines; i++) {
     const gy = chartY + (chartH / gridLines) * i;
     gridSvg.push(
-      '<line x1="' + chartX + '" y1="' + gy + '" x2="' + (chartX + chartW) + '" y2="' + gy +
+      '<line x1="' + chartX + '" y1="' + gy + '" x2="' + plotRightX + '" y2="' + gy +
       '" stroke="' + BRAND.muted + '" stroke-opacity="0.18" stroke-width="1"/>'
     );
     const p = hi - (priceRange / gridLines) * i;
     gridSvg.push(
-      '<text x="' + (chartX + chartW + 12) + '" y="' + (gy + 5) +
+      '<text x="' + (plotRightX + 12) + '" y="' + (gy + 5) +
       '" fill="' + BRAND.muted + '" font-family="Inter, Segoe UI, sans-serif" font-size="13">' +
       escapeXml(fmtPrice(p)) + '</text>'
     );
@@ -444,10 +448,13 @@ function buildSvg(rows, mood, headline, ts) {
     );
   }
 
-  // Current price dashed line + right-side price chip
+  // Current price dashed line + right-side price chip. The chip is anchored
+  // in the reserved right gutter so it sits to the right of the candles
+  // instead of covering them. Chip x is plotRightX + a small visual gap.
   const lastY = yFor(hero.last == null ? (hi + lo) / 2 : hero.last);
   const priceLabel = fmtPrice(hero.last);
-  const priceChipW = 16 + priceLabel.length * 10;
+  const priceChipW = Math.max(72, 18 + priceLabel.length * 11);
+  const priceChipX = plotRightX + 10;
 
   // Time labels
   const timeLabels = ["−24ч", "−18ч", "−12ч", "−6ч", "сейчас"];
@@ -468,8 +475,8 @@ function buildSvg(rows, mood, headline, ts) {
   const tfStartX = 64;
   const tfY = 230;
   const tfH = 36;
-  const tfPad = 18;
-  const tfGap = 10;
+  const tfPad = 20;
+  const tfGap = 14;
   const tfSvg = [];
   let tfX = tfStartX;
   for (let i = 0; i < tfs.length; i++) {
@@ -494,8 +501,8 @@ function buildSvg(rows, mood, headline, ts) {
   }
 
   // Bottom KPI cards: RSI(14), MACD, Объём 24ч
-  const kpiY = 580;
-  const kpiH = 96;
+  const kpiY = 576;
+  const kpiH = 104;
   const kpiGap = 18;
   const kpiW = (W - 128 - kpiGap * 2) / 3;
   const rsiVal = ind.rsi.toFixed(1).replace(".", ",");
@@ -510,20 +517,22 @@ function buildSvg(rows, mood, headline, ts) {
     parts.push(
       '<g transform="translate(' + x + ',' + kpiY + ')">' +
       '<rect x="0" y="0" rx="16" ry="16" width="' + kpiW + '" height="' + kpiH +
-      '" fill="#0C1424" fill-opacity="0.85" stroke="' + BRAND.muted + '" stroke-opacity="0.18"/>' +
-      '<text x="18" y="26" fill="' + BRAND.muted + '" font-family="Inter, Segoe UI, sans-serif" font-size="13" letter-spacing="1">' +
+      '" fill="#0C1424" fill-opacity="0.92" stroke="' + BRAND.muted + '" stroke-opacity="0.22"/>' +
+      '<text x="18" y="28" fill="' + BRAND.muted + '" font-family="Inter, Segoe UI, sans-serif" font-size="13" letter-spacing="1">' +
       escapeXml(title) + '</text>' +
-      '<text x="18" y="64" fill="' + BRAND.text + '" font-family="Inter, Segoe UI, sans-serif" font-size="28" font-weight="800">' +
+      '<text x="18" y="68" fill="' + BRAND.text + '" font-family="Inter, Segoe UI, sans-serif" font-size="28" font-weight="800">' +
       escapeXml(value) + '</text>'
     );
     if (chip) {
-      const chipW = 18 + chip.length * 9;
+      // Badges are sized for legibility on small phone previews: larger
+      // padding, taller pill, stronger fill + stroke contrast.
+      const chipW = 22 + chip.length * 10;
+      const chipH = 24;
       parts.push(
-        '<g transform="translate(18,' + (kpiH - 26) + ')">' +
-        '<rect x="0" y="-14" rx="8" ry="8" width="' + chipW + '" height="20"' +
-        ' fill="' + chipColor + '" fill-opacity="0.18" stroke="' + chipColor + '" stroke-opacity="0.6"/>' +
-        '<text x="' + (chipW / 2) + '" y="0" fill="' + chipColor +
-        '" font-family="Inter, Segoe UI, sans-serif" font-size="12" font-weight="700" text-anchor="middle">' +
+        '<g transform="translate(18,' + (kpiH - 24) + ')">' +
+        '<rect x="0" y="-' + (chipH - 6) + '" rx="9" ry="9" width="' + chipW + '" height="' + chipH + '"' +
+        ' fill="' + chipColor + '" fill-opacity="0.34" stroke="' + chipColor + '" stroke-opacity="0.95"/>' +
+        '<text x="' + (chipW / 2) + '" y="0" fill="#FFFFFF" font-family="Inter, Segoe UI, sans-serif" font-size="14" font-weight="700" text-anchor="middle">' +
         escapeXml(chip) + '</text>' +
         '</g>'
       );
@@ -533,37 +542,41 @@ function buildSvg(rows, mood, headline, ts) {
     return parts.join("");
   }
 
-  // RSI mini bar
-  const rsiBarX = kpiW - 24 - 60;
-  const rsiBarW = 60;
+  // RSI mini bar — larger and higher-contrast so the fill is unmistakable.
+  const rsiBarX = kpiW - 24 - 96;
+  const rsiBarW = 96;
+  const rsiBarY = 40;
+  const rsiBarH = 10;
   const rsiBarFill = Math.max(0, Math.min(1, ind.rsi / 100));
   const rsiExtra =
-    '<rect x="' + rsiBarX + '" y="34" width="' + rsiBarW + '" height="6" rx="3" fill="' + BRAND.muted + '" fill-opacity="0.25"/>' +
-    '<rect x="' + rsiBarX + '" y="34" width="' + (rsiBarW * rsiBarFill) + '" height="6" rx="3" fill="' + rsiColor + '"/>';
+    '<rect x="' + rsiBarX + '" y="' + rsiBarY + '" width="' + rsiBarW + '" height="' + rsiBarH + '" rx="5" fill="' + BRAND.muted + '" fill-opacity="0.40"/>' +
+    '<rect x="' + rsiBarX + '" y="' + rsiBarY + '" width="' + (rsiBarW * rsiBarFill) + '" height="' + rsiBarH + '" rx="5" fill="' + rsiColor + '"/>';
 
-  // MACD micro bars
+  // MACD micro bars — wider bars, higher minimum opacity for readability.
   const macdSign = hero.pct == null ? 0 : (hero.pct >= 0 ? 1 : -1);
   const macdBars = [];
+  const macdBaseY = 52;
   for (let i = 0; i < 6; i++) {
-    const bh = 6 + ((i + 1) * 3) * Math.max(0.3, Math.abs(hero.pct || 1) / 4);
-    const bx = kpiW - 24 - (6 - i) * 9;
-    const by = 56 - (macdSign >= 0 ? bh : 0);
+    const bh = 10 + ((i + 1) * 4) * Math.max(0.4, Math.abs(hero.pct || 1) / 3.5);
+    const bx = kpiW - 24 - (6 - i) * 12;
+    const by = macdBaseY - (macdSign >= 0 ? bh : 0);
     macdBars.push(
-      '<rect x="' + bx + '" y="' + by + '" width="6" height="' + bh +
-      '" rx="1" fill="' + macdColor + '" fill-opacity="' + (0.4 + i * 0.1) + '"/>'
+      '<rect x="' + bx + '" y="' + by + '" width="8" height="' + bh +
+      '" rx="1.5" fill="' + macdColor + '" fill-opacity="' + (0.65 + i * 0.06) + '"/>'
     );
   }
   const macdExtra = macdBars.join("");
 
-  // Volume sparkbars
+  // Volume sparkbars — taller bars, higher contrast floor.
   const volBars = [];
+  const volBaseY = 54;
   for (let i = 0; i < 10; i++) {
-    const h = 8 + ((i * 9 + 13) % 22);
-    const bx = kpiW - 24 - (10 - i) * 7;
-    const by = 60 - h;
+    const h = 12 + ((i * 9 + 13) % 26);
+    const bx = kpiW - 24 - (10 - i) * 9;
+    const by = volBaseY - h;
     volBars.push(
-      '<rect x="' + bx + '" y="' + by + '" width="4" height="' + h +
-      '" rx="1" fill="' + BRAND.accentSoft + '" fill-opacity="' + (0.35 + (i % 3) * 0.2) + '"/>'
+      '<rect x="' + bx + '" y="' + by + '" width="5" height="' + h +
+      '" rx="1" fill="' + BRAND.accentSoft + '" fill-opacity="' + (0.65 + (i % 3) * 0.12) + '"/>'
     );
   }
   const volExtra = volBars.join("");
@@ -615,18 +628,33 @@ function buildSvg(rows, mood, headline, ts) {
     '<rect x="' + cardX + '" y="' + cardY + '" rx="' + cardR + '" ry="' + cardR +
     '" width="' + cardW + '" height="' + cardH + '" fill="url(#glowR)"/>',
 
-    // Header — symbol chip
-    '<g transform="translate(64,' + headerY + ')">',
-    '<circle cx="28" cy="28" r="28" fill="url(#symChip)"/>',
-    '<text x="28" y="36" fill="#FFFFFF" font-family="Inter, Segoe UI, sans-serif" font-size="22" font-weight="800" text-anchor="middle">' + symLetter + '</text>',
-    '<text x="74" y="22" fill="' + BRAND.muted + '" font-family="Inter, Segoe UI, sans-serif" font-size="14" letter-spacing="2">' + symLabel + '</text>',
-    '<text x="74" y="50" fill="' + BRAND.text + '" font-family="Inter, Segoe UI, sans-serif" font-size="28" font-weight="800" letter-spacing="1">' + escapeXml(pair) + '</text>',
-    // Perpetual pill
-    '<g transform="translate(' + (74 + 14 + pair.length * 16) + ',26)">',
-    '<rect x="0" y="0" rx="12" ry="12" width="128" height="26" fill="' + accent + '" fill-opacity="0.16" stroke="' + accent + '" stroke-opacity="0.6"/>',
-    '<text x="64" y="18" fill="' + BRAND.accentSoft + '" font-family="Inter, Segoe UI, sans-serif" font-size="13" font-weight="700" text-anchor="middle">Бессрочный</text>',
-    '</g>',
-    '</g>',
+    // Header — symbol chip. Pair size adapts to glyph count so longer tickers
+    // (e.g. DOGEUSDT) stay readable and never collide with the "Бессрочный"
+    // pill. The pill x is computed from the actual rendered pair width plus a
+    // generous gap.
+    (function () {
+      const baseFont = 28;
+      const pairFont = pair.length >= 8 ? 24 : (pair.length >= 7 ? 26 : baseFont);
+      // Approx glyph width for 800-weight Inter at the chosen size, plus the
+      // 1px letter-spacing applied below.
+      const glyphW = pairFont * 0.62 + 1;
+      const pairWidth = pair.length * glyphW;
+      const pillGap = 22;
+      const pillX = 74 + Math.ceil(pairWidth) + pillGap;
+      return [
+        '<g transform="translate(64,' + headerY + ')">',
+        '<circle cx="28" cy="28" r="28" fill="url(#symChip)"/>',
+        '<text x="28" y="36" fill="#FFFFFF" font-family="Inter, Segoe UI, sans-serif" font-size="22" font-weight="800" text-anchor="middle">' + symLetter + '</text>',
+        '<text x="74" y="22" fill="' + BRAND.muted + '" font-family="Inter, Segoe UI, sans-serif" font-size="14" letter-spacing="2">' + symLabel + '</text>',
+        '<text x="74" y="50" fill="' + BRAND.text + '" font-family="Inter, Segoe UI, sans-serif" font-size="' + pairFont + '" font-weight="800" letter-spacing="1">' + escapeXml(pair) + '</text>',
+        // Perpetual pill — positioned dynamically past the rendered pair.
+        '<g transform="translate(' + pillX + ',26)">',
+        '<rect x="0" y="0" rx="13" ry="13" width="132" height="28" fill="' + accent + '" fill-opacity="0.20" stroke="' + accent + '" stroke-opacity="0.75"/>',
+        '<text x="66" y="19" fill="' + BRAND.accentSoft + '" font-family="Inter, Segoe UI, sans-serif" font-size="13" font-weight="700" text-anchor="middle">Бессрочный</text>',
+        '</g>',
+        '</g>'
+      ].join("");
+    })(),
 
     // Brand top-right
     '<g transform="translate(' + (W - 64) + ',' + headerY + ')">',
@@ -642,19 +670,20 @@ function buildSvg(rows, mood, headline, ts) {
     // Timeframe row
     tfSvg.join(""),
 
-    // Chart background frame
+    // Chart background frame — plot area only, gutter remains card background.
     '<rect x="' + chartX + '" y="' + chartY + '" width="' + chartW + '" height="' + chartH +
     '" fill="#070B14" fill-opacity="0.55" rx="14" ry="14" stroke="' + BRAND.muted + '" stroke-opacity="0.14"/>',
     gridSvg.join(""),
     candleSvg.join(""),
 
-    // Dashed current price line
-    '<line x1="' + chartX + '" y1="' + lastY + '" x2="' + (chartX + chartW) + '" y2="' + lastY +
+    // Dashed current price line spans the plot area only — the chip lives
+    // beyond plotRightX in the reserved right gutter.
+    '<line x1="' + chartX + '" y1="' + lastY + '" x2="' + plotRightX + '" y2="' + lastY +
     '" stroke="' + BRAND.accentSoft + '" stroke-width="1.4" stroke-dasharray="6 6" stroke-opacity="0.85"/>',
-    // Price chip right
-    '<g transform="translate(' + (chartX + chartW - priceChipW) + ',' + (lastY - 14) + ')">',
-    '<rect x="0" y="0" rx="6" ry="6" width="' + priceChipW + '" height="26" fill="' + accent + '"/>',
-    '<text x="' + (priceChipW / 2) + '" y="18" fill="#FFFFFF" font-family="Inter, Segoe UI, sans-serif" font-size="14" font-weight="700" text-anchor="middle">' + escapeXml(priceLabel) + '</text>',
+    // Price chip placed in the right gutter so it never covers candles.
+    '<g transform="translate(' + priceChipX + ',' + (lastY - 14) + ')">',
+    '<rect x="0" y="0" rx="6" ry="6" width="' + priceChipW + '" height="28" fill="' + accent + '"/>',
+    '<text x="' + (priceChipW / 2) + '" y="19" fill="#FFFFFF" font-family="Inter, Segoe UI, sans-serif" font-size="14" font-weight="700" text-anchor="middle">' + escapeXml(priceLabel) + '</text>',
     '</g>',
 
     // Time labels
