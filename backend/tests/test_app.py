@@ -133,6 +133,139 @@ class AppSmokeTests(unittest.TestCase):
             "https://example.test/v1/chat/completions",
         )
 
+    def test_ai_chat_oidc_mode_sends_bearer(self) -> None:
+        """AI_AUTH_MODE=oidc must forward AI_GATEWAY_API_KEY/VERCEL_OIDC_TOKEN
+        as a Bearer token to the upstream Vercel AI Gateway URL."""
+        captured: dict = {}
+
+        class _StubResponse:
+            status_code = 200
+            text = ""
+
+            def json(self) -> dict:
+                return {
+                    "model": "openai/gpt-4o-mini",
+                    "choices": [{"message": {"content": "oidc ok"}}],
+                }
+
+        class _StubClient:
+            def __init__(self, *_a, **_kw) -> None:
+                pass
+
+            async def __aenter__(self) -> "_StubClient":
+                return self
+
+            async def __aexit__(self, *_a) -> None:
+                return None
+
+            async def post(self, url, json=None, headers=None):  # noqa: A002
+                captured["url"] = url
+                captured["headers"] = dict(headers or {})
+                captured["json"] = json
+                return _StubResponse()
+
+        env = {
+            "AI_API_KEY": "",
+            "OPENAI_API_KEY": "",
+            "AI_ALLOW_NO_KEY": "",
+            "AI_AUTH_MODE": "oidc",
+            "AI_GATEWAY_API_KEY": "",
+            "VERCEL_OIDC_TOKEN": "stub-oidc-token",
+            "AI_BASE_URL": "https://ai-gateway.vercel.sh/v1",
+            "AI_MODEL": "openai/gpt-4o-mini",
+        }
+        with patch.dict(os.environ, env, clear=False), \
+                patch("app.services.ai_assistant.httpx.AsyncClient", _StubClient):
+            r = self.client.post(
+                "/api/ai/chat",
+                json={
+                    "messages": [{"role": "user", "content": "hi"}],
+                    "language_code": "en",
+                },
+            )
+        self.assertEqual(r.status_code, 200, r.text)
+        headers = captured.get("headers", {})
+        self.assertEqual(headers.get("Authorization"), "Bearer stub-oidc-token")
+        self.assertEqual(
+            captured.get("url"),
+            "https://ai-gateway.vercel.sh/v1/chat/completions",
+        )
+
+    def test_ai_chat_oidc_mode_prefers_gateway_key(self) -> None:
+        """AI_GATEWAY_API_KEY takes precedence over VERCEL_OIDC_TOKEN."""
+        captured: dict = {}
+
+        class _StubResponse:
+            status_code = 200
+            text = ""
+
+            def json(self) -> dict:
+                return {
+                    "model": "openai/gpt-4o-mini",
+                    "choices": [{"message": {"content": "ok"}}],
+                }
+
+        class _StubClient:
+            def __init__(self, *_a, **_kw) -> None:
+                pass
+
+            async def __aenter__(self) -> "_StubClient":
+                return self
+
+            async def __aexit__(self, *_a) -> None:
+                return None
+
+            async def post(self, url, json=None, headers=None):  # noqa: A002
+                captured["headers"] = dict(headers or {})
+                return _StubResponse()
+
+        env = {
+            "AI_API_KEY": "",
+            "OPENAI_API_KEY": "",
+            "AI_AUTH_MODE": "oidc",
+            "AI_GATEWAY_API_KEY": "vck-stub-gateway",
+            "VERCEL_OIDC_TOKEN": "stub-oidc-token",
+            "AI_BASE_URL": "https://ai-gateway.vercel.sh/v1",
+            "AI_MODEL": "openai/gpt-4o-mini",
+        }
+        with patch.dict(os.environ, env, clear=False), \
+                patch("app.services.ai_assistant.httpx.AsyncClient", _StubClient):
+            r = self.client.post(
+                "/api/ai/chat",
+                json={
+                    "messages": [{"role": "user", "content": "hi"}],
+                    "language_code": "en",
+                },
+            )
+        self.assertEqual(r.status_code, 200, r.text)
+        self.assertEqual(
+            captured.get("headers", {}).get("Authorization"),
+            "Bearer vck-stub-gateway",
+        )
+
+    def test_ai_chat_oidc_missing_token_returns_503(self) -> None:
+        """AI_AUTH_MODE=oidc with no usable token must surface 503
+        ai_oidc_unavailable rather than fall back to ai_not_configured."""
+        env = {
+            "AI_API_KEY": "",
+            "OPENAI_API_KEY": "",
+            "AI_AUTH_MODE": "oidc",
+            "AI_GATEWAY_API_KEY": "",
+            "VERCEL_OIDC_TOKEN": "",
+            "AI_BASE_URL": "https://ai-gateway.vercel.sh/v1",
+        }
+        with patch.dict(os.environ, env, clear=False):
+            r = self.client.post(
+                "/api/ai/chat",
+                json={
+                    "messages": [{"role": "user", "content": "hi"}],
+                    "language_code": "en",
+                },
+            )
+        self.assertEqual(r.status_code, 503)
+        detail = r.json().get("detail") or {}
+        self.assertEqual(detail.get("error"), "ai_oidc_unavailable")
+
     def test_ai_chat_no_key_disabled_returns_503(self) -> None:
         """With neither AI_API_KEY nor AI_ALLOW_NO_KEY set, the endpoint
         must refuse with 503 ai_not_configured."""

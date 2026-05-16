@@ -4,10 +4,14 @@
 
    Required env vars (configure in Vercel project settings):
      AI_API_KEY     — secret API key for the provider (NEVER exposed to FE).
-                      May be omitted when AI_ALLOW_NO_KEY=true (see below).
+                      May be omitted when AI_ALLOW_NO_KEY=true or
+                      AI_AUTH_MODE=oidc (see below).
    Optional:
      AI_BASE_URL       — OpenAI-compatible base URL (default https://api.openai.com/v1)
-     AI_MODEL          — model id (default gpt-4o-mini)
+                         For Vercel AI Gateway: https://ai-gateway.vercel.sh/v1
+     AI_MODEL          — model id (default gpt-4o-mini). For the Vercel AI
+                         Gateway use a fully-qualified slug like
+                         "openai/gpt-4o-mini".
      AI_TIMEOUT_MS     — upstream request timeout (default 25000)
      AI_TEMPERATURE    — sampling temperature (default 0.2)
      AI_ALLOW_NO_KEY   — when "true"/"1"/"yes" (or AI_AUTH_MODE=none), the
@@ -15,12 +19,23 @@
                          AI_API_KEY and NO Authorization header is sent
                          upstream. Use for public, no-auth providers
                          (e.g. https://gen.pollinations.ai/v1).
-     AI_AUTH_MODE      — "none" disables Authorization header; "bearer"
-                         (default) sends "Authorization: Bearer <key>".
+     AI_AUTH_MODE      — authentication strategy for the upstream call:
+                           "bearer" (default) sends "Authorization: Bearer <AI_API_KEY>"
+                           "none"   disables the Authorization header
+                           "oidc"   uses Vercel AI Gateway with the
+                                    AI_GATEWAY_API_KEY or VERCEL_OIDC_TOKEN
+                                    env var as the bearer token
+     AI_PROVIDER       — alias for AI_AUTH_MODE. The value
+                         "vercel-ai-gateway" is treated as "oidc".
+     AI_GATEWAY_API_KEY — preferred bearer token for AI_AUTH_MODE=oidc.
+     VERCEL_OIDC_TOKEN — fallback bearer token automatically injected by
+                         Vercel for the deployment's OIDC identity.
 
    This endpoint NEVER returns a synthetic "demo" answer.
    Default secure behavior: if AI_API_KEY is missing AND no-key mode is
    not explicitly enabled, respond 503 with error code "ai_not_configured".
+   For AI_AUTH_MODE=oidc with no usable token the endpoint returns 503
+   with error code "ai_oidc_unavailable".
    ========================================================= */
 
 "use strict";
@@ -171,21 +186,38 @@ module.exports = async function handler(req, res) {
   if (req.method !== "POST") { sendJson(res, 405, { error: "method_not_allowed" }); return; }
 
   const apiKey = process.env.AI_API_KEY || process.env.OPENAI_API_KEY || "";
-  const authMode = String(process.env.AI_AUTH_MODE || "").toLowerCase();
+  const providerAlias = String(process.env.AI_PROVIDER || "").toLowerCase();
+  let authMode = String(process.env.AI_AUTH_MODE || "").toLowerCase();
+  if (!authMode && providerAlias === "vercel-ai-gateway") authMode = "oidc";
   const allowNoKeyFlag = String(process.env.AI_ALLOW_NO_KEY || "").toLowerCase();
   const noKeyMode =
     authMode === "none" ||
     allowNoKeyFlag === "1" ||
     allowNoKeyFlag === "true" ||
     allowNoKeyFlag === "yes";
+  const oidcMode = authMode === "oidc";
+  const oidcToken =
+    process.env.AI_GATEWAY_API_KEY || process.env.VERCEL_OIDC_TOKEN || "";
 
-  if (!apiKey && !noKeyMode) {
+  if (oidcMode && !oidcToken) {
+    sendJson(res, 503, {
+      error: "ai_oidc_unavailable",
+      message:
+        "AI_AUTH_MODE=oidc is set but neither AI_GATEWAY_API_KEY nor " +
+        "VERCEL_OIDC_TOKEN is available in the runtime environment. " +
+        "Enable Vercel OIDC for this project or provide AI_GATEWAY_API_KEY."
+    });
+    return;
+  }
+
+  if (!apiKey && !noKeyMode && !oidcMode) {
     sendJson(res, 503, {
       error: "ai_not_configured",
       message:
         "Server-side AI key (AI_API_KEY) is not configured. " +
         "Set AI_API_KEY in the deployment environment to enable live AI replies, " +
-        "or set AI_ALLOW_NO_KEY=true for a public no-auth OpenAI-compatible provider."
+        "set AI_ALLOW_NO_KEY=true for a public no-auth OpenAI-compatible provider, " +
+        "or set AI_AUTH_MODE=oidc to use the Vercel AI Gateway."
     });
     return;
   }
@@ -230,7 +262,9 @@ module.exports = async function handler(req, res) {
   const timer = setTimeout(function () { controller.abort(); }, timeoutMs);
 
   const upstreamHeaders = { "Content-Type": "application/json" };
-  if (apiKey && authMode !== "none") {
+  if (oidcMode) {
+    upstreamHeaders["Authorization"] = "Bearer " + oidcToken;
+  } else if (apiKey && authMode !== "none" && !noKeyMode) {
     upstreamHeaders["Authorization"] = "Bearer " + apiKey;
   }
 
