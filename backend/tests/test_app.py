@@ -1,9 +1,11 @@
 """Smoke tests for the FastAPI app – run with stdlib unittest."""
 from __future__ import annotations
 
+import os
 import sys
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
@@ -69,6 +71,83 @@ class AppSmokeTests(unittest.TestCase):
         # In test environment TELEGRAM_BOT_TOKEN is unset -> 503.
         r = self.client.post("/api/auth/telegram", json={"init_data": "x"})
         self.assertEqual(r.status_code, 503)
+
+    def test_ai_chat_no_key_mode_succeeds_without_auth_header(self) -> None:
+        """AI_ALLOW_NO_KEY=true must let the request through without an
+        AI_API_KEY and must NOT send an Authorization header upstream."""
+        captured: dict = {}
+
+        class _StubResponse:
+            status_code = 200
+            text = ""
+
+            def json(self) -> dict:
+                return {
+                    "model": "openai",
+                    "choices": [
+                        {"message": {"content": "stubbed reply"}}
+                    ],
+                }
+
+        class _StubClient:
+            def __init__(self, *_a, **_kw) -> None:
+                pass
+
+            async def __aenter__(self) -> "_StubClient":
+                return self
+
+            async def __aexit__(self, *_a) -> None:
+                return None
+
+            async def post(self, url, json=None, headers=None):  # noqa: A002
+                captured["url"] = url
+                captured["headers"] = dict(headers or {})
+                captured["json"] = json
+                return _StubResponse()
+
+        env = {
+            "AI_API_KEY": "",
+            "OPENAI_API_KEY": "",
+            "AI_ALLOW_NO_KEY": "true",
+            "AI_BASE_URL": "https://example.test/v1",
+            "AI_MODEL": "openai",
+        }
+        with patch.dict(os.environ, env, clear=False), \
+                patch("app.services.ai_assistant.httpx.AsyncClient", _StubClient):
+            r = self.client.post(
+                "/api/ai/chat",
+                json={
+                    "messages": [{"role": "user", "content": "hi"}],
+                    "language_code": "en",
+                },
+            )
+        self.assertEqual(r.status_code, 200, r.text)
+        body = r.json()
+        self.assertEqual(body["content"], "stubbed reply")
+        # No Authorization header must have been forwarded to the public provider.
+        headers = captured.get("headers", {})
+        self.assertNotIn("Authorization", headers)
+        self.assertNotIn("authorization", {k.lower() for k in headers})
+        self.assertEqual(
+            captured.get("url"),
+            "https://example.test/v1/chat/completions",
+        )
+
+    def test_ai_chat_no_key_disabled_returns_503(self) -> None:
+        """With neither AI_API_KEY nor AI_ALLOW_NO_KEY set, the endpoint
+        must refuse with 503 ai_not_configured."""
+        env = {"AI_API_KEY": "", "OPENAI_API_KEY": "", "AI_ALLOW_NO_KEY": ""}
+        with patch.dict(os.environ, env, clear=False):
+            r = self.client.post(
+                "/api/ai/chat",
+                json={
+                    "messages": [{"role": "user", "content": "hi"}],
+                    "language_code": "en",
+                },
+            )
+        self.assertEqual(r.status_code, 503)
+        detail = r.json().get("detail") or {}
+        self.assertEqual(detail.get("error"), "ai_not_configured")
 
 
 if __name__ == "__main__":

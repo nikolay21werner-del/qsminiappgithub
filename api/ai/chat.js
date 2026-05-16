@@ -4,15 +4,23 @@
 
    Required env vars (configure in Vercel project settings):
      AI_API_KEY     — secret API key for the provider (NEVER exposed to FE).
+                      May be omitted when AI_ALLOW_NO_KEY=true (see below).
    Optional:
-     AI_BASE_URL    — OpenAI-compatible base URL (default https://api.openai.com/v1)
-     AI_MODEL       — model id (default gpt-4o-mini)
-     AI_TIMEOUT_MS  — upstream request timeout (default 25000)
-     AI_TEMPERATURE — sampling temperature (default 0.2)
+     AI_BASE_URL       — OpenAI-compatible base URL (default https://api.openai.com/v1)
+     AI_MODEL          — model id (default gpt-4o-mini)
+     AI_TIMEOUT_MS     — upstream request timeout (default 25000)
+     AI_TEMPERATURE    — sampling temperature (default 0.2)
+     AI_ALLOW_NO_KEY   — when "true"/"1"/"yes" (or AI_AUTH_MODE=none), the
+                         endpoint is considered configured even with no
+                         AI_API_KEY and NO Authorization header is sent
+                         upstream. Use for public, no-auth providers
+                         (e.g. https://gen.pollinations.ai/v1).
+     AI_AUTH_MODE      — "none" disables Authorization header; "bearer"
+                         (default) sends "Authorization: Bearer <key>".
 
    This endpoint NEVER returns a synthetic "demo" answer.
-   If AI_API_KEY is missing, the response is a structured 503 with
-   error code "ai_not_configured" so the UI can show an honest message.
+   Default secure behavior: if AI_API_KEY is missing AND no-key mode is
+   not explicitly enabled, respond 503 with error code "ai_not_configured".
    ========================================================= */
 
 "use strict";
@@ -163,12 +171,21 @@ module.exports = async function handler(req, res) {
   if (req.method !== "POST") { sendJson(res, 405, { error: "method_not_allowed" }); return; }
 
   const apiKey = process.env.AI_API_KEY || process.env.OPENAI_API_KEY || "";
-  if (!apiKey) {
+  const authMode = String(process.env.AI_AUTH_MODE || "").toLowerCase();
+  const allowNoKeyFlag = String(process.env.AI_ALLOW_NO_KEY || "").toLowerCase();
+  const noKeyMode =
+    authMode === "none" ||
+    allowNoKeyFlag === "1" ||
+    allowNoKeyFlag === "true" ||
+    allowNoKeyFlag === "yes";
+
+  if (!apiKey && !noKeyMode) {
     sendJson(res, 503, {
       error: "ai_not_configured",
       message:
         "Server-side AI key (AI_API_KEY) is not configured. " +
-        "Set AI_API_KEY in the deployment environment to enable live AI replies."
+        "Set AI_API_KEY in the deployment environment to enable live AI replies, " +
+        "or set AI_ALLOW_NO_KEY=true for a public no-auth OpenAI-compatible provider."
     });
     return;
   }
@@ -212,14 +229,16 @@ module.exports = async function handler(req, res) {
   const controller = new AbortController();
   const timer = setTimeout(function () { controller.abort(); }, timeoutMs);
 
+  const upstreamHeaders = { "Content-Type": "application/json" };
+  if (apiKey && authMode !== "none") {
+    upstreamHeaders["Authorization"] = "Bearer " + apiKey;
+  }
+
   let upstream;
   try {
     upstream = await fetch(baseUrl + "/chat/completions", {
       method: "POST",
-      headers: {
-        "Authorization": "Bearer " + apiKey,
-        "Content-Type": "application/json"
-      },
+      headers: upstreamHeaders,
       body: JSON.stringify(payload),
       signal: controller.signal
     });

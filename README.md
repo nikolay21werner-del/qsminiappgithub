@@ -188,9 +188,16 @@ interchangeable deployments — pick the one that matches your hosting:
    `backend/app/services/ai_assistant.py` + `backend/app/routers/ai.py`. Reads
    the same env vars (`AI_API_KEY`, `AI_BASE_URL`, `AI_MODEL`).
 
-Both backends **refuse to fabricate answers**. With no key configured the
-endpoint returns `HTTP 503 {"error":"ai_not_configured"}` and the frontend
-shows a localized "AI backend is not configured yet" message in RU / EN / ZH.
+Both backends **refuse to fabricate answers**. With no key configured AND
+no explicit no-key mode enabled, the endpoint returns
+`HTTP 503 {"error":"ai_not_configured"}` and the frontend shows a localized
+"AI backend is not configured yet" message in RU / EN / ZH.
+
+For public OpenAI-compatible providers that accept unauthenticated requests
+(e.g. [Pollinations](https://gen.pollinations.ai/)), set `AI_ALLOW_NO_KEY=true`
+(or `AI_AUTH_MODE=none`) — the server then treats the endpoint as configured
+without `AI_API_KEY` and omits the `Authorization` header entirely from the
+upstream call.
 
 The frontend includes the current live market context (selected symbol, last
 price, 24h Δ, volume, 24h range, transport, recent tickers) and the user's
@@ -201,15 +208,29 @@ V5 data. A risk caveat is always appended in the user's language.
 
 #### Required env vars
 
-| Variable        | Required | Default                          | Purpose                                                                    |
-| --------------- | -------- | -------------------------------- | -------------------------------------------------------------------------- |
-| `AI_API_KEY`    | **yes**  | empty                            | Server-side API key for the LLM provider. Never exposed to the frontend.   |
-| `AI_BASE_URL`   | no       | `https://api.openai.com/v1`      | Any OpenAI-compatible base URL (OpenAI, Azure-OAI, OpenRouter, Together…). |
-| `AI_MODEL`      | no       | `gpt-4o-mini`                    | Chat completions model id.                                                 |
-| `AI_TIMEOUT_MS` | no       | `25000` (Vercel only)            | Upstream request timeout.                                                  |
-| `AI_TEMPERATURE`| no       | `0.2` (Vercel only)              | Sampling temperature.                                                      |
+| Variable           | Required           | Default                          | Purpose                                                                    |
+| ------------------ | ------------------ | -------------------------------- | -------------------------------------------------------------------------- |
+| `AI_API_KEY`       | yes (private prov.) | empty                            | Server-side API key for the LLM provider. Never exposed to the frontend.   |
+| `AI_BASE_URL`      | no                 | `https://api.openai.com/v1`      | Any OpenAI-compatible base URL (OpenAI, Azure-OAI, OpenRouter, Together…). |
+| `AI_MODEL`         | no                 | `gpt-4o-mini`                    | Chat completions model id.                                                 |
+| `AI_TIMEOUT_MS`    | no                 | `25000` (Vercel only)            | Upstream request timeout.                                                  |
+| `AI_TEMPERATURE`   | no                 | `0.2` (Vercel only)              | Sampling temperature.                                                      |
+| `AI_ALLOW_NO_KEY`  | no                 | `false`                          | When `true`/`1`/`yes`, the endpoint is considered configured without `AI_API_KEY` and **no** Authorization header is sent upstream. Use for public no-auth providers (e.g. Pollinations). |
+| `AI_AUTH_MODE`     | no                 | `bearer`                         | `bearer` (default) sends `Authorization: Bearer <AI_API_KEY>`. `none` disables Authorization entirely (alias for `AI_ALLOW_NO_KEY=true`). |
 
 Legacy `OPENAI_API_KEY` / `OPENAI_MODEL` are still accepted as fallbacks.
+
+**Public no-auth provider example (Pollinations):**
+
+```
+AI_BASE_URL=https://gen.pollinations.ai/v1
+AI_MODEL=openai
+AI_ALLOW_NO_KEY=true
+# AI_API_KEY left unset on purpose — provider requires no auth
+```
+
+**Recommended for production / private providers:** leave `AI_ALLOW_NO_KEY`
+unset and provide a real `AI_API_KEY`.
 
 #### Configure on Vercel
 
@@ -281,9 +302,11 @@ Behind nginx (TLS termination + reverse proxy) is the recommended VPS layout.
 | `BYBIT_WS_PUBLIC`              | no       | `wss://stream.bybit.com/v5/public/linear`     | Public WS endpoint                                         |
 | `BYBIT_CATEGORY`               | no       | `linear`                                      | `linear`, `spot`, or `inverse`                             |
 | `MARKET_SYMBOLS`               | no       | `BTCUSDT,ETHUSDT,SOLUSDT,BNBUSDT,TONUSDT,XRPUSDT` | Default tickers                                            |
-| `AI_API_KEY`                   | **for AI** | empty                                       | Server-side LLM key. Without it `/api/ai/chat` returns 503. |
+| `AI_API_KEY`                   | for private AI | empty                                   | Server-side LLM key. Without it (and without `AI_ALLOW_NO_KEY`) `/api/ai/chat` returns 503. |
 | `AI_BASE_URL`                  | no       | `https://api.openai.com/v1`                   | OpenAI-compatible base URL                                 |
 | `AI_MODEL`                     | no       | `gpt-4o-mini`                                 | Chat completions model id                                  |
+| `AI_ALLOW_NO_KEY`              | no       | `false`                                       | When `true`, allow operation without `AI_API_KEY` and omit the Authorization header. For public no-auth providers (Pollinations etc.). |
+| `AI_AUTH_MODE`                 | no       | `bearer`                                      | `none` is an alias for `AI_ALLOW_NO_KEY=true`.             |
 | `OPENAI_API_KEY` / `OPENAI_MODEL` | no    | empty                                         | Legacy fallback names                                      |
 | `PORT`                         | no       | `8000`                                        | Standard Railway/Heroku port                               |
 | `DEBUG`                        | no       | `false`                                       | Verbose logging                                            |

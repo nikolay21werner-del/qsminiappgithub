@@ -54,6 +54,16 @@ class Settings:
     openai_api_key: str = os.getenv("AI_API_KEY", "") or os.getenv("OPENAI_API_KEY", "")
     openai_model: str = os.getenv("AI_MODEL", "") or os.getenv("OPENAI_MODEL", "gpt-4o-mini")
     openai_base_url: str = os.getenv("AI_BASE_URL", "") or "https://api.openai.com/v1"
+    # Public no-auth providers (e.g. https://gen.pollinations.ai/v1) accept
+    # OpenAI-compatible /chat/completions WITHOUT an Authorization header.
+    # Enable that mode with AI_ALLOW_NO_KEY=true or AI_AUTH_MODE=none.
+    ai_allow_no_key: bool = (
+        os.getenv("AI_ALLOW_NO_KEY", "").lower() in {"1", "true", "yes"}
+        or os.getenv("AI_AUTH_MODE", "").lower() == "none"
+    )
+    ai_auth_mode: str = os.getenv("AI_AUTH_MODE", "").lower() or (
+        "none" if os.getenv("AI_ALLOW_NO_KEY", "").lower() in {"1", "true", "yes"} else "bearer"
+    )
 
     # --- Misc ---
     market_default_symbols: List[str] = field(
@@ -67,7 +77,7 @@ class Settings:
 
     @property
     def ai_enabled(self) -> bool:
-        return bool(self.openai_api_key)
+        return bool(self.openai_api_key) or self.ai_allow_no_key
 
 
 settings = Settings()
