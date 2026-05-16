@@ -10,6 +10,7 @@
     "verify:ai": "node scripts/verify-ai-chat.mjs",
     "verify:banners": "node scripts/verify-banners.mjs",
     "verify:proxy": "node scripts/verify-bybit-proxy.mjs",
-    "verify:splash": "node scripts/verify-splash.mjs"
+    "verify:splash": "node scripts/verify-splash.mjs",
+    "verify:tap": "node scripts/verify-tap-stability.mjs"
   }
 }

@@ -617,26 +617,87 @@
   }
 
   // ---------- Overview rows ----------
+  function buildOverviewRow(t) {
+    var cKey = coinKey(t.symbol);
+    var row = document.createElement("div");
+    row.className = "row";
+    row.setAttribute("data-symbol", t.symbol);
+    row.innerHTML =
+      '<span class="row-coin" data-coin="' + cKey + '">' + coinLogoSVG(t.symbol) + '</span>' +
+      '<span><b>' + escapeHtml(shortSym(t.symbol)) + '</b><br>' +
+        '<span class="row-price" style="color:var(--ink-2);font-size:11px;"></span></span>' +
+      '<span class="row-delta"></span>' +
+      '<span class="row-vol" style="color:var(--ink-3);font-family:JetBrains Mono,monospace;font-size:10px;"></span>';
+    return row;
+  }
+
+  function updateOverviewRow(row, t) {
+    var pos = t.change_pct_24h >= 0;
+    var priceEl = row.querySelector(".row-price");
+    var priceText = "$" + fmtPrice(t.last_price);
+    if (priceEl && priceEl.textContent !== priceText) priceEl.textContent = priceText;
+    var deltaEl = row.querySelector(".row-delta");
+    var deltaText = fmtPct(t.change_pct_24h);
+    var deltaCls = pos ? "row-delta up" : "row-delta dn";
+    if (deltaEl) {
+      if (deltaEl.className !== deltaCls) deltaEl.className = deltaCls;
+      if (deltaEl.textContent !== deltaText) deltaEl.textContent = deltaText;
+    }
+    var volEl = row.querySelector(".row-vol");
+    var volText = "vol " + fmtCompact(t.volume_24h);
+    if (volEl && volEl.textContent !== volText) volEl.textContent = volText;
+  }
+
+  // Diff-update overview rows so taps on a "top coin" row stay stable
+  // across live ticks (rows are reused by symbol).
   function renderOverviewRows() {
     var el = $("#overview-rows");
     if (!el) return;
     var rows = (state.tickers || []).slice(0, 5);
     if (!rows.length) {
-      el.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div>';
+      if (el.getAttribute("data-state") !== "loading") {
+        el.setAttribute("data-state", "loading");
+        el.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div>';
+      }
       return;
     }
-    var html = "";
+    if (el.getAttribute("data-state") !== "ready") {
+      el.setAttribute("data-state", "ready");
+      var stale = [];
+      for (var s = 0; s < el.children.length; s++) {
+        var sc = el.children[s];
+        if (!sc.getAttribute || !sc.getAttribute("data-symbol")) stale.push(sc);
+      }
+      stale.forEach(function (n) { el.removeChild(n); });
+    }
+
+    var existing = {};
+    var kids = el.children;
+    for (var i = 0; i < kids.length; i++) {
+      var node = kids[i];
+      var sym = node.getAttribute && node.getAttribute("data-symbol");
+      if (sym) existing[sym] = node;
+    }
+
+    var prevSibling = null;
+    var wanted = {};
     rows.forEach(function (t) {
-      var pos = t.change_pct_24h >= 0;
-      var cKey = coinKey(t.symbol);
-      html += '<div class="row" data-symbol="' + escapeHtml(t.symbol) + '">' +
-        '<span class="row-coin" data-coin="' + cKey + '">' + coinLogoSVG(t.symbol) + '</span>' +
-        '<span><b>' + escapeHtml(shortSym(t.symbol)) + '</b><br><span style="color:var(--ink-2);font-size:11px;">$' + fmtPrice(t.last_price) + '</span></span>' +
-        '<span class="' + (pos ? "up" : "dn") + '">' + fmtPct(t.change_pct_24h) + '</span>' +
-        '<span style="color:var(--ink-3);font-family:JetBrains Mono,monospace;font-size:10px;">vol ' + fmtCompact(t.volume_24h) + '</span>' +
-      '</div>';
+      wanted[t.symbol] = true;
+      var row = existing[t.symbol];
+      if (!row) row = buildOverviewRow(t);
+      updateOverviewRow(row, t);
+      var target = prevSibling ? prevSibling.nextSibling : el.firstChild;
+      if (target !== row) el.insertBefore(row, target);
+      prevSibling = row;
     });
-    el.innerHTML = html;
+
+    var remove = [];
+    for (var j = 0; j < kids.length; j++) {
+      var c = kids[j];
+      var ss = c.getAttribute && c.getAttribute("data-symbol");
+      if (!ss || !wanted[ss]) remove.push(c);
+    }
+    remove.forEach(function (n) { el.removeChild(n); });
   }
 
   // ---------- Signals (realtime engine) ----------
@@ -770,59 +831,181 @@
     });
   }
 
+  function buildCoinChip(sym) {
+    var k = coinKey(sym);
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "coin-chip";
+    btn.setAttribute("data-coin", k);
+    btn.setAttribute("data-symbol", sym);
+    btn.setAttribute("data-testid", "coin-chip-" + sym);
+    btn.innerHTML =
+      '<span class="coin-chip__mark" data-coin="' + k + '">' + coinLogoSVG(sym) + '</span>' +
+      escapeHtml(shortSym(sym));
+    return btn;
+  }
+
+  // Diff-update the chip rail: reuse existing nodes so taps stay stable
+  // while realtime updates churn. Only the .is-active class is toggled.
   function renderCoinChips() {
     var el = $("#coin-chips");
     if (!el) return;
-    // Build chip set from curated symbol list so the chooser is stable even
-    // before tickers arrive — clicking a chip selects that pair.
     var symbols = (API.CURATED_SYMBOLS || API.DEFAULT_SYMBOLS || []).slice(0, 40);
-    var html = symbols.map(function (sym) {
-      var k = coinKey(sym);
-      var active = sym === state.selectedSymbol ? " is-active" : "";
-      return '<button type="button" class="coin-chip' + active +
-             '" data-coin="' + k + '" data-symbol="' + escapeHtml(sym) +
-             '" data-testid="coin-chip-' + escapeHtml(sym) + '">' +
-             '<span class="coin-chip__mark" data-coin="' + k + '">' + coinLogoSVG(sym) + '</span>' +
-             escapeHtml(shortSym(sym)) + '</button>';
-    }).join("");
-    el.innerHTML = html;
+
+    // Index existing chips by symbol.
+    var existing = {};
+    var children = el.children;
+    for (var i = 0; i < children.length; i++) {
+      var node = children[i];
+      var sym = node.getAttribute && node.getAttribute("data-symbol");
+      if (sym) existing[sym] = node;
+    }
+
+    // Walk desired order, reusing or creating nodes; reorder only if needed.
+    var prevSibling = null;
+    var wanted = {};
+    symbols.forEach(function (sym) {
+      wanted[sym] = true;
+      var node = existing[sym];
+      if (!node) {
+        node = buildCoinChip(sym);
+      }
+      var isActive = sym === state.selectedSymbol;
+      node.classList.toggle("is-active", isActive);
+      // Place node after prevSibling (or at start). Skip DOM op if already correct.
+      var target = prevSibling ? prevSibling.nextSibling : el.firstChild;
+      if (target !== node) {
+        el.insertBefore(node, target);
+      }
+      prevSibling = node;
+    });
+
+    // Remove leftover nodes that are no longer in the curated list.
+    var remove = [];
+    for (var j = 0; j < children.length; j++) {
+      var c = children[j];
+      var s = c.getAttribute && c.getAttribute("data-symbol");
+      if (!s || !wanted[s]) remove.push(c);
+    }
+    remove.forEach(function (n) { el.removeChild(n); });
   }
 
+  function buildMatrixCell(t) {
+    var cell = document.createElement("div");
+    cell.className = "matrix-cell";
+    cell.setAttribute("data-symbol", t.symbol);
+    cell.setAttribute("data-testid", "matrix-cell-" + t.symbol);
+    cell.innerHTML =
+      '<div class="matrix-sym">' + escapeHtml(shortSym(t.symbol)) +
+        '<span class="matrix-strength"></span></div>' +
+      '<div class="matrix-price"></div>' +
+      '<div class="matrix-delta"></div>' +
+      '<div class="matrix-vol"></div>';
+    return cell;
+  }
+
+  function updateMatrixCell(cell, t) {
+    var pos = t.change_pct_24h >= 0;
+    var absChg = Math.abs(t.change_pct_24h || 0);
+    var strength = absChg >= 2 ? "high" : absChg >= 1 ? "mid" : "low";
+    var strengthLabel = strength === "high" ? I18N.t("strHigh") : strength === "mid" ? I18N.t("strMid") : I18N.t("strLow");
+    var mKey = coinKey(t.symbol);
+    var mBrand = coinBrand(t.symbol);
+
+    if (cell.getAttribute("data-coin") !== mKey) cell.setAttribute("data-coin", mKey);
+    if (cell.getAttribute("data-glyph") !== mBrand.glyph) cell.setAttribute("data-glyph", mBrand.glyph);
+    cell.classList.toggle("up", pos);
+    cell.classList.toggle("down", !pos);
+
+    var strengthEl = cell.querySelector(".matrix-strength");
+    if (strengthEl) {
+      strengthEl.className = "matrix-strength " + strength;
+      if (strengthEl.textContent !== strengthLabel) strengthEl.textContent = strengthLabel;
+    }
+    var priceEl = cell.querySelector(".matrix-price");
+    var priceText = "$" + fmtPrice(t.last_price);
+    if (priceEl && priceEl.textContent !== priceText) priceEl.textContent = priceText;
+
+    var deltaEl = cell.querySelector(".matrix-delta");
+    var deltaText = fmtPct(t.change_pct_24h);
+    if (deltaEl && deltaEl.textContent !== deltaText) deltaEl.textContent = deltaText;
+
+    var volEl = cell.querySelector(".matrix-vol");
+    var volText = "vol " + fmtCompact(t.volume_24h);
+    if (volEl && volEl.textContent !== volText) volEl.textContent = volText;
+  }
+
+  // Diff-update the market matrix so tappable .matrix-cell nodes are never
+  // detached mid-tap by live price ticks. Cells are reused by symbol; only
+  // text content / classes change on each ticker update.
   function renderMarketScreen() {
     var el = $("#matrix");
     if (!el) return;
     var rows = state.tickers || [];
     var emptyEl = $("#market-empty");
     var countEl = $("#market-count");
+
     if (!rows.length) {
-      el.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div>';
+      // No data yet — show skeleton placeholders, but only once.
+      if (!el.getAttribute("data-state") || el.getAttribute("data-state") !== "loading") {
+        el.setAttribute("data-state", "loading");
+        el.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div>';
+      }
       if (countEl) countEl.textContent = "—";
       if (emptyEl) emptyEl.hidden = true;
       return;
     }
+
     var visible = filterTickers(rows, state.marketQuery);
     if (countEl) countEl.textContent = visible.length + " / " + rows.length;
     if (emptyEl) emptyEl.hidden = visible.length > 0;
+
+    // Transition out of any skeleton state once we have data.
+    if (el.getAttribute("data-state") !== "ready") {
+      el.setAttribute("data-state", "ready");
+      // Strip skeleton placeholders without symbols so we start clean.
+      var stale = [];
+      for (var s = 0; s < el.children.length; s++) {
+        var sc = el.children[s];
+        if (!sc.getAttribute || !sc.getAttribute("data-symbol")) stale.push(sc);
+      }
+      stale.forEach(function (n) { el.removeChild(n); });
+    }
+
     if (!visible.length) {
-      el.innerHTML = "";
+      // Filter excluded all rows — clear without touching skeleton state.
+      while (el.firstChild) el.removeChild(el.firstChild);
       return;
     }
-    var html = "";
+
+    // Index existing cells by symbol.
+    var existing = {};
+    var kids = el.children;
+    for (var i = 0; i < kids.length; i++) {
+      var node = kids[i];
+      var sym = node.getAttribute && node.getAttribute("data-symbol");
+      if (sym) existing[sym] = node;
+    }
+
+    var prevSibling = null;
+    var wanted = {};
     visible.forEach(function (t) {
-      var pos = t.change_pct_24h >= 0;
-      var absChg = Math.abs(t.change_pct_24h || 0);
-      var strength = absChg >= 2 ? "high" : absChg >= 1 ? "mid" : "low";
-      var strengthLabel = strength === "high" ? I18N.t("strHigh") : strength === "mid" ? I18N.t("strMid") : I18N.t("strLow");
-      var mKey = coinKey(t.symbol);
-      var mBrand = coinBrand(t.symbol);
-      html += '<div class="matrix-cell ' + (pos ? "up" : "down") + '" data-symbol="' + escapeHtml(t.symbol) + '" data-coin="' + mKey + '" data-glyph="' + escapeHtml(mBrand.glyph) + '" data-testid="matrix-cell-' + escapeHtml(t.symbol) + '">' +
-        '<div class="matrix-sym">' + escapeHtml(shortSym(t.symbol)) + '<span class="matrix-strength ' + strength + '">' + escapeHtml(strengthLabel) + '</span></div>' +
-        '<div class="matrix-price">$' + fmtPrice(t.last_price) + '</div>' +
-        '<div class="matrix-delta">' + fmtPct(t.change_pct_24h) + '</div>' +
-        '<div class="matrix-vol">vol ' + fmtCompact(t.volume_24h) + '</div>' +
-      '</div>';
+      wanted[t.symbol] = true;
+      var cell = existing[t.symbol];
+      if (!cell) cell = buildMatrixCell(t);
+      updateMatrixCell(cell, t);
+      var target = prevSibling ? prevSibling.nextSibling : el.firstChild;
+      if (target !== cell) el.insertBefore(cell, target);
+      prevSibling = cell;
     });
-    el.innerHTML = html;
+
+    var remove = [];
+    for (var j = 0; j < kids.length; j++) {
+      var c = kids[j];
+      var ss = c.getAttribute && c.getAttribute("data-symbol");
+      if (!ss || !wanted[ss]) remove.push(c);
+    }
+    remove.forEach(function (n) { el.removeChild(n); });
   }
 
   // ---------- AI assistant ----------
