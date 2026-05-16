@@ -75,6 +75,51 @@ if (!apiJs.includes("bybitGetInstruments")) {
   errors.push("bybitGetInstruments helper missing in api.js");
 }
 
+// --- Inline SVG coin-logo system -----------------------------------------
+// Each major coin must have an entry in COIN_LOGO_PATHS, and a SYM:- or
+// "SYM": form is accepted (1000PEPE/1000SHIB use the quoted form via
+// dynamic assignment, so we also look for SYM aliasing lines).
+if (!js.includes("COIN_LOGO_PATHS")) {
+  errors.push("COIN_LOGO_PATHS map missing in app.js");
+}
+if (!/function\s+coinLogoSVG\s*\(/.test(js)) {
+  errors.push("coinLogoSVG() helper missing in app.js");
+}
+if (!/function\s+coinMonogram\s*\(/.test(js)) {
+  errors.push("coinMonogram() fallback helper missing in app.js");
+}
+for (const k of MAJOR_COINS.filter(c => c !== "DEFAULT")) {
+  const plain = new RegExp(`(?:^|[\\s,{])${k}:\\s*'`, "m");
+  const quoted = new RegExp(`"${k}":\\s*'`);
+  const aliased = new RegExp(
+    `COIN_LOGO_PATHS\\[?["']?${k}["']?\\]?\\s*=`
+  );
+  if (!plain.test(js) && !quoted.test(js) && !aliased.test(js)) {
+    errors.push(`COIN_LOGO_PATHS entry missing for ${k}`);
+  }
+}
+// Coin marks should be rendered via coinLogoSVG (not the plain text mark)
+// in the render sites we control.
+for (const site of [
+  "renderOverviewRows",
+  "renderSignalsScreen",
+  "renderCoinChips",
+  "renderLastSignal",
+  "applyCoinBranding"
+]) {
+  // crude check: site exists
+  if (!js.includes(site)) errors.push(`render site missing: ${site}`);
+}
+const sitesUsingLogo = (js.match(/coinLogoSVG\(/g) || []).length;
+if (sitesUsingLogo < 5) {
+  errors.push(`coinLogoSVG is used ${sitesUsingLogo}× — expected ≥5 (hero, last-signal, rows, signals, chips)`);
+}
+
+// CSS: SVG logos inside .coin-mark must be sized.
+if (!/coin-mark\s*>\s*svg\.coin-logo|svg\.coin-logo/.test(css)) {
+  errors.push("styles.css must size .coin-logo inside .coin-mark/.row-coin/.coin-chip__mark");
+}
+
 if (errors.length) {
   console.error("verify-banners FAILED:");
   for (const e of errors) console.error("  - " + e);

@@ -49,12 +49,17 @@ must("topbar Q-mark", /class="topbar__qmark"[\s\S]*?qmark\.svg/.test(html),
   "topbar must include Q-mark identity");
 must("mini app subtitle i18n", /data-i18n="miniAppSub"/.test(html));
 
-// --- Top section nav (reference-style) ------------------------------------
-must("topnav present", /<nav\s+class="topnav"[\s\S]*?data-testid="topnav"/.test(html));
-must("topnav has 5 tabs", (html.match(/class="topnav__tab/g) || []).length >= 5,
-  "expected at least 5 topnav__tab buttons");
-must("topnav nav-overview", /data-nav="overview"/.test(html));
-must("topnav nav-profile", /data-nav="profile"/.test(html));
+// --- Top section nav removed by user request -----------------------------
+// Bottom .tabbar is now the only nav surface; assert the top panel is gone.
+must("topnav removed from HTML",
+  !/class="topnav"/.test(html) && !/data-testid="topnav"/.test(html),
+  "top nav (Дашборд/Сигналы/Рынок/Портфель/Профиль) must be removed");
+must("topnav__tab class absent in HTML",
+  !/topnav__tab/.test(html),
+  "no topnav__tab buttons should remain");
+must("bottom tabbar still wired",
+  /<nav\s+class="tabbar"/.test(html) && /class="tab[^"]*"[^>]*data-nav="overview"/.test(html),
+  "bottom .tabbar must remain as the sole nav");
 
 // --- Last-signal card ----------------------------------------------------
 must("last-signal card", /id="last-signal-card"[^>]*data-testid="last-signal-card"/.test(html));
@@ -93,7 +98,9 @@ ok(`i18n keys present for ru/en/zh (${requiredKeys.length} keys)`);
 // --- CSS hooks ------------------------------------------------------------
 must("CSS has .boot-splash", /\.boot-splash\b/.test(css));
 must("CSS has body.boot-done hide", /body\.boot-done\s+\.boot-splash/.test(css));
-must("CSS has .topnav", /\.topnav\b/.test(css));
+must("CSS has no leftover .topnav rules",
+  !/\.topnav(?:__tab)?\s*\{/.test(css),
+  ".topnav CSS rules must be removed");
 must("CSS has .last-signal", /\.last-signal\b/.test(css));
 must("CSS has .ai-radar", /\.ai-radar\b/.test(css));
 must("CSS respects prefers-reduced-motion for splash",
@@ -109,7 +116,11 @@ must("app.js hides splash on hard cap",
   /setTimeout\(hide,\s*MAX_MS/.test(app),
   "expected hard MAX_MS timeout in splash module");
 must("app.js renders last-signal", /function\s+renderLastSignal\s*\(/.test(app));
-must("setScreen toggles topnav", /\.tab,\s*\.topnav__tab/.test(app),
-  "setScreen must update .topnav__tab active state alongside .tab");
+must("setScreen no longer references .topnav__tab",
+  !/\.topnav__tab/.test(app),
+  "setScreen must not reference the removed top nav");
+must("app.js wires inline SVG coin logos",
+  /function\s+coinLogoSVG\s*\(/.test(app) && /COIN_LOGO_PATHS/.test(app),
+  "expected coinLogoSVG()/COIN_LOGO_PATHS in app.js");
 
 console.log(`\nAll splash/redesign smoke checks passed.`);

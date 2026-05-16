@@ -189,60 +189,7 @@ button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
   margin-top: 2px;
 }
 
-/* ===== Top section nav (mirrors bottom tabbar; matches reference) ===== */
-.topnav {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 2px;
-  background: rgba(7, 12, 21, 0.7);
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 4px;
-  margin: 10px 0 12px;
-  backdrop-filter: blur(8px);
-  overflow: hidden;
-}
-.topnav__tab {
-  background: transparent;
-  border: none;
-  color: var(--ink-2);
-  font: inherit;
-  font-size: 10.5px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
-  padding: 7px 4px 6px;
-  border-radius: 10px;
-  position: relative;
-  transition: color .15s ease, background .15s ease;
-  min-width: 0;
-}
-.topnav__tab > svg { opacity: 0.8; }
-.topnav__tab > span {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-}
-.topnav__tab.is-active {
-  color: var(--teal);
-  background: rgba(38, 230, 242, 0.08);
-  box-shadow: inset 0 0 0 1px rgba(38, 230, 242, 0.22);
-}
-.topnav__tab.is-active::after {
-  content: "";
-  position: absolute;
-  left: 50%; bottom: 2px;
-  transform: translateX(-50%);
-  width: 22px; height: 2px;
-  background: var(--teal);
-  border-radius: 99px;
-  box-shadow: 0 0 6px var(--teal);
-}
-.topnav__tab:hover:not(.is-active) { color: var(--ink-1); }
-@media (max-width: 360px) {
-  .topnav__tab { font-size: 9.5px; padding: 6px 2px; }
-}
+/* Top section nav was removed by user request — bottom tabbar is the only nav. */
 .dot-live {
   width: 7px; height: 7px;
   border-radius: 50%;
@@ -421,6 +368,16 @@ button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
   box-shadow: 0 4px 14px var(--coin-glow, rgba(247, 163, 48, 0.4));
   font-family: "JetBrains Mono", monospace;
   transition: background .25s ease, box-shadow .25s ease;
+  overflow: hidden;
+}
+/* Inline SVG logo fills its parent chip; padding keeps the mark inside the
+   circular gradient. Works for .coin-mark, .row-coin, .coin-chip__mark and
+   the .last-signal__mark variant. */
+.coin-mark > svg.coin-logo,
+.row-coin > svg.coin-logo,
+.coin-chip__mark > svg.coin-logo {
+  width: 78%; height: 78%;
+  display: block;
 }
 /* Back-compat alias used elsewhere */
 .coin-btc { width: 36px; height: 36px; border-radius: 50%; }
