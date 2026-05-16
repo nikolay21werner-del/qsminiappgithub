@@ -7,8 +7,11 @@
 Репозиторий уже содержит:
 
 - 📦 Эндпоинт вебхука бота: `api/telegram/bot-webhook.js`
-- 🖼 Брендовые ассеты: `assets/telegram/avatar.svg`,
+- 🖼 Брендовые ассеты (SVG-исходники): `assets/telegram/avatar.svg`,
   `assets/telegram/welcome-banner.svg`, `assets/telegram/channel-banner.svg`
+- 🖼 Брендовые ассеты (готовые PNG для Telegram — Bot API не принимает
+  SVG в `sendPhoto`): `assets/telegram/avatar.png`,
+  `assets/telegram/welcome-banner.png`, `assets/telegram/channel-banner.png`
 - ✅ Верификатор: `npm run verify:telegram-branding`
 
 > ⚠️ Сами Telegram API-вызовы (установка webhook, аватарок и описаний)
@@ -41,14 +44,16 @@
 
 1. Открой `@BotFather` → команда `/mybots` → выбери `@QUANTSIGNAL_AI_BOT`.
 2. `Edit Bot` → `Edit Botpic` → отправь PNG **512×512**, ≤ 5 МБ.
-3. Используй `assets/telegram/avatar.svg` как исходник. Сконвертируй в PNG
-   на своей машине, например:
+3. Используй готовый PNG из репозитория: `assets/telegram/avatar.png`
+   (512×512, можно загрузить как есть в BotFather).
+   При необходимости пересобрать его из SVG-исходника
+   `assets/telegram/avatar.svg`:
    ```bash
    # вариант 1: rsvg-convert (librsvg)
-   rsvg-convert -w 512 -h 512 assets/telegram/avatar.svg -o avatar.png
+   rsvg-convert -w 512 -h 512 assets/telegram/avatar.svg -o assets/telegram/avatar.png
 
    # вариант 2: inkscape
-   inkscape assets/telegram/avatar.svg -w 512 -h 512 -o avatar.png
+   inkscape assets/telegram/avatar.svg -w 512 -h 512 -o assets/telegram/avatar.png
 
    # вариант 3: онлайн-конвертер SVG→PNG, размер 512×512
    ```
@@ -117,15 +122,18 @@ BotFather: `/newapp` (или `/myapps` → `Edit`) → бот
 команды `/start`, `/app`, `/help`, `/menu`, `/open` (или первое
 сообщение в личке) отвечает:
 
-- 🖼 Фото-баннер `assets/telegram/welcome-banner.svg` (если он доступен
-  по публичному URL — Telegram сам скачает фото)
+- 🖼 Фото-баннер `assets/telegram/welcome-banner.png` (PNG 1280×720 —
+  Telegram сам скачает фото с публичного URL Mini App)
 - 📝 HTML-капшен с описанием возможностей
 - 🔘 Inline-клавиатура: `🚀 Открыть QUANTSIGNAL AI` (Mini App) +
   `📡 Канал QUANTSIGNAL AI`
 
-Если фото-баннер не получится отправить (например, Telegram не примет
-SVG как фото) — есть автоматический fallback на `sendMessage` с тем же
-текстом и клавиатурой.
+`WELCOME_BANNER_PATH` в `api/telegram/bot-webhook.js` указывает на
+`/assets/telegram/welcome-banner.png`. Bot API `sendPhoto` принимает
+только растровые форматы (JPEG/PNG), поэтому SVG-исходник тут не
+используется. Если фото всё-таки не получится отправить — есть
+автоматический fallback на `sendMessage` с тем же текстом и
+клавиатурой.
 
 ### 2.1. Зарегистрировать webhook у Telegram
 
@@ -164,11 +172,11 @@ curl -s "https://api.telegram.org/bot${TOKEN}/deleteWebhook?drop_pending_updates
 1. Открой `@QUANTSIGNAL_AI_BOT` в Telegram.
 2. Нажми **Start**.
 3. Жди фото-баннер + текст приветствия + кнопки.
-4. Если приходит только текст (без фото) — это ожидаемый fallback;
-   Telegram не принял SVG. Сконвертируй `assets/telegram/welcome-banner.svg`
-   в `welcome-banner.png` (1280×720, ≤ 5 МБ), положи его в
-   `assets/telegram/` и при необходимости поменяй
-   `WELCOME_BANNER_PATH` в `api/telegram/bot-webhook.js`.
+4. Если приходит только текст (без фото) — Telegram не смог скачать
+   баннер по публичному URL. Проверь, что `QSI_PUBLIC_HOST`
+   (или `WEBHOOK_PUBLIC_HOST` / `VERCEL_URL`) указывает на хост, по
+   которому файл `assets/telegram/welcome-banner.png` отдаётся
+   публично, и что сам файл закоммичен в репозиторий.
 
 ---
 
@@ -177,8 +185,10 @@ curl -s "https://api.telegram.org/bot${TOKEN}/deleteWebhook?drop_pending_updates
 ### 3.1. Аватарка канала
 
 В Telegram → канал `@QUANTSIGNAL_AI` → **Manage Channel** → **Edit** →
-тапни по аватарке → **Set Photo**. Загрузи PNG 512×512 (исходник:
-`assets/telegram/avatar.svg`).
+тапни по аватарке → **Set Photo**. Загрузи готовый PNG 512×512 из
+репозитория: `assets/telegram/avatar.png` (исходник:
+`assets/telegram/avatar.svg`). Для шапки/закрепа можно использовать
+`assets/telegram/channel-banner.png`.
 
 > Для канала Bot API позволяет менять фото через
 > `setChatPhoto`, но это требует, чтобы бот был администратором канала

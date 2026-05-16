@@ -109,6 +109,12 @@ must("welcome banner asset exists (assets/telegram/welcome-banner.svg)",
   existsSync(join(root, "assets/telegram/welcome-banner.svg")));
 must("channel banner asset exists (assets/telegram/channel-banner.svg)",
   existsSync(join(root, "assets/telegram/channel-banner.svg")));
+must("avatar PNG asset exists (assets/telegram/avatar.png)",
+  existsSync(join(root, "assets/telegram/avatar.png")));
+must("welcome banner PNG asset exists (assets/telegram/welcome-banner.png)",
+  existsSync(join(root, "assets/telegram/welcome-banner.png")));
+must("channel banner PNG asset exists (assets/telegram/channel-banner.png)",
+  existsSync(join(root, "assets/telegram/channel-banner.png")));
 
 const avatar = read("assets/telegram/avatar.svg");
 const welcome = read("assets/telegram/welcome-banner.svg");
@@ -118,8 +124,10 @@ must("welcome banner is 1280x720 SVG",
   /viewBox="0 0 1280 720"/.test(welcome) && /<svg /.test(welcome));
 must("welcome banner contains Russian wording",
   /Премиум|премиум|Добро пожаловать|Сигналы|AI-аналитика/.test(welcome));
-must("endpoint references the welcome banner asset path",
-  /\/assets\/telegram\/welcome-banner\.svg/.test(endpoint));
+must("endpoint references the welcome banner PNG asset path",
+  /\/assets\/telegram\/welcome-banner\.png/.test(endpoint));
+must("endpoint does NOT reference the SVG welcome banner for sendPhoto",
+  !/WELCOME_BANNER_PATH\s*=\s*"\/assets\/telegram\/welcome-banner\.svg"/.test(endpoint));
 
 // ---- 4. Setup doc -------------------------------------------------------
 must("TELEGRAM_BRANDING_SETUP.md exists", setup.length > 0);

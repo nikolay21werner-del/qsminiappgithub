@@ -30,7 +30,7 @@ const CHANNEL_URL = "https://t.me/QUANTSIGNAL_AI";
 const CHANNEL_USERNAME = "@QUANTSIGNAL_AI";
 const BOT_USERNAME = "@QUANTSIGNAL_AI_BOT";
 
-const WELCOME_BANNER_PATH = "/assets/telegram/welcome-banner.svg";
+const WELCOME_BANNER_PATH = "/assets/telegram/welcome-banner.png";
 
 // ---------- HTTP helpers ----------
 function sendJson(res, status, body) {
