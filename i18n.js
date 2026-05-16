@@ -78,6 +78,23 @@
       connected: "live",
       demoMode: "demo",
       connection: "Connection",
+      transportLabel: "Transport",
+      transportWs: "WebSocket",
+      transportRest: "REST polling",
+      transportOffline: "Offline",
+      providerLabel: "Data provider",
+      lastUpdate: "Last update",
+      justNow: "just now",
+      secondsAgo: "{n}s ago",
+      minutesAgo: "{n}m ago",
+      hoursAgo: "{n}h ago",
+      connecting: "connecting…",
+      signalEngineNote: "Live signal engine — research only, not financial advice.",
+      signalEngineLabel: "Signal engine",
+      momentumLong: "Momentum long",
+      momentumShort: "Momentum short",
+      rangeBound: "Range-bound",
+      aiSnapshotIntro: "Live snapshot of {sym}:",
       heroBadge: "live crypto intelligence",
       aboutTitle: "About",
       aboutLead: "QUANTSIGNAL AI — a Telegram Mini App with a premium crypto terminal feel: signals, market overview, AI analysis and quick access to key sections.",
@@ -176,6 +193,23 @@
       connected: "live",
       demoMode: "demo",
       connection: "Подключение",
+      transportLabel: "Канал данных",
+      transportWs: "WebSocket",
+      transportRest: "REST-опрос",
+      transportOffline: "Нет соединения",
+      providerLabel: "Источник данных",
+      lastUpdate: "Последнее обновление",
+      justNow: "только что",
+      secondsAgo: "{n} с назад",
+      minutesAgo: "{n} мин назад",
+      hoursAgo: "{n} ч назад",
+      connecting: "подключение…",
+      signalEngineNote: "Сигналы построены на живых данных — исследовательский режим, не инвестиционная рекомендация.",
+      signalEngineLabel: "Сигнальный движок",
+      momentumLong: "Импульс лонг",
+      momentumShort: "Импульс шорт",
+      rangeBound: "Диапазон",
+      aiSnapshotIntro: "Текущая картина {sym}:",
       heroBadge: "live crypto intelligence",
       aboutTitle: "О приложении",
       aboutLead: "QUANTSIGNAL AI — Telegram Mini App в стиле premium crypto terminal: сигналы, рыночный обзор, AI-анализ и быстрый доступ к ключевым разделам.",
@@ -274,6 +308,23 @@
       connected: "live",
       demoMode: "demo",
       connection: "连接",
+      transportLabel: "数据通道",
+      transportWs: "WebSocket",
+      transportRest: "REST 轮询",
+      transportOffline: "离线",
+      providerLabel: "数据源",
+      lastUpdate: "最近更新",
+      justNow: "刚刚",
+      secondsAgo: "{n}秒前",
+      minutesAgo: "{n}分前",
+      hoursAgo: "{n}小时前",
+      connecting: "连接中…",
+      signalEngineNote: "信号基于实时数据 — 研究演示，非投资建议。",
+      signalEngineLabel: "信号引擎",
+      momentumLong: "动量做多",
+      momentumShort: "动量做空",
+      rangeBound: "震荡区间",
+      aiSnapshotIntro: "{sym} 实时快照：",
       heroBadge: "live crypto intelligence",
       aboutTitle: "关于",
       aboutLead: "QUANTSIGNAL AI — 一个具备高端加密终端质感的 Telegram Mini App：信号、行情、AI 分析与快捷入口。",
@@ -339,9 +390,15 @@
   function get() { return current; }
   function getSupported() { return SUPPORTED.slice(); }
 
-  function t(key) {
+  function t(key, vars) {
     var d = DICT[current] || DICT.en;
-    return d[key] != null ? d[key] : (DICT.en[key] != null ? DICT.en[key] : key);
+    var str = d[key] != null ? d[key] : (DICT.en[key] != null ? DICT.en[key] : key);
+    if (vars && typeof str === "string") {
+      str = str.replace(/\{(\w+)\}/g, function (_, k) {
+        return (vars[k] == null) ? "" : String(vars[k]);
+      });
+    }
+    return str;
   }
 
   function set(code) {

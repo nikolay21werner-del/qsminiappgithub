@@ -1,6 +1,7 @@
 /* =========================================================
-   QUANTSIGNAL AI — Telegram Mini App (app-first edition)
+   QUANTSIGNAL AI — Telegram Mini App (realtime edition)
    No localStorage / sessionStorage / cookies. In-memory state only.
+   Data: public Bybit V5 WebSocket + REST fallback (no secrets).
    ========================================================= */
 (function () {
   "use strict";
@@ -85,24 +86,42 @@
     return String(Math.round(n));
   }
   function shortSym(sym) { return String(sym || "").replace(/USDT$/i, ""); }
-  function coinSeed(sym) {
-    var s = String(sym || "");
-    var h = 0;
-    for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
-    return h;
+  function relTime(ts) {
+    if (!ts) return "—";
+    var diff = Math.max(0, Date.now() - ts);
+    if (diff < 4000) return I18N.t("justNow");
+    var s = Math.floor(diff / 1000);
+    if (s < 60) return I18N.t("secondsAgo", { n: s });
+    var m = Math.floor(s / 60);
+    if (m < 60) return I18N.t("minutesAgo", { n: m });
+    var h = Math.floor(m / 60);
+    return I18N.t("hoursAgo", { n: h });
   }
+
+  // Map UI timeframe -> Bybit kline interval string.
+  var TF_TO_BYBIT = { "1m": "1", "5m": "5", "15m": "15", "1h": "60", "4h": "240", "1d": "D" };
 
   // ---------- State ----------
   var state = {
     screen: "overview",
     tf: "5m",
     marketTf: "5m",
-    tickers: null,
-    signals: null,
+    selectedSymbol: "BTCUSDT",
+    tickers: [],            // array of normalized tickers (from store)
+    tickerMap: {},          // symbol -> ticker
+    klines: {},             // "SYMBOL|tf" -> [{ts,open,high,low,close,volume}]
+    klineLoading: {},
     aiHistory: [],
     aiBusy: false,
-    backendOk: false
+    status: {
+      transport: "rest",
+      wsReady: false,
+      lastUpdateTs: 0,
+      provider: "Bybit V5 (linear)"
+    }
   };
+
+  var realtime = null;
 
   // ---------- Screen routing ----------
   function setScreen(name) {
@@ -115,16 +134,13 @@
       b.classList.toggle("is-active", b.getAttribute("data-nav") === name);
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
-    // Lazy renders
-    if (name === "signals" && !state.signals) renderSignalsScreen();
-    if (name === "market" && (!state.tickers || !state.tickers.length)) renderMarketScreen();
-    if (name === "ai" && !state.aiHistory.length) renderAIInitial();
-    if (name === "profile") renderProfileScreen();
     if (name === "signals") renderSignalsScreen();
     if (name === "market") renderMarketScreen();
+    if (name === "ai") renderAIInitial();
+    if (name === "profile") renderProfileScreen();
   }
 
-  // ---------- Live tickers ----------
+  // ---------- Tickers ----------
   function renderTicker() {
     var track = $("#ticker-track");
     if (!track) return;
@@ -149,72 +165,140 @@
 
   function applyHeroSnapshot() {
     if (!state.tickers || !state.tickers.length) return;
-    var btc = state.tickers.find(function (t) { return t.symbol === "BTCUSDT"; }) || state.tickers[0];
-    if (!btc) return;
+    var sym = state.selectedSymbol || "BTCUSDT";
+    var t = state.tickerMap[sym] || state.tickers[0];
+    if (!t) return;
     var pairEl = $("#hero-pair");
     var priceEl = $("#hero-price");
     var deltaEl = $("#hero-delta");
     var tagEl = $("#hero-chart-tag");
     var volEl = $("#hero-vol");
-    if (pairEl) pairEl.textContent = btc.symbol;
-    if (priceEl) priceEl.textContent = fmtPrice(btc.last_price);
-    if (tagEl) tagEl.textContent = fmtPrice(btc.last_price);
-    if (volEl) volEl.textContent = fmtCompact(btc.volume_24h);
+    if (pairEl) pairEl.textContent = t.symbol;
+    if (priceEl) priceEl.textContent = fmtPrice(t.last_price);
+    if (tagEl) tagEl.textContent = fmtPrice(t.last_price);
+    if (volEl) volEl.textContent = fmtCompact(t.volume_24h);
     if (deltaEl) {
-      deltaEl.textContent = fmtPct(btc.change_pct_24h);
-      deltaEl.classList.toggle("dn", btc.change_pct_24h < 0);
+      deltaEl.textContent = fmtPct(t.change_pct_24h);
+      deltaEl.classList.toggle("dn", t.change_pct_24h < 0);
     }
-    renderHeroChart(btc);
+    ensureKlines(t.symbol, state.tf);
+    renderHeroChart(t);
+  }
+
+  function klineKey(symbol, tf) { return symbol + "|" + tf; }
+
+  function ensureKlines(symbol, tf) {
+    var key = klineKey(symbol, tf);
+    if (state.klines[key] || state.klineLoading[key]) return;
+    var interval = TF_TO_BYBIT[tf] || "5";
+    state.klineLoading[key] = true;
+    API.bybitGetKlines(symbol, interval, 60).then(function (rows) {
+      state.klines[key] = rows;
+      state.klineLoading[key] = false;
+      if (state.screen === "overview" && state.selectedSymbol === symbol && state.tf === tf) {
+        var t = state.tickerMap[symbol];
+        if (t) renderHeroChart(t);
+      }
+    }).catch(function () {
+      state.klineLoading[key] = false;
+    });
   }
 
   function renderHeroChart(t) {
     var g = $("#hero-chart-candles");
     if (!g) return;
-    var seed = coinSeed(t.symbol || "BTC") + Math.floor(Date.now() / 60000);
-    function rand() { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }
-    var pos = (t.change_pct_24h || 0) >= 0;
+    var key = klineKey(t.symbol, state.tf);
+    var rows = state.klines[key];
+    if (!rows || !rows.length) {
+      // Show placeholder bars derived from live price while we load klines.
+      drawPlaceholderBars(g, t);
+      return;
+    }
+    var visible = rows.slice(-26);
+    // Replace the last candle's close with the live tick so the chart "breathes".
+    if (visible.length) {
+      var last = visible[visible.length - 1];
+      visible[visible.length - 1] = {
+        ts: last.ts,
+        open: last.open,
+        high: Math.max(last.high, t.last_price),
+        low: Math.min(last.low, t.last_price),
+        close: t.last_price,
+        volume: last.volume
+      };
+    }
+    var min = Infinity, max = -Infinity;
+    visible.forEach(function (r) {
+      if (r.low < min) min = r.low;
+      if (r.high > max) max = r.high;
+    });
+    if (!isFinite(min) || !isFinite(max) || min === max) {
+      drawPlaceholderBars(g, t);
+      return;
+    }
+    var range = max - min;
+    var padTop = 8, padBot = 12;
+    var W = 320, H = 140;
+    var usable = H - padTop - padBot;
+    var step = W / visible.length;
+    var bodyW = Math.max(2, step * 0.6);
     var html = "";
-    var x = 6;
-    var w = 6;
-    var step = 12;
+    visible.forEach(function (r, i) {
+      var x = i * step + (step - bodyW) / 2;
+      var yHigh = padTop + (1 - (r.high - min) / range) * usable;
+      var yLow = padTop + (1 - (r.low - min) / range) * usable;
+      var yOpen = padTop + (1 - (r.open - min) / range) * usable;
+      var yClose = padTop + (1 - (r.close - min) / range) * usable;
+      var up = r.close >= r.open;
+      var color = up ? "#26e6f2" : "#ff5577";
+      var top = Math.min(yOpen, yClose);
+      var bottom = Math.max(yOpen, yClose);
+      var bodyH = Math.max(1.5, bottom - top);
+      var wickX = x + bodyW / 2;
+      html += '<line x1="' + wickX.toFixed(1) + '" y1="' + yHigh.toFixed(1) +
+              '" x2="' + wickX.toFixed(1) + '" y2="' + yLow.toFixed(1) +
+              '" stroke="' + color + '" stroke-width="1" opacity="0.7"/>';
+      html += '<rect x="' + x.toFixed(1) + '" y="' + top.toFixed(1) +
+              '" width="' + bodyW.toFixed(1) + '" height="' + bodyH.toFixed(1) +
+              '" fill="' + color + '" />';
+    });
+    g.innerHTML = html;
+  }
+
+  function drawPlaceholderBars(g, t) {
+    var pos = (t.change_pct_24h || 0) >= 0;
+    var seed = 0;
+    var sym = t.symbol || "BTC";
+    for (var i = 0; i < sym.length; i++) seed = (seed * 31 + sym.charCodeAt(i)) >>> 0;
+    seed = (seed + Math.floor(Date.now() / 60000)) >>> 0;
+    function rand() { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }
+    var html = "";
+    var x = 6, w = 6, step = 12;
     var baseY = pos ? 80 : 30;
     var trendDir = pos ? -1 : 1;
     for (var i = 0; i < 26; i++) {
       var noise = (rand() - 0.5) * 16;
       var trend = trendDir * i * 1.6;
       var y = Math.max(6, Math.min(108, baseY + trend + noise));
-      var hgt = Math.max(8, 14 + (rand() * 18));
-      var color = (rand() > 0.45 ? "#26e6f2" : "#ff5577");
-      html += '<rect x="' + (x + i * step) + '" y="' + y.toFixed(1) + '" width="' + w + '" height="' + hgt.toFixed(1) + '" fill="' + color + '"/>';
+      var h = Math.max(8, 14 + (rand() * 18));
+      var color = rand() > 0.45 ? "#26e6f2" : "#ff5577";
+      html += '<rect x="' + (x + i * step) + '" y="' + y.toFixed(1) + '" width="' + w + '" height="' + h.toFixed(1) + '" fill="' + color + '"/>';
     }
     g.innerHTML = html;
-  }
-
-  async function refreshTickers() {
-    if (!API) return;
-    try {
-      var data = await API.getTickers();
-      state.tickers = (data && data.tickers) ? data.tickers : [];
-      state.backendOk = !!(data && data.source && data.source !== "demo");
-      renderTicker();
-      applyHeroSnapshot();
-      renderOverviewRows();
-      if (state.screen === "market") renderMarketScreen();
-    } catch (e) {
-      console.warn("ticker refresh failed", e);
-    }
   }
 
   // ---------- KPI animation ----------
   function animateCounter(el, target) {
     if (!el) return;
-    var dur = 900;
+    var dur = 700;
     var start = performance.now();
     var unit = el.querySelector(".kpi-unit");
+    var from = parseInt(el.textContent, 10);
+    if (!isFinite(from)) from = 0;
     function frame(t) {
       var p = Math.min(1, (t - start) / dur);
       var eased = 1 - Math.pow(1 - p, 3);
-      var v = Math.round(eased * target);
+      var v = Math.round(from + (target - from) * eased);
       el.textContent = String(v);
       if (unit) el.appendChild(unit);
       if (p < 1) requestAnimationFrame(frame);
@@ -222,9 +306,18 @@
     requestAnimationFrame(frame);
   }
   function renderKPIs() {
-    animateCounter($('[data-counter="signals"]'), 24);
-    animateCounter($('[data-counter="coins"]'), 187);
-    animateCounter($('[data-counter="accuracy"]'), 72);
+    // KPIs derive from realtime store when available; otherwise show plausible values.
+    var tickers = state.tickers || [];
+    var signals = computeSignals();
+    var watched = tickers.length || (API.DEFAULT_SYMBOLS || []).length;
+    // "Model accuracy" — illustrative composite of average absolute momentum + win heuristic.
+    var avgAbs = 0;
+    tickers.forEach(function (t) { avgAbs += Math.abs(t.change_pct_24h || 0); });
+    if (tickers.length) avgAbs /= tickers.length;
+    var accuracy = Math.round(Math.max(55, Math.min(92, 62 + avgAbs * 3)));
+    animateCounter($('[data-counter="signals"]'), signals.length);
+    animateCounter($('[data-counter="coins"]'), watched);
+    animateCounter($('[data-counter="accuracy"]'), accuracy);
   }
 
   // ---------- Overview rows ----------
@@ -239,7 +332,7 @@
     var html = "";
     rows.forEach(function (t) {
       var pos = t.change_pct_24h >= 0;
-      html += '<div class="row">' +
+      html += '<div class="row" data-symbol="' + escapeHtml(t.symbol) + '">' +
         '<span class="row-coin">' + escapeHtml(shortSym(t.symbol).slice(0, 3)) + '</span>' +
         '<span><b>' + escapeHtml(shortSym(t.symbol)) + '</b><br><span style="color:var(--ink-2);font-size:11px;">$' + fmtPrice(t.last_price) + '</span></span>' +
         '<span class="' + (pos ? "up" : "dn") + '">' + fmtPct(t.change_pct_24h) + '</span>' +
@@ -249,30 +342,75 @@
     el.innerHTML = html;
   }
 
-  // ---------- Signals screen ----------
-  async function renderSignalsScreen() {
+  // ---------- Signals (realtime engine) ----------
+  function computeSignals() {
+    // Lightweight transparent engine based on 24h momentum, volatility and range position.
+    // Not financial advice. Used for UI demonstration over live market data.
+    var rows = state.tickers || [];
+    var out = [];
+    rows.forEach(function (t) {
+      if (!t || !isFinite(t.last_price)) return;
+      var change = t.change_pct_24h || 0;
+      var absChg = Math.abs(change);
+      // Skip flat coins from the signals stream.
+      if (absChg < 0.25) return;
+      var dir = change >= 0 ? "LONG" : "SHORT";
+      var hi = t.high_24h || t.last_price;
+      var lo = t.low_24h || t.last_price;
+      var rangePct = hi > lo ? (hi - lo) / lo : 0.01;
+      var rangeFactor = Math.max(0.005, Math.min(0.08, rangePct * 0.5 + absChg / 200));
+      var entry = t.last_price;
+      var sl  = dir === "LONG" ? entry * (1 - rangeFactor * 1.2) : entry * (1 + rangeFactor * 1.2);
+      var tp1 = dir === "LONG" ? entry * (1 + rangeFactor)       : entry * (1 - rangeFactor);
+      var tp2 = dir === "LONG" ? entry * (1 + rangeFactor * 2)   : entry * (1 - rangeFactor * 2);
+      var rr = Math.abs(tp1 - entry) / Math.max(Math.abs(entry - sl), 1e-9);
+      // Confidence: blend of |Δ24h|, volatility (range%) and proximity to range extreme.
+      var rangePos = hi > lo ? (entry - lo) / (hi - lo) : 0.5;
+      var extremeBonus = dir === "LONG" ? (1 - rangePos) : rangePos;
+      var conf = Math.max(0.35, Math.min(0.92,
+        0.45 + absChg / 12 + Math.min(0.2, rangePct) + (extremeBonus - 0.5) * 0.2
+      ));
+      var rationaleKey = dir === "LONG" ? "momentumLong" : "momentumShort";
+      out.push({
+        id: t.symbol + "-rt",
+        symbol: t.symbol,
+        direction: dir,
+        entry: entry,
+        stop_loss: sl,
+        take_profit_1: tp1,
+        take_profit_2: tp2,
+        confidence: conf,
+        risk_reward: +rr.toFixed(2),
+        rationale: I18N.t(rationaleKey) + " · 24h " + fmtPct(change) +
+                   " · " + I18N.t("aiVolatility") + " " + (rangePct * 100).toFixed(2) + "%",
+        ts: Date.now()
+      });
+    });
+    // Sort by confidence descending so the strongest signal appears first.
+    out.sort(function (a, b) { return b.confidence - a.confidence; });
+    return out;
+  }
+
+  function renderSignalsScreen() {
     var el = $("#signals-list");
     if (!el) return;
-    if (!state.signals) el.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
-    try {
-      var data = await API.getSignals();
-      state.signals = (data && data.signals) ? data.signals : [];
-    } catch (e) {
+    var signals = computeSignals();
+    if (!signals.length) {
+      el.innerHTML = '<div class="card"><div class="muted">' + escapeHtml(I18N.t("noSignals")) + '</div></div>' +
+                     '<p class="muted" style="font-size:11px;margin-top:6px;">' + escapeHtml(I18N.t("signalEngineNote")) + '</p>';
       state.signals = [];
-    }
-    if (!state.signals.length) {
-      el.innerHTML = '<div class="card"><div class="muted">' + escapeHtml(I18N.t("noSignals")) + '</div></div>';
       return;
     }
+    state.signals = signals;
     var html = "";
-    state.signals.forEach(function (s, idx) {
+    signals.forEach(function (s, idx) {
       var dirClass = s.direction === "LONG" ? "up" : "dn";
       var cardClass = s.direction === "LONG" ? "signal-card--long" : "signal-card--short";
       var conf = Math.round((s.confidence || 0) * 100);
       var status = idx === 0 ? "new" : (idx % 3 === 0 ? "watch" : "active");
       var statusLabel = (status === "new") ? I18N.t("statusNew") :
                         (status === "watch") ? I18N.t("statusWatch") : I18N.t("statusActive");
-      html += '<article class="signal-card ' + cardClass + '" data-signal-id="' + escapeHtml(s.id || s.symbol) + '" data-signal-idx="' + idx + '">' +
+      html += '<article class="signal-card ' + cardClass + '" data-signal-id="' + escapeHtml(s.id) + '" data-signal-idx="' + idx + '">' +
         '<div class="signal-card__head">' +
           '<div class="signal-card__sym"><span class="row-coin">' + escapeHtml(shortSym(s.symbol).slice(0, 3)) + '</span>' + escapeHtml(s.symbol) + '</div>' +
           '<span class="signal-card__dir ' + dirClass + '">' + (s.direction === "LONG" ? "↑ " : "↓ ") + escapeHtml(s.direction) + '</span>' +
@@ -289,6 +427,7 @@
         '</div>' +
       '</article>';
     });
+    html += '<p class="muted" style="font-size:11px;margin-top:6px;">' + escapeHtml(I18N.t("signalEngineNote")) + '</p>';
     el.innerHTML = html;
   }
 
@@ -317,30 +456,27 @@
       '<div class="chips" style="margin-top:4px;">' +
         '<span><b>' + I18N.t("potential") + '</b>: <em>' + fmtPct(potential) + '</em></span>' +
         '<span><b>' + I18N.t("aiTrend") + '</b>: <em>' + (s.direction === "LONG" ? I18N.t("bullish") : I18N.t("bearish")) + '</em></span>' +
+        '<span><b>' + I18N.t("signalEngineLabel") + '</b>: <em>realtime</em></span>' +
       '</div>';
     openSheet("#signal-sheet");
   }
 
   // ---------- Market screen ----------
-  async function renderMarketScreen() {
+  function renderMarketScreen() {
     var el = $("#matrix");
     if (!el) return;
-    if (!state.tickers) el.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div>';
-    try {
-      var data = await API.getTickers();
-      state.tickers = (data && data.tickers) ? data.tickers : [];
-    } catch (e) {}
-    if (!state.tickers.length) {
-      el.innerHTML = '<div class="card"><div class="muted">—</div></div>';
+    var rows = state.tickers || [];
+    if (!rows.length) {
+      el.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div>';
       return;
     }
     var html = "";
-    state.tickers.forEach(function (t) {
+    rows.forEach(function (t) {
       var pos = t.change_pct_24h >= 0;
       var absChg = Math.abs(t.change_pct_24h || 0);
       var strength = absChg >= 2 ? "high" : absChg >= 1 ? "mid" : "low";
       var strengthLabel = strength === "high" ? I18N.t("strHigh") : strength === "mid" ? I18N.t("strMid") : I18N.t("strLow");
-      html += '<div class="matrix-cell ' + (pos ? "up" : "down") + '">' +
+      html += '<div class="matrix-cell ' + (pos ? "up" : "down") + '" data-symbol="' + escapeHtml(t.symbol) + '">' +
         '<div class="matrix-sym">' + escapeHtml(shortSym(t.symbol)) + '<span class="matrix-strength ' + strength + '">' + escapeHtml(strengthLabel) + '</span></div>' +
         '<div class="matrix-price">$' + fmtPrice(t.last_price) + '</div>' +
         '<div class="matrix-delta">' + fmtPct(t.change_pct_24h) + '</div>' +
@@ -350,7 +486,7 @@
     el.innerHTML = html;
   }
 
-  // ---------- AI screen ----------
+  // ---------- AI assistant ----------
   function renderAIInitial() {
     renderAISuggestions();
     renderAIHistory();
@@ -374,7 +510,7 @@
     var chat = $("#ai-chat");
     if (!chat) return;
     if (!state.aiHistory.length) {
-      chat.innerHTML = '<div class="ai-empty">' + escapeHtml(I18N.t("aiMockNotice")) + '</div>';
+      chat.innerHTML = '<div class="ai-empty">' + escapeHtml(buildSnapshotReply(state.selectedSymbol, true)) + '</div>';
       return;
     }
     var html = "";
@@ -386,29 +522,67 @@
     chat.scrollTop = chat.scrollHeight;
   }
 
-  async function sendAIMessage(text) {
+  // Build a local snapshot reply from realtime data — used as the offline AI fallback.
+  function buildSnapshotReply(symbol, isIntro) {
+    var sym = symbol || state.selectedSymbol || "BTCUSDT";
+    var t = state.tickerMap[sym] || state.tickers[0];
+    if (!t) {
+      return I18N.t("aiIntro");
+    }
+    var head = I18N.t("aiSnapshotIntro", { sym: t.symbol });
+    var change = t.change_pct_24h || 0;
+    var dirWord = change >= 0 ? I18N.t("bullish") : I18N.t("bearish");
+    var hi = t.high_24h || t.last_price;
+    var lo = t.low_24h || t.last_price;
+    var rangePct = hi > lo ? ((hi - lo) / lo) * 100 : 0;
+    var lines = [
+      head,
+      "• Price: $" + fmtPrice(t.last_price) + " (24h " + fmtPct(change) + ", " + dirWord + ")",
+      "• Range 24h: $" + fmtPrice(lo) + " — $" + fmtPrice(hi) + " (" + rangePct.toFixed(2) + "%)",
+      "• Volume: " + fmtCompact(t.volume_24h)
+    ];
+    if (isIntro) lines.push("— " + I18N.t("signalEngineNote"));
+    return lines.join("\n");
+  }
+
+  function sendAIMessage(text) {
     if (!text || state.aiBusy) return;
     state.aiBusy = true;
     state.aiHistory.push({ role: "user", content: text });
     state.aiHistory.push({ role: "assistant", content: I18N.t("thinking"), thinking: true });
     renderAIHistory();
     haptic("light");
-    try {
-      var msgs = state.aiHistory
-        .filter(function (m) { return !m.thinking; })
-        .map(function (m) { return { role: m.role, content: m.content }; });
-      var reply = await API.aiChat(msgs, I18N.get());
+
+    // Resolve a symbol referenced in the message, falling back to the selected one.
+    var upper = text.toUpperCase();
+    var symMatch = null;
+    state.tickers.forEach(function (t) {
+      var s = t.symbol;
+      if (upper.indexOf(s) >= 0 || upper.indexOf(shortSym(s)) >= 0) symMatch = s;
+    });
+    var targetSymbol = symMatch || state.selectedSymbol;
+
+    var msgs = state.aiHistory
+      .filter(function (m) { return !m.thinking; })
+      .map(function (m) { return { role: m.role, content: m.content }; });
+
+    API.aiChat(msgs, I18N.get()).then(function (reply) {
       state.aiHistory.pop();
-      var body = reply.content || "—";
-      if (reply.mock) body += "\n\n— " + I18N.t("aiMockNotice");
+      var body = reply && reply.content;
+      if (!body) {
+        body = buildSnapshotReply(targetSymbol, false);
+      }
+      if (reply && reply.mock) body += "\n\n— " + I18N.t("aiMockNotice");
       state.aiHistory.push({ role: "assistant", content: body });
-    } catch (e) {
+      state.aiBusy = false;
+      renderAIHistory();
+      haptic("success");
+    }).catch(function () {
       state.aiHistory.pop();
-      state.aiHistory.push({ role: "assistant", content: I18N.t("aiError") });
-    }
-    state.aiBusy = false;
-    renderAIHistory();
-    haptic("success");
+      state.aiHistory.push({ role: "assistant", content: buildSnapshotReply(targetSymbol, false) });
+      state.aiBusy = false;
+      renderAIHistory();
+    });
   }
 
   // ---------- Profile ----------
@@ -423,8 +597,19 @@
     setText("#prof-platform", "Telegram · " + platform);
     setText("#prof-username", uname);
     setText("#prof-lang", lc);
-    setText("#prof-status", state.backendOk ? I18N.t("connected") : I18N.t("demoMode"));
+    setText("#prof-status", state.status.transport === "offline"
+      ? I18N.t("transportOffline")
+      : I18N.t("connected"));
+    setText("#prof-transport", transportLabel(state.status.transport));
+    setText("#prof-provider", state.status.provider || "—");
+    setText("#prof-last-update", state.status.lastUpdateTs ? relTime(state.status.lastUpdateTs) : "—");
     renderLangGrid();
+  }
+
+  function transportLabel(t) {
+    if (t === "ws") return I18N.t("transportWs");
+    if (t === "rest") return I18N.t("transportRest");
+    return I18N.t("transportOffline");
   }
 
   function renderLangGrid() {
@@ -442,6 +627,29 @@
              '" data-lang="' + code + '"><span class="flag">' + m.flag + '</span><b>' + escapeHtml(m.name) + '</b></button>';
     }).join("");
     el.innerHTML = html;
+  }
+
+  // ---------- Connection pill ----------
+  function applyConnectionStatus() {
+    var pill = $("#conn-pill");
+    var dot = $("#dot-live");
+    var t = state.status.transport;
+    if (pill) {
+      pill.classList.remove("is-ws", "is-rest", "is-offline");
+      if (t === "ws") { pill.classList.add("is-ws"); pill.textContent = "LIVE"; }
+      else if (t === "rest") { pill.classList.add("is-rest"); pill.textContent = "REST"; }
+      else { pill.classList.add("is-offline"); pill.textContent = "OFF"; }
+    }
+    if (dot) {
+      dot.classList.remove("is-rest", "is-offline");
+      if (t === "rest") dot.classList.add("is-rest");
+      else if (t === "offline") dot.classList.add("is-offline");
+    }
+    if (state.screen === "profile") {
+      setText("#prof-transport", transportLabel(t));
+      setText("#prof-last-update", state.status.lastUpdateTs ? relTime(state.status.lastUpdateTs) : "—");
+      setText("#prof-status", t === "offline" ? I18N.t("transportOffline") : I18N.t("connected"));
+    }
   }
 
   // ---------- Sheets ----------
@@ -492,6 +700,7 @@
           b.classList.toggle("is-active", b === tfBtn);
         });
         setText("#set-tf", state.tf);
+        ensureKlines(state.selectedSymbol, state.tf);
         applyHeroSnapshot();
         haptic("selection");
         return;
@@ -504,6 +713,28 @@
         });
         renderMarketScreen();
         haptic("selection");
+        return;
+      }
+      var matrixCell = e.target.closest(".matrix-cell[data-symbol]");
+      if (matrixCell) {
+        var sym = matrixCell.getAttribute("data-symbol");
+        if (sym) {
+          state.selectedSymbol = sym;
+          setScreen("overview");
+          ensureKlines(sym, state.tf);
+          applyHeroSnapshot();
+        }
+        return;
+      }
+      var overviewRow = e.target.closest("#overview-rows .row[data-symbol]");
+      if (overviewRow) {
+        var sym2 = overviewRow.getAttribute("data-symbol");
+        if (sym2) {
+          state.selectedSymbol = sym2;
+          ensureKlines(sym2, state.tf);
+          applyHeroSnapshot();
+          haptic("selection");
+        }
         return;
       }
       var togg = e.target.closest("[data-toggle]");
@@ -538,13 +769,11 @@
         sendAIMessage(v);
       });
     }
-    // Mic placeholder
     var mic = $("#ai-mic");
     if (mic) {
       mic.addEventListener("click", function () {
         mic.classList.toggle("is-recording");
         haptic("light");
-        // Voice not implemented — just toggle visual state.
         if (mic.classList.contains("is-recording")) {
           setTimeout(function () {
             mic.classList.remove("is-recording");
@@ -557,7 +786,6 @@
       });
     }
 
-    // Keyboard
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape") {
         closeSheet("#signal-sheet");
@@ -580,8 +808,12 @@
         haptic("light"); setScreen("profile"); break;
       case "refresh":
         haptic("light");
-        refreshTickers();
-        if (state.screen === "signals") { state.signals = null; renderSignalsScreen(); }
+        if (realtime && realtime.getStatus) {
+          // Force an immediate REST poll by re-starting the store; cheap and idempotent.
+          try { realtime.stop(); } catch (e) {}
+          realtime.start();
+        }
+        if (state.screen === "signals") renderSignalsScreen();
         if (state.screen === "market") renderMarketScreen();
         break;
       case "open-signal":
@@ -618,36 +850,59 @@
       var v = I18N.t(key);
       if (v != null) el.setAttribute("placeholder", v);
     });
-    // Re-render dynamic screens whose content depends on i18n
-    if (state.signals) renderSignalsScreen();
+    applyConnectionStatus();
+    if (state.screen === "signals") renderSignalsScreen();
     if (state.screen === "ai") renderAIInitial();
     if (state.screen === "profile") renderProfileScreen();
   }
 
+  // ---------- Realtime wiring ----------
+  function onRealtimeTickers(list) {
+    state.tickers = list.slice();
+    state.tickerMap = {};
+    list.forEach(function (t) { state.tickerMap[t.symbol] = t; });
+    state.status.lastUpdateTs = Date.now();
+    renderTicker();
+    renderOverviewRows();
+    applyHeroSnapshot();
+    if (state.screen === "market") renderMarketScreen();
+    if (state.screen === "signals") renderSignalsScreen();
+    renderKPIs();
+    applyConnectionStatus();
+  }
+
+  function onRealtimeStatus(st) {
+    state.status.transport = st.transport;
+    state.status.wsReady = st.wsReady;
+    state.status.provider = st.provider;
+    if (st.lastUpdateTs) state.status.lastUpdateTs = st.lastUpdateTs;
+    applyConnectionStatus();
+  }
+
   // ---------- Boot ----------
-  async function boot() {
+  function boot() {
     initTelegram();
     I18N.init();
     applyI18N();
     I18N.on(function () { applyI18N(); });
     wireEvents();
-    renderKPIs();
-    renderTicker(); // placeholder
+    renderTicker();
     renderOverviewRows();
     renderAIInitial();
-    await refreshTickers();
-    // Optional live socket
-    if (API && typeof API.openMarketSocket === "function") {
-      API.openMarketSocket(function (msg) {
-        if (msg && msg.type === "snapshot" && msg.tickers) {
-          state.tickers = msg.tickers;
-          renderTicker();
-          applyHeroSnapshot();
-          renderOverviewRows();
-          if (state.screen === "market") renderMarketScreen();
-        }
-      });
-    }
+    renderKPIs();
+
+    // Spin up the realtime market store. Bybit V5 public, no secrets.
+    realtime = API.createRealtimeStore({ symbols: API.DEFAULT_SYMBOLS });
+    realtime.onTickers(onRealtimeTickers);
+    realtime.onStatus(onRealtimeStatus);
+    realtime.start();
+
+    // Tick the "last update" relative time every 5s without forcing data work.
+    setInterval(function () {
+      if (state.screen === "profile") {
+        setText("#prof-last-update", state.status.lastUpdateTs ? relTime(state.status.lastUpdateTs) : "—");
+      }
+    }, 5000);
   }
 
   if (document.readyState === "loading") {

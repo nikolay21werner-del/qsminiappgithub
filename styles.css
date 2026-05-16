@@ -167,6 +167,29 @@ button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
   box-shadow: 0 0 8px var(--pos);
   animation: pulse 2s ease-in-out infinite;
 }
+.dot-live.is-rest { background: #f5b551; box-shadow: 0 0 8px #f5b551; }
+.dot-live.is-offline { background: var(--neg); box-shadow: 0 0 8px var(--neg); animation: none; }
+.conn-pill {
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 600;
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-2);
+  padding: 2px 6px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(11, 18, 28, 0.6);
+  margin-left: 4px;
+}
+.conn-pill.is-ws { color: var(--pos); border-color: rgba(38,230,242,.35); }
+.conn-pill.is-rest { color: #f5b551; border-color: rgba(245,181,81,.35); }
+.conn-pill.is-offline { color: var(--neg); border-color: rgba(255,85,119,.35); }
+.row-tick { animation: rowFlash 700ms ease-out 1; }
+@keyframes rowFlash {
+  0% { background: rgba(38,230,242,.18); }
+  100% { background: transparent; }
+}
 
 /* ===== Ticker ===== */
 .ticker {
