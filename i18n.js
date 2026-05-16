@@ -184,7 +184,16 @@
       combatVolatilityMid: "moderate volatility",
       combatVolatilityLow: "calm market",
       combatClose: "Close",
-      combatNewRound: "New round"
+      combatNewRound: "New round",
+      combatOffline: "Offline mode — progress will not save",
+      combatVerified: "Telegram verified · synced",
+      combatUnconfigured: "Server not configured",
+      combatStreak: "Streak",
+      combatOwned: "Owned",
+      combatBoardTitle: "Leaderboard",
+      combatBoardSub: "Global rankings arrive with the cloud-database release. Your progress syncs privately to your Telegram account.",
+      combatYou: "You",
+      combatXP: "XP"
     },
     ru: {
       brandTagline: "Сигналы, рынок, AI-анализ",
@@ -365,7 +374,16 @@
       combatVolatilityMid: "средняя волатильность",
       combatVolatilityLow: "спокойный рынок",
       combatClose: "Закрыть",
-      combatNewRound: "Новый раунд"
+      combatNewRound: "Новый раунд",
+      combatOffline: "Офлайн — прогресс не сохранится",
+      combatVerified: "Telegram подтверждён · синхронизировано",
+      combatUnconfigured: "Сервер не настроен",
+      combatStreak: "Серия",
+      combatOwned: "В наличии",
+      combatBoardTitle: "Таблица лидеров",
+      combatBoardSub: "Глобальный рейтинг появится с релизом облачной БД. Сейчас прогресс синхронизируется приватно с вашим аккаунтом Telegram.",
+      combatYou: "Вы",
+      combatXP: "Опыт"
     },
     zh: {
       brandTagline: "信号、行情、AI 分析",
@@ -546,7 +564,16 @@
       combatVolatilityMid: "中等波动",
       combatVolatilityLow: "行情平稳",
       combatClose: "关闭",
-      combatNewRound: "新一轮"
+      combatNewRound: "新一轮",
+      combatOffline: "离线模式 — 进度不会保存",
+      combatVerified: "Telegram 已验证 · 已同步",
+      combatUnconfigured: "服务器未配置",
+      combatStreak: "连击",
+      combatOwned: "拥有",
+      combatBoardTitle: "排行榜",
+      combatBoardSub: "全球排名将随云数据库版本上线。当前进度私下与您的 Telegram 账户同步。",
+      combatYou: "你",
+      combatXP: "经验"
     }
   };
 

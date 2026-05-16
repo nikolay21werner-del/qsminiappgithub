@@ -219,6 +219,9 @@ try {
   const fn = new Function("module", "process", "require",
     "fetch", "AbortController", "setTimeout", "clearTimeout",
     handlerSrc + "\nreturn module.exports;");
+  // Use a real require() so the endpoint's _lib siblings resolve.
+  const { createRequire } = await import("node:module");
+  const localRequire = createRequire(resolve(root, "api/stars/create-invoice.js"));
   // Save and clear the env vars for the duration of this call.
   const saved = {
     TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN,
@@ -227,7 +230,7 @@ try {
   delete process.env.TELEGRAM_BOT_TOKEN;
   delete process.env.BOT_TOKEN;
   try {
-    const exp = fn({ exports: {} }, process, () => ({}),
+    const exp = fn({ exports: {} }, process, localRequire,
       globalThis.fetch, globalThis.AbortController,
       globalThis.setTimeout, globalThis.clearTimeout);
     await exp(req, res);

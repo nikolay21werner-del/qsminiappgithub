@@ -1518,29 +1518,243 @@
   // with the returned invoice link. Outside Telegram we show a non-broken
   // fallback message and disable the buy buttons.
   var combat = (function () {
-    var STARS_ENDPOINT = (window.QSI_API_BASE || "") + "/api/stars/create-invoice";
+    // ---------- Endpoints ----------
+    var API_BASE = window.QSI_API_BASE || "";
+    var STARS_ENDPOINT   = API_BASE + "/api/stars/create-invoice";
+    var FULFILL_ENDPOINT = API_BASE + "/api/stars/fulfill";
+    var STATE_ENDPOINT   = API_BASE + "/api/combat/state";
+    var TAP_ENDPOINT     = API_BASE + "/api/combat/tap";
+
+    // Persistence key for Telegram CloudStorage. We MUST NOT use
+    // localStorage/sessionStorage/indexedDB/cookies — the Mini App
+    // iframe routinely blocks them, and they would break sync.
+    var CLOUD_KEY = "qsi_combat_v1";
 
     var s = {
       open: false,
+      mode: "offline",         // "telegram" | "offline" | "unconfigured"
+      verified: false,
+      user: null,
       level: 1,
+      xp: 0,
+      xpPerLevel: 100,
       balance: 0,
       playerHpMax: 100,
       playerHp: 100,
       bossHpMax: 100,
       bossHp: 100,
+      bossRound: 1,
       energyMax: 100,
       energy: 100,
       combo: 0,
       comboTimer: 0,
       damageBoost: false,
-      dailyClaimedTs: 0,
+      streak: 0,
+      lastDailyDay: null,
+      boosts: { energyRefills: 0, damageBoosts: 0, revives: 0 },
+      checkpoint: null,
       lastSym: null,
+      pending: { count: 0, startMs: 0, endMs: 0, nonce: "" },
+      inflight: false,
+      lastSyncTs: 0,
+      lastStatus: "",
       _energyTimer: null,
-      _statusTimer: null
+      _statusTimer: null,
+      _flushTimer: null
     };
+
+    var BATCH_MS = 600;
+    var MAX_BATCH = 32;
 
     function el(id) { return document.getElementById(id); }
     function pct(v, m) { return Math.max(0, Math.min(100, (v / m) * 100)); }
+
+    function isInsideTelegram() {
+      try {
+        return !!(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData);
+      } catch (e) { return false; }
+    }
+    function tgInitData() {
+      try {
+        return (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) || "";
+      } catch (e) { return ""; }
+    }
+    function tgCloud() {
+      try {
+        var wa = window.Telegram && window.Telegram.WebApp;
+        return (wa && wa.CloudStorage) ? wa.CloudStorage : null;
+      } catch (e) { return null; }
+    }
+
+    function cloudGet(key) {
+      var cs = tgCloud();
+      if (!cs || !cs.getItem) return Promise.resolve(null);
+      return new Promise(function (resolve) {
+        try {
+          cs.getItem(key, function (err, value) {
+            if (err) return resolve(null);
+            resolve(value || null);
+          });
+        } catch (e) { resolve(null); }
+      });
+    }
+    function cloudSet(key, value) {
+      var cs = tgCloud();
+      if (!cs || !cs.setItem) return Promise.resolve(false);
+      return new Promise(function (resolve) {
+        try {
+          cs.setItem(key, String(value || ""), function (err, ok) {
+            resolve(!err && !!ok);
+          });
+        } catch (e) { resolve(false); }
+      });
+    }
+
+    function applyServerState(payload) {
+      if (!payload || typeof payload !== "object") return;
+      if (payload.user) s.user = payload.user;
+      if (payload.mode) s.mode = payload.mode;
+      s.verified = payload.mode === "telegram";
+      if (payload.config && payload.config.xpPerLevel) s.xpPerLevel = payload.config.xpPerLevel;
+      if (payload.checkpoint) s.checkpoint = payload.checkpoint;
+      var ss = payload.state;
+      if (ss && typeof ss === "object") {
+        s.level = ss.level | 0 || 1;
+        s.xp = ss.xp | 0;
+        s.balance = ss.balance | 0;
+        s.energy = ss.energy | 0;
+        s.energyMax = ss.energyMax | 0 || 100;
+        s.playerHp = ss.playerHp | 0;
+        s.playerHpMax = ss.playerHpMax | 0 || 100;
+        s.bossHp = ss.bossHp | 0;
+        s.bossHpMax = ss.bossHpMax | 0 || 100;
+        s.bossRound = ss.bossRound | 0 || 1;
+        s.streak = ss.streak | 0;
+        s.lastDailyDay = ss.lastDailyDay || null;
+        s.damageBoost = !!ss.activeDamageBoost;
+        if (ss.boosts) {
+          s.boosts.energyRefills = ss.boosts.energyRefills | 0;
+          s.boosts.damageBoosts = ss.boosts.damageBoosts | 0;
+          s.boosts.revives = ss.boosts.revives | 0;
+        }
+      }
+      s.lastSyncTs = Date.now();
+      // Persist the freshest signed checkpoint to CloudStorage.
+      if (s.checkpoint) cloudSet(CLOUD_KEY, s.checkpoint);
+    }
+
+    async function syncStateFromServer() {
+      var stored = await cloudGet(CLOUD_KEY);
+      var payload = { initData: tgInitData() };
+      if (stored) payload.checkpoint = stored;
+      try {
+        var resp = await fetch(STATE_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "X-Telegram-Init-Data": tgInitData() },
+          body: JSON.stringify(payload)
+        });
+        if (!resp.ok) {
+          // Offline / endpoint missing: keep current local state, label offline.
+          s.mode = "offline";
+          s.verified = false;
+          return false;
+        }
+        var data = await resp.json();
+        applyServerState(data);
+        return true;
+      } catch (e) {
+        s.mode = "offline";
+        s.verified = false;
+        return false;
+      }
+    }
+
+    function newNonce() {
+      // 96 bits of entropy; opaque to the server, used to make tap rolls deterministic.
+      var n = "";
+      try {
+        var arr = new Uint8Array(12);
+        (window.crypto || window.msCrypto).getRandomValues(arr);
+        for (var i = 0; i < arr.length; i++) n += (arr[i] + 0x100).toString(16).slice(1);
+      } catch (e) {
+        n = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+      }
+      return n.slice(0, 24);
+    }
+
+    function scheduleFlush() {
+      if (s._flushTimer) return;
+      s._flushTimer = setTimeout(function () {
+        s._flushTimer = null;
+        flushBatch();
+      }, BATCH_MS);
+    }
+
+    function liveVolatility() {
+      var t = pickTicker();
+      if (t && typeof t.change_pct_24h === "number") return Math.abs(t.change_pct_24h);
+      return 1.0;
+    }
+
+    async function flushBatch() {
+      if (s.inflight) { scheduleFlush(); return; }
+      if (!s.pending.count) return;
+      // Real-mode only: server requires Telegram initData. Offline keeps
+      // the visual session but never persists or mints QP.
+      if (!isInsideTelegram()) {
+        s.pending = { count: 0, startMs: 0, endMs: 0, nonce: "" };
+        return;
+      }
+      var batch = {
+        taps: Math.min(MAX_BATCH, s.pending.count | 0),
+        startMs: s.pending.startMs,
+        endMs: s.pending.endMs || Date.now(),
+        symbol: state.selectedSymbol || "BTCUSDT",
+        volatility: liveVolatility(),
+        nonce: s.pending.nonce || newNonce()
+      };
+      s.pending = { count: 0, startMs: 0, endMs: 0, nonce: "" };
+      s.inflight = true;
+      setSyncing(true);
+      try {
+        var resp = await fetch(TAP_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "X-Telegram-Init-Data": tgInitData() },
+          body: JSON.stringify({
+            initData: tgInitData(),
+            checkpoint: s.checkpoint,
+            batch: batch
+          })
+        });
+        var data = await resp.json();
+        if (resp.ok && data && data.ok) {
+          applyServerState(data);
+          if (data.delta && data.delta.killed) {
+            setStatus(I18N.t("combatVictory") + " +" + data.delta.qpEarned + " " + I18N.t("combatRewardName"), "is-win");
+          }
+        } else if (data && data.checkpoint) {
+          // Server rejected the batch but returned the trusted state.
+          applyServerState(data);
+          setStatus(I18N.t("combatPayFailed"), "is-loss");
+        }
+      } catch (e) {
+        // Drop the batch silently; the next /state sync corrects local view.
+      } finally {
+        s.inflight = false;
+        setSyncing(false);
+        render();
+        // If more taps arrived during the request, send them.
+        if (s.pending.count > 0) scheduleFlush();
+      }
+    }
+
+    function setSyncing(on) {
+      var n = el("combat-sync");
+      if (n) {
+        if (on) n.setAttribute("data-on", "1");
+        else n.removeAttribute("data-on");
+      }
+    }
 
     function pickTicker() {
       try {
@@ -1627,8 +1841,7 @@
       var claimBtn = el("combat-claim-btn");
       if (claimBtn) {
         var today = new Date().toISOString().slice(0, 10);
-        var lastDay = s.dailyClaimedTs ? new Date(s.dailyClaimedTs).toISOString().slice(0, 10) : null;
-        if (lastDay === today) {
+        if (s.lastDailyDay === today) {
           claimBtn.setAttribute("disabled", "disabled");
           claimBtn.firstElementChild && (claimBtn.firstElementChild.textContent = I18N.t("combatClaimed"));
         } else {
@@ -1636,6 +1849,20 @@
           claimBtn.firstElementChild && (claimBtn.firstElementChild.textContent = I18N.t("combatClaim"));
         }
       }
+      // XP / streak / boss-round badges
+      setText("#combat-xp", String(s.xp));
+      setText("#combat-xp-max", String(s.xpPerLevel));
+      var xpBar = el("combat-xp-bar");
+      if (xpBar) xpBar.style.width = pct(s.xp, s.xpPerLevel) + "%";
+      setText("#combat-streak", String(s.streak));
+      setText("#combat-boss-round", "R" + s.bossRound);
+      // Boost credits in UI (server-tracked).
+      setText("#combat-boost-damage", String(s.boosts.damageBoosts | 0));
+      setText("#combat-boost-energy", String(s.boosts.energyRefills | 0));
+      setText("#combat-boost-revive", String(s.boosts.revives | 0));
+      setText("#combat-board-qp", String(s.balance));
+      setText("#combat-board-lvl", String(s.level));
+      updateModeBadge();
     }
 
     function setStatus(msg, cls) {
@@ -1677,31 +1904,39 @@
         setStatus(I18N.t("combatEnergy") + " 0", "is-loss");
         return;
       }
-      s.energy = Math.max(0, s.energy - 1);
+
+      // ---- Visual-only optimistic feedback (server reconciles values) ----
+      var crit = Math.random() < 0.15;
+      var visBase = 8 + Math.floor(Math.random() * 5);
+      var visDmg = visBase + Math.min(10, Math.floor(s.combo / 3));
+      if (crit) visDmg = Math.round(visDmg * 2.2);
+      if (s.damageBoost) visDmg = Math.round(visDmg * 1.5);
       s.combo += 1;
       s.comboTimer = Date.now();
-      var crit = Math.random() < 0.15;
-      var base = 8 + Math.floor(Math.random() * 5);
-      var dmg = base + Math.min(10, Math.floor(s.combo / 3));
-      if (crit) dmg = Math.round(dmg * 2.2);
-      if (s.damageBoost) dmg = Math.round(dmg * 1.5);
-      s.bossHp = Math.max(0, s.bossHp - dmg);
-
-      spawnFx(dmg, crit, evt);
+      s.energy = Math.max(0, s.energy - 1);
+      s.bossHp = Math.max(0, s.bossHp - visDmg);
+      spawnFx(visDmg, crit, evt);
       shake("combat-boss-avatar");
       haptic(crit ? "success" : "light");
 
-      // Boss counter-attack: small chance, never lethal in one tap.
-      if (Math.random() < 0.18 && s.bossHp > 0) {
-        var counter = 3 + Math.floor(Math.random() * 4);
-        s.playerHp = Math.max(0, s.playerHp - counter);
-        shake("combat-fighter-avatar");
+      // ---- Accumulate into the pending tap batch (server-authoritative) ----
+      if (!s.pending.count) {
+        s.pending.startMs = Date.now();
+        s.pending.nonce = newNonce();
       }
+      s.pending.count = Math.min(MAX_BATCH, s.pending.count + 1);
+      s.pending.endMs = Date.now();
+      scheduleFlush();
 
-      if (s.bossHp <= 0) {
-        winRound();
-      } else if (s.playerHp <= 0) {
-        loseRound();
+      // Offline / non-Telegram mode: no server, no balance mint. The
+      // visual cooldown still works; UI shows the offline badge.
+      if (!isInsideTelegram()) {
+        if (s.bossHp <= 0) {
+          // local-only: pop a fresh boss to keep the demo responsive,
+          // but don't mint QP.
+          s.bossHp = s.bossHpMax;
+          setStatus(I18N.t("combatVictory") + " (offline)", "is-win");
+        }
       }
       render();
     }
@@ -1736,82 +1971,71 @@
       }, 800);
     }
 
-    function winRound() {
-      var reward = 10 + s.level * 5;
-      s.balance += reward;
-      s.level += 1;
-      s.damageBoost = false;
-      setStatus(I18N.t("combatVictory") + " +" + reward + " " + I18N.t("combatRewardName"), "is-win");
-      haptic("success");
-      // Next boss appears immediately, but we re-derive HP from live volatility.
-      var t = pickTicker();
-      var p = bossParamsFromTicker(t);
-      s.bossHpMax = p.hpMax;
-      s.bossHp = p.hpMax;
-      s.combo = 0;
-    }
-
-    function loseRound() {
-      setStatus(I18N.t("combatDefeat"), "is-loss");
-      haptic("error");
-      s.combo = 0;
-    }
-
     function resetRound() {
-      s.playerHp = s.playerHpMax;
-      s.energy = s.energyMax;
-      s.combo = 0;
-      var t = pickTicker();
-      var p = bossParamsFromTicker(t);
-      s.bossHpMax = p.hpMax;
-      s.bossHp = p.hpMax;
+      // Local-only reset is for the offline view; in real mode the server
+      // controls round transitions when bossHp hits 0.
+      if (!isInsideTelegram()) {
+        s.playerHp = s.playerHpMax;
+        s.energy = s.energyMax;
+        s.combo = 0;
+        var t = pickTicker();
+        var p = bossParamsFromTicker(t);
+        s.bossHpMax = p.hpMax;
+        s.bossHp = p.hpMax;
+      }
       setStatus("", null);
       render();
       haptic("selection");
+      // Force a server sync so any pending taps flush before the new round.
+      if (isInsideTelegram()) syncStateFromServer().then(render);
     }
 
     function startEnergyRegen() {
+      // Server is the source of truth for energy. We just refresh the
+      // displayed bar locally between syncs so the UI feels alive.
       if (s._energyTimer) clearInterval(s._energyTimer);
       s._energyTimer = setInterval(function () {
         if (!s.open) return;
+        // Optimistic local regen between syncs. Real value comes back
+        // with the next /state or /tap response.
         if (s.energy < s.energyMax) {
           s.energy = Math.min(s.energyMax, s.energy + 1);
           render();
         }
+        // Periodic resync every ~20s to correct drift.
+        if (isInsideTelegram() && Date.now() - s.lastSyncTs > 20000 && !s.inflight && !s.pending.count) {
+          syncStateFromServer().then(render);
+        }
       }, 1500);
     }
 
-    function claimDaily() {
-      var today = new Date().toISOString().slice(0, 10);
-      var lastDay = s.dailyClaimedTs ? new Date(s.dailyClaimedTs).toISOString().slice(0, 10) : null;
-      if (lastDay === today) return;
-      s.dailyClaimedTs = Date.now();
-      s.balance += 25;
-      setStatus("+25 " + I18N.t("combatRewardName"), "is-win");
-      haptic("success");
-      render();
-    }
-
-    function isInsideTelegram() {
-      try {
-        return !!(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData);
-      } catch (e) { return false; }
-    }
-
-    function applyPaidBoost(packId) {
-      if (packId === "energy") {
-        s.energy = s.energyMax;
-      } else if (packId === "damage") {
-        s.damageBoost = true;
-      } else if (packId === "revive") {
-        s.playerHp = s.playerHpMax;
-        s.energy = Math.max(s.energy, Math.round(s.energyMax * 0.6));
-      } else if (packId === "starter") {
-        s.energy = s.energyMax;
-        s.damageBoost = true;
+    async function claimDaily() {
+      if (!isInsideTelegram()) {
+        setStarsNote(I18N.t("combatNotInTelegram"));
+        return;
       }
-      setStatus(I18N.t("combatPaid"), "is-win");
-      haptic("success");
+      try {
+        var resp = await fetch(TAP_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "X-Telegram-Init-Data": tgInitData() },
+          body: JSON.stringify({
+            initData: tgInitData(),
+            checkpoint: s.checkpoint,
+            action: "daily"
+          })
+        });
+        var data = await resp.json();
+        if (resp.ok && data && data.ok) {
+          applyServerState(data);
+          setStatus("+" + data.reward + " " + I18N.t("combatRewardName") +
+            (data.streak > 1 ? " (×" + data.streak + ")" : ""), "is-win");
+          haptic("success");
+        } else if (data && data.error === "already_claimed") {
+          setStatus(I18N.t("combatClaimed"), null);
+        }
+      } catch (e) {
+        setStatus(I18N.t("combatPayFailed"), "is-loss");
+      }
       render();
     }
 
@@ -1828,9 +2052,34 @@
       if (n) n.textContent = msg || "";
     }
 
+    async function fulfillPaid(packId, payloadSig) {
+      try {
+        var resp = await fetch(FULFILL_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "X-Telegram-Init-Data": tgInitData() },
+          body: JSON.stringify({
+            initData: tgInitData(),
+            pack: packId,
+            invoice_payload_sig: payloadSig,
+            checkpoint: s.checkpoint
+          })
+        });
+        var data = await resp.json();
+        if (resp.ok && data && data.ok) {
+          applyServerState({ state: data.state, checkpoint: data.checkpoint, mode: s.mode });
+          setStatus(I18N.t("combatPaid"), "is-win");
+          haptic("success");
+          render();
+          return true;
+        }
+      } catch (e) { /* fall through */ }
+      setStarsNote(I18N.t("combatPayFailed"));
+      return false;
+    }
+
     async function buyPack(packId) {
       if (!packId) return;
-      // Non-Telegram fallback: never break the flow, never auto-open anything.
+      // Real Stars purchases require Telegram. No fake balance increments.
       if (!isInsideTelegram() || !window.Telegram.WebApp.openInvoice) {
         setStarsNote(I18N.t("combatNotInTelegram"));
         return;
@@ -1839,13 +2088,14 @@
       setStarsNote(I18N.t("combatBuying"));
       var payload = {
         pack: packId,
-        symbol: state.selectedSymbol || "BTCUSDT"
+        symbol: state.selectedSymbol || "BTCUSDT",
+        initData: tgInitData()
       };
       var resp, data;
       try {
         resp = await fetch(STARS_ENDPOINT, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", "X-Telegram-Init-Data": tgInitData() },
           body: JSON.stringify(payload)
         });
         data = await resp.json();
@@ -1863,12 +2113,13 @@
         setBuyButtonsBusy(false);
         return;
       }
+      var payloadSig = data.payload_sig;
       try {
         window.Telegram.WebApp.openInvoice(data.invoice_link, function (status) {
           setBuyButtonsBusy(false);
           if (status === "paid") {
-            applyPaidBoost(packId);
             setStarsNote("");
+            fulfillPaid(packId, payloadSig);
           } else if (status === "cancelled" || status === "failed") {
             setStarsNote(I18N.t("combatCancelled"));
           } else {
@@ -1881,6 +2132,17 @@
       }
     }
 
+    function updateModeBadge() {
+      var n = el("combat-mode");
+      if (!n) return;
+      var key, cls;
+      if (s.mode === "telegram" && s.verified) { key = "combatVerified"; cls = "is-verified"; }
+      else if (s.mode === "unconfigured")      { key = "combatUnconfigured"; cls = "is-warn"; }
+      else                                     { key = "combatOffline"; cls = "is-offline"; }
+      n.className = "combat-mode " + cls;
+      n.textContent = I18N.t(key);
+    }
+
     function open() {
       var sheet = el("combat-sheet");
       if (!sheet) return;
@@ -1891,12 +2153,22 @@
       if (!isInsideTelegram()) setStarsNote(I18N.t("combatNotInTelegram"));
       else setStarsNote("");
       render();
+      updateModeBadge();
       startEnergyRegen();
       haptic("selection");
+      // Real-mode: pull authoritative state from server.
+      if (isInsideTelegram()) {
+        syncStateFromServer().then(function () {
+          updateModeBadge();
+          render();
+        });
+      }
     }
     function close() {
       var sheet = el("combat-sheet");
       if (!sheet) return;
+      // Flush any pending taps before closing so QP isn't lost.
+      if (s.pending.count > 0) flushBatch();
       s.open = false;
       sheet.classList.remove("is-open");
       sheet.setAttribute("aria-hidden", "true");
@@ -1907,12 +2179,10 @@
     function onTickerUpdate() {
       // Realtime ticks only refresh derived numbers, never re-mount the tap node.
       if (!s.open) {
-        // Always keep the CTA balance in sync even when closed.
         setText("#combat-cta-balance", String(s.balance));
         return;
       }
       syncFromMarket();
-      // Refresh mood/avatars labels without rebuilding the DOM.
       var moodEl = el("combat-boss-mood");
       if (moodEl && moodEl.getAttribute("data-i18n")) {
         moodEl.textContent = I18N.t(moodEl.getAttribute("data-i18n"));

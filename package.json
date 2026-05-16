@@ -12,6 +12,7 @@
     "verify:proxy": "node scripts/verify-bybit-proxy.mjs",
     "verify:splash": "node scripts/verify-splash.mjs",
     "verify:tap": "node scripts/verify-tap-stability.mjs",
-    "verify:game": "node scripts/verify-game.mjs"
+    "verify:game": "node scripts/verify-game.mjs",
+    "verify:real-tapper": "node scripts/verify-real-tapper.mjs"
   }
 }

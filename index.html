@@ -526,16 +526,23 @@
         <header class="combat-head">
           <h1 class="combat-head__title">
             <span data-i18n="combatTitle">Crypto Combat</span>
+            <span class="combat-mode is-offline" id="combat-mode" data-testid="combat-mode" data-i18n="combatOffline">Offline mode</span>
+            <span class="combat-sync" id="combat-sync" aria-hidden="true" data-testid="combat-sync"></span>
           </h1>
           <div class="combat-head__meta">
             <span class="combat-head__lvl">
               <em data-i18n="combatLevel">Level</em>
               <b id="combat-level">1</b>
+              <i class="combat-head__round" id="combat-boss-round">R1</i>
             </span>
             <span class="combat-head__qp">
               <b id="combat-balance">0</b>
               <em data-i18n="combatRewardName">QP</em>
             </span>
+          </div>
+          <div class="combat-head__xp" aria-label="XP progress">
+            <div class="combat-bar combat-bar--xp"><i class="combat-bar__fill" id="combat-xp-bar"></i></div>
+            <span class="combat-head__xp-num"><b id="combat-xp">0</b>/<em id="combat-xp-max">100</em> XP · <span data-i18n="combatStreak">Streak</span> <b id="combat-streak">0</b></span>
           </div>
         </header>
 
@@ -612,6 +619,7 @@
               <div class="combat-pack__body">
                 <b data-i18n="combatPackEnergy">Energy refill</b>
                 <p data-i18n="combatPackEnergyDesc">Refill energy to max instantly.</p>
+                <span class="combat-pack__owned"><span data-i18n="combatOwned">Owned</span>: <b id="combat-boost-energy">0</b></span>
               </div>
               <button type="button" class="combat-pack__buy" data-action="combat-buy" data-pack="energy" data-testid="combat-buy-energy">
                 <span class="combat-pack__price">25 ★</span>
@@ -625,6 +633,7 @@
               <div class="combat-pack__body">
                 <b data-i18n="combatPackDamage">Damage boost</b>
                 <p data-i18n="combatPackDamageDesc">+50% tap damage for the next fight.</p>
+                <span class="combat-pack__owned"><span data-i18n="combatOwned">Owned</span>: <b id="combat-boost-damage">0</b></span>
               </div>
               <button type="button" class="combat-pack__buy" data-action="combat-buy" data-pack="damage" data-testid="combat-buy-damage">
                 <span class="combat-pack__price">75 ★</span>
@@ -638,6 +647,7 @@
               <div class="combat-pack__body">
                 <b data-i18n="combatPackRevive">Revive</b>
                 <p data-i18n="combatPackReviveDesc">Restore your fighter from a KO.</p>
+                <span class="combat-pack__owned"><span data-i18n="combatOwned">Owned</span>: <b id="combat-boost-revive">0</b></span>
               </div>
               <button type="button" class="combat-pack__buy" data-action="combat-buy" data-pack="revive" data-testid="combat-buy-revive">
                 <span class="combat-pack__price">50 ★</span>
@@ -648,6 +658,15 @@
           <p class="combat-stars__note muted" id="combat-stars-note"></p>
         </section>
 
+        <section class="combat-board" data-testid="combat-leaderboard">
+          <h2 data-i18n="combatBoardTitle">Leaderboard</h2>
+          <p class="muted" data-i18n="combatBoardSub">Global rankings will arrive with the cloud-database release. For now your progress syncs privately to your Telegram account.</p>
+          <div class="combat-board__self" id="combat-board-self">
+            <span class="combat-board__rank" data-i18n="combatYou">You</span>
+            <span class="combat-board__qp"><b id="combat-board-qp">0</b> <em data-i18n="combatRewardName">QP</em></span>
+            <span class="combat-board__lvl"><em data-i18n="combatLevel">Level</em> <b id="combat-board-lvl">1</b></span>
+          </div>
+        </section>
         <div class="combat-actions">
           <button type="button" class="cta cta--ghost" data-action="combat-reset" data-testid="combat-new-round">
             <span data-i18n="combatNewRound">New round</span>
