@@ -9,7 +9,13 @@
      6. AI_ALLOW_NO_KEY=true + no key -> succeeds and sends NO Authorization
         header to the (mocked) upstream provider
      7. AI_AUTH_MODE=none -> same behavior as AI_ALLOW_NO_KEY=true
-   Exits non-zero on failure. Only call #6/#7 hit a (mocked) upstream. */
+     8. AI_AUTH_MODE=oidc with VERCEL_OIDC_TOKEN / AI_GATEWAY_API_KEY env
+        -> sends Authorization: Bearer <token>
+     9. AI_AUTH_MODE=oidc with `x-vercel-oidc-token` request header
+        (incl. array values) -> sends Authorization: Bearer <token>
+    10. AI_AUTH_MODE=oidc, env var wins over request header
+    11. AI_AUTH_MODE=oidc without any token -> 503 ai_oidc_unavailable
+   Exits non-zero on failure. Only successful cases hit a (mocked) upstream. */
 
 import { Readable } from "node:stream";
 import { createRequire } from "node:module";
@@ -266,7 +272,95 @@ async function run() {
     restore6();
   }
 
-  // ---- AI_AUTH_MODE=oidc but neither token present -> 503 ai_oidc_unavailable ----
+  // ---- AI_AUTH_MODE=oidc with x-vercel-oidc-token request header ----
+  resetEnv();
+  process.env.AI_AUTH_MODE = "oidc";
+  process.env.AI_BASE_URL = "https://ai-gateway.vercel.sh/v1";
+  process.env.AI_MODEL = "openai/gpt-4o-mini";
+
+  const captured7 = {};
+  const restore7 = installMockFetch(captured7, {
+    model: "openai/gpt-4o-mini",
+    choices: [{ message: { content: "oidc header ok" } }]
+  });
+  try {
+    res = makeRes();
+    await handler(
+      makeReq(
+        "POST",
+        { messages: [{ role: "user", content: "hi" }], language_code: "en" },
+        { "x-vercel-oidc-token": "hdr-oidc-token" }
+      ),
+      res
+    );
+    expect("oidc header-token status", res.statusCode, 200);
+    const hdrs7 = captured7.headers || {};
+    const auth7 = hdrs7.Authorization || hdrs7.authorization;
+    expect("oidc uses x-vercel-oidc-token header", auth7, "Bearer hdr-oidc-token");
+  } finally {
+    restore7();
+  }
+
+  // ---- AI_AUTH_MODE=oidc: env var still wins over the request header ----
+  resetEnv();
+  process.env.AI_AUTH_MODE = "oidc";
+  process.env.AI_BASE_URL = "https://ai-gateway.vercel.sh/v1";
+  process.env.AI_MODEL = "openai/gpt-4o-mini";
+  process.env.VERCEL_OIDC_TOKEN = "env-token";
+
+  const captured8 = {};
+  const restore8 = installMockFetch(captured8, {
+    model: "openai/gpt-4o-mini",
+    choices: [{ message: { content: "env wins" } }]
+  });
+  try {
+    res = makeRes();
+    await handler(
+      makeReq(
+        "POST",
+        { messages: [{ role: "user", content: "hi" }], language_code: "en" },
+        { "x-vercel-oidc-token": "hdr-token" }
+      ),
+      res
+    );
+    expect("oidc env-precedence status", res.statusCode, 200);
+    const hdrs8 = captured8.headers || {};
+    const auth8 = hdrs8.Authorization || hdrs8.authorization;
+    expect("VERCEL_OIDC_TOKEN env wins over header", auth8, "Bearer env-token");
+  } finally {
+    restore8();
+  }
+
+  // ---- AI_AUTH_MODE=oidc: header value as array (Node multi-value) ----
+  resetEnv();
+  process.env.AI_AUTH_MODE = "oidc";
+  process.env.AI_BASE_URL = "https://ai-gateway.vercel.sh/v1";
+  process.env.AI_MODEL = "openai/gpt-4o-mini";
+
+  const captured9 = {};
+  const restore9 = installMockFetch(captured9, {
+    model: "openai/gpt-4o-mini",
+    choices: [{ message: { content: "array header ok" } }]
+  });
+  try {
+    res = makeRes();
+    await handler(
+      makeReq(
+        "POST",
+        { messages: [{ role: "user", content: "hi" }], language_code: "en" },
+        { "x-vercel-oidc-token": ["array-token", "second-value"] }
+      ),
+      res
+    );
+    expect("oidc array-header status", res.statusCode, 200);
+    const hdrs9 = captured9.headers || {};
+    const auth9 = hdrs9.Authorization || hdrs9.authorization;
+    expect("array header uses first value", auth9, "Bearer array-token");
+  } finally {
+    restore9();
+  }
+
+  // ---- AI_AUTH_MODE=oidc but neither env nor header token present -> 503 ----
   resetEnv();
   process.env.AI_AUTH_MODE = "oidc";
   process.env.AI_BASE_URL = "https://ai-gateway.vercel.sh/v1";

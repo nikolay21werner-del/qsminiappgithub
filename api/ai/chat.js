@@ -29,7 +29,11 @@
                          "vercel-ai-gateway" is treated as "oidc".
      AI_GATEWAY_API_KEY — preferred bearer token for AI_AUTH_MODE=oidc.
      VERCEL_OIDC_TOKEN — fallback bearer token automatically injected by
-                         Vercel for the deployment's OIDC identity.
+                         Vercel for the deployment's OIDC identity. On
+                         Vercel Functions the same token is also exposed
+                         per-request as the `x-vercel-oidc-token` request
+                         header; this endpoint uses that header as a final
+                         fallback when neither env var is populated.
 
    This endpoint NEVER returns a synthetic "demo" answer.
    Default secure behavior: if AI_API_KEY is missing AND no-key mode is
@@ -196,16 +200,30 @@ module.exports = async function handler(req, res) {
     allowNoKeyFlag === "true" ||
     allowNoKeyFlag === "yes";
   const oidcMode = authMode === "oidc";
+  // On Vercel Functions the deployment's OIDC token is injected per-request
+  // as the `x-vercel-oidc-token` header (in addition to `VERCEL_OIDC_TOKEN`).
+  // Accept that header as a final fallback so the endpoint works on Vercel
+  // even when the env var is not surfaced to the function runtime.
+  const headerOidcRaw =
+    (req.headers && (req.headers["x-vercel-oidc-token"] ||
+      req.headers["X-Vercel-Oidc-Token"])) || "";
+  const headerOidc = Array.isArray(headerOidcRaw)
+    ? String(headerOidcRaw[0] || "")
+    : String(headerOidcRaw || "");
   const oidcToken =
-    process.env.AI_GATEWAY_API_KEY || process.env.VERCEL_OIDC_TOKEN || "";
+    process.env.AI_GATEWAY_API_KEY ||
+    process.env.VERCEL_OIDC_TOKEN ||
+    headerOidc ||
+    "";
 
   if (oidcMode && !oidcToken) {
     sendJson(res, 503, {
       error: "ai_oidc_unavailable",
       message:
-        "AI_AUTH_MODE=oidc is set but neither AI_GATEWAY_API_KEY nor " +
-        "VERCEL_OIDC_TOKEN is available in the runtime environment. " +
-        "Enable Vercel OIDC for this project or provide AI_GATEWAY_API_KEY."
+        "AI_AUTH_MODE=oidc is set but no usable token was found: " +
+        "AI_GATEWAY_API_KEY, VERCEL_OIDC_TOKEN, and the per-request " +
+        "x-vercel-oidc-token header are all empty. Enable Vercel OIDC " +
+        "for this project or provide AI_GATEWAY_API_KEY."
     });
     return;
   }

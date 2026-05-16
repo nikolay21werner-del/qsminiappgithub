@@ -203,7 +203,10 @@ For Vercel deployments that want a managed provider without a manual API key,
 set `AI_AUTH_MODE=oidc` (or `AI_PROVIDER=vercel-ai-gateway`) and point
 `AI_BASE_URL` at the Vercel AI Gateway. The server then sends
 `Authorization: Bearer <AI_GATEWAY_API_KEY>` when set, falling back to the
-deployment-injected `VERCEL_OIDC_TOKEN`. With neither token available the
+deployment-injected `VERCEL_OIDC_TOKEN`, and finally to the per-request
+`x-vercel-oidc-token` header that Vercel Functions inject at request time
+(useful when the env var is not surfaced to the function runtime but OIDC
+is enabled on the project). With none of those tokens available the
 endpoint returns `HTTP 503 {"error":"ai_oidc_unavailable"}` so the failure
 mode stays explicit.
 
@@ -227,7 +230,7 @@ V5 data. A risk caveat is always appended in the user's language.
 | `AI_AUTH_MODE`     | no                 | `bearer`                         | `bearer` (default) sends `Authorization: Bearer <AI_API_KEY>`. `none` disables Authorization entirely (alias for `AI_ALLOW_NO_KEY=true`). `oidc` uses the Vercel AI Gateway — see below. |
 | `AI_PROVIDER`      | no                 | empty                            | Alias for `AI_AUTH_MODE`. `vercel-ai-gateway` is equivalent to `AI_AUTH_MODE=oidc`. |
 | `AI_GATEWAY_API_KEY` | no               | empty                            | Bearer token for `AI_AUTH_MODE=oidc`. Takes precedence over `VERCEL_OIDC_TOKEN`. |
-| `VERCEL_OIDC_TOKEN` | auto              | empty                            | OIDC token automatically injected by Vercel when the project's OIDC identity is enabled. Used as a fallback for `AI_AUTH_MODE=oidc`. |
+| `VERCEL_OIDC_TOKEN` | auto              | empty                            | OIDC token automatically injected by Vercel when the project's OIDC identity is enabled. Used as a fallback for `AI_AUTH_MODE=oidc`. On Vercel Functions the same token is also injected as the `x-vercel-oidc-token` request header at request time, and the endpoint uses that header as a final fallback. |
 
 Legacy `OPENAI_API_KEY` / `OPENAI_MODEL` are still accepted as fallbacks.
 
@@ -252,8 +255,12 @@ AI_AUTH_MODE=oidc
 ```
 
 This works only on Vercel deployments where the project's OIDC identity is
-enabled (`VERCEL_OIDC_TOKEN` is injected at runtime). For local development
-or non-Vercel hosts, provide `AI_GATEWAY_API_KEY` explicitly.
+enabled (`VERCEL_OIDC_TOKEN` is injected at runtime). On Vercel Functions
+the same token is also exposed per-request as the `x-vercel-oidc-token`
+header; the endpoint reads it as a final fallback, so OIDC mode continues
+to work even when the env var is not surfaced to the function runtime.
+For local development or non-Vercel hosts, provide `AI_GATEWAY_API_KEY`
+explicitly.
 
 **Recommended for production / private providers:** leave `AI_ALLOW_NO_KEY`
 unset and provide a real `AI_API_KEY`.
@@ -335,7 +342,7 @@ Behind nginx (TLS termination + reverse proxy) is the recommended VPS layout.
 | `AI_AUTH_MODE`                 | no       | `bearer`                                      | `none` is an alias for `AI_ALLOW_NO_KEY=true`. `oidc` uses Vercel AI Gateway (see `AI_GATEWAY_API_KEY` / `VERCEL_OIDC_TOKEN`). |
 | `AI_PROVIDER`                  | no       | empty                                         | `vercel-ai-gateway` is an alias for `AI_AUTH_MODE=oidc`.   |
 | `AI_GATEWAY_API_KEY`           | no       | empty                                         | Bearer token used when `AI_AUTH_MODE=oidc`. Falls back to `VERCEL_OIDC_TOKEN`. |
-| `VERCEL_OIDC_TOKEN`            | auto     | empty                                         | OIDC token injected by Vercel; used as a bearer in `AI_AUTH_MODE=oidc`. |
+| `VERCEL_OIDC_TOKEN`            | auto     | empty                                         | OIDC token injected by Vercel; used as a bearer in `AI_AUTH_MODE=oidc`. Also accepted via the per-request `x-vercel-oidc-token` header on Vercel Functions. |
 | `OPENAI_API_KEY` / `OPENAI_MODEL` | no    | empty                                         | Legacy fallback names                                      |
 | `PORT`                         | no       | `8000`                                        | Standard Railway/Heroku port                               |
 | `DEBUG`                        | no       | `false`                                       | Verbose logging                                            |
