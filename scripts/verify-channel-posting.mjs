@@ -7,7 +7,8 @@
  * - real publishing is gated by QSI_CHANNEL_POSTING_ENABLED + bot token + chat id,
  * - Telegram delivery uses the Bot API,
  * - caption + branded image are generated,
- * - Vercel cron schedule is at 22/4/10 UTC (3 posts/day for Magadan),
+ * - no Vercel cron is declared (Hobby plan limits crons to daily), and the
+ *   setup doc explains how to drive 3/day posting via an external scheduler,
  * - no game/combat hooks reappear,
  * - Antarctic partner ad card is still present,
  * - market/AI routes are still wired,
@@ -38,6 +39,7 @@ const vercel   = JSON.parse(read("vercel.json"));
 const pkg      = JSON.parse(read("package.json"));
 const html     = read("index.html");
 const app      = read("app.js");
+const setupDoc = read("CHANNEL_SETUP.md");
 
 // ---- 1. Endpoint code shape ---------------------------------------------
 must("endpoint exports a handler",
@@ -89,14 +91,19 @@ must("no Authorization: Bearer <literal> in source",
 // ---- 3. Vercel config -----------------------------------------------------
 must("vercel.json registers api/channel/post.js function",
   vercel.functions && "api/channel/post.js" in vercel.functions);
-must("vercel.json declares a cron for /api/channel/post",
-  Array.isArray(vercel.crons) &&
-  vercel.crons.some(function (c) { return c.path === "/api/channel/post"; }));
-must("cron schedule fires at 22/4/10 UTC (3 posts/day for Magadan)",
-  Array.isArray(vercel.crons) &&
-  vercel.crons.some(function (c) {
-    return c.path === "/api/channel/post" && /22,4,10|4,10,22|10,22,4/.test(c.schedule);
-  }));
+// Hobby plan only allows daily crons, so the project must NOT declare a
+// non-daily Vercel cron. Either no cron block at all, or — if someone adds
+// crons back on Pro — none of them should target /api/channel/post with a
+// sub-daily schedule. In practice we keep the block removed.
+const cronsForChannel = Array.isArray(vercel.crons)
+  ? vercel.crons.filter(function (c) { return c && c.path === "/api/channel/post"; })
+  : [];
+must("vercel.json does NOT declare a Vercel cron for /api/channel/post (Hobby-safe)",
+  cronsForChannel.length === 0,
+  "remove the crons[] entry for /api/channel/post — Hobby plan only allows daily crons");
+must("CHANNEL_SETUP.md documents external scheduler for 3/day posting",
+  /внешн(ий|его) шедулер|external scheduler|Perplexity|GitHub Actions|cron-job\.org|Upstash|Cloudflare/i.test(setupDoc) &&
+  /Hobby/.test(setupDoc));
 
 // ---- 4. package.json verify script entry ---------------------------------
 must("npm run verify:channel-posting exists",

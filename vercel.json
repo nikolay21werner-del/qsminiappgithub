@@ -16,12 +16,6 @@
       "maxDuration": 20
     }
   },
-  "crons": [
-    {
-      "path": "/api/channel/post",
-      "schedule": "0 22,4,10 * * *"
-    }
-  ],
   "headers": [
     {
       "source": "/(.*)",
