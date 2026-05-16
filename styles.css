@@ -107,17 +107,17 @@ body {
   z-index: 1;
   max-width: 1180px;
   margin: 0 auto;
-  padding: 64px 32px 80px;
+  padding: 28px 32px 48px;
 }
 
 .roadmap__brand {
   text-align: left;
-  padding: 0 0 28px;
+  padding: 0 0 14px;
 }
 .brand-title {
   font-family: "Manrope", sans-serif;
   font-weight: 800;
-  font-size: clamp(34px, 5vw, 56px);
+  font-size: clamp(28px, 3.4vw, 40px);
   letter-spacing: -0.02em;
   line-height: 1;
   margin: 0;
@@ -132,17 +132,17 @@ body {
   filter: drop-shadow(0 0 8px rgba(38, 230, 242, 0.5));
 }
 .brand-subtitle {
-  margin: 10px 0 0;
+  margin: 6px 0 0;
   color: var(--ink-2);
-  font-size: 13px;
+  font-size: 11px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
 }
 
 .roadmap__grid {
   display: grid;
-  grid-template-columns: minmax(320px, 1.05fr) minmax(360px, 420px);
-  gap: clamp(24px, 4vw, 56px);
+  grid-template-columns: minmax(300px, 1fr) minmax(220px, 280px);
+  gap: clamp(20px, 3vw, 44px);
   align-items: start;
 }
 
@@ -150,21 +150,21 @@ body {
 .timeline {
   list-style: none;
   margin: 0;
-  padding: 12px 0 0;
+  padding: 4px 0 0;
   position: relative;
 }
 .timeline::before {
   content: "";
   position: absolute;
-  left: 18px;
-  top: 38px;
-  bottom: 38px;
+  left: 14px;
+  top: 30px;
+  bottom: 30px;
   border-left: 2px dashed rgba(38, 230, 242, 0.35);
 }
 .timeline__step {
   position: relative;
-  padding: 0 0 56px 64px;
-  min-height: 90px;
+  padding: 0 0 18px 46px;
+  min-height: 60px;
 }
 .timeline__step--last { padding-bottom: 0; }
 
@@ -172,42 +172,44 @@ body {
   position: absolute;
   left: 0;
   top: 0;
-  width: 38px;
-  height: 38px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   display: grid;
   place-items: center;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 12px;
   color: var(--ink-0);
   background:
     radial-gradient(circle at 30% 30%, rgba(38, 230, 242, 0.35), rgba(8, 14, 22, 0.9) 65%);
   border: 1.5px solid rgba(38, 230, 242, 0.55);
   box-shadow:
-    0 0 0 4px rgba(38, 230, 242, 0.06),
-    0 0 22px rgba(38, 230, 242, 0.35);
+    0 0 0 3px rgba(38, 230, 242, 0.06),
+    0 0 16px rgba(38, 230, 242, 0.35);
 }
 .timeline__body h3 {
-  margin: 0 0 8px;
+  margin: 0 0 4px;
   color: var(--teal);
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.01em;
+  line-height: 1.2;
   text-shadow: 0 0 14px rgba(38, 230, 242, 0.25);
 }
+.timeline__body h3 br { display: none; }
 .timeline__body p {
   margin: 0;
   color: var(--ink-1);
-  font-size: 13.5px;
-  line-height: 1.55;
-  max-width: 36ch;
+  font-size: 11.5px;
+  line-height: 1.45;
+  max-width: 42ch;
 }
 .timeline__arrow {
   position: absolute;
-  left: 8px;
-  bottom: 16px;
+  left: 6px;
+  bottom: 0;
   color: var(--teal);
-  font-size: 14px;
+  font-size: 10px;
   opacity: 0.85;
   filter: drop-shadow(0 0 6px rgba(38, 230, 242, 0.6));
 }
@@ -224,14 +226,14 @@ body {
 .phone {
   position: relative;
   width: 100%;
-  max-width: 360px;
+  max-width: 230px;
   aspect-ratio: 9 / 18.5;
-  margin-top: -64px;
+  margin-top: -180px;
 }
 .phone:first-child { margin-top: 0; }
 .phone {
-  border-radius: 42px;
-  padding: 14px;
+  border-radius: 28px;
+  padding: 9px;
   background:
     linear-gradient(180deg, #0e1620 0%, #060a12 100%);
   border: 1px solid rgba(255, 255, 255, 0.06);
@@ -258,12 +260,12 @@ body {
 
 .phone__notch {
   position: absolute;
-  top: 14px;
+  top: 9px;
   left: 50%;
   transform: translateX(-50%);
-  width: 110px;
-  height: 22px;
-  border-radius: 0 0 14px 14px;
+  width: 72px;
+  height: 16px;
+  border-radius: 0 0 10px 10px;
   background: #000;
   z-index: 3;
   box-shadow: inset 0 -1px 0 rgba(255,255,255,.05);
@@ -291,9 +293,9 @@ body {
   position: relative;
   width: 100%;
   height: 100%;
-  border-radius: 32px;
+  border-radius: 22px;
   overflow: hidden;
-  padding: 44px 16px 16px;
+  padding: 32px 10px 10px;
   background: #050a12;
 }
 
@@ -1223,18 +1225,25 @@ body {
     grid-template-columns: 1fr;
   }
   .phones {
-    justify-items: center;
     margin-top: 16px;
   }
-  .phone { max-width: 300px; }
+  .phone {
+    max-width: 280px;
+    margin-top: -40px;
+  }
+  .timeline__step {
+    padding-bottom: 32px;
+  }
+  .timeline__body h3 { font-size: 15px; }
+  .timeline__body p { font-size: 12.5px; }
 }
 
 @media (max-width: 560px) {
-  .roadmap { padding: 36px 18px 60px; }
-  .brand-title { font-size: 32px; }
-  .timeline__step { padding-left: 56px; padding-bottom: 44px; }
-  .timeline__body p { font-size: 13px; }
-  .phone { max-width: 280px; }
+  .roadmap { padding: 24px 18px 48px; }
+  .brand-title { font-size: 26px; }
+  .timeline__step { padding-left: 44px; padding-bottom: 26px; }
+  .timeline__body p { font-size: 12px; }
+  .phone { max-width: 260px; margin-top: -32px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
