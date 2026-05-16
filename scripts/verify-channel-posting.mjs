@@ -67,6 +67,36 @@ must("generates a branded SVG with QUANTSIGNAL AI mark",
   /QUANTSIGNAL AI/.test(endpoint) && /<svg /.test(endpoint));
 must("covers BTC, ETH, SOL, TON, DOGE",
   /BTC[\s\S]*ETH[\s\S]*SOL[\s\S]*TON[\s\S]*DOGE/.test(endpoint));
+
+// ---- 1b. New trading-card banner style ----------------------------------
+must("hero symbol picker for the trading-card banner",
+  /pickHero\s*\(/.test(endpoint));
+must("banner renders a 'Бессрочный' perpetual pill",
+  /Бессрочный/.test(endpoint));
+must("banner includes a timeframe row (1м/5м/15м/1ч/4ч/1д)",
+  /"1м"/.test(endpoint) && /"5м"/.test(endpoint) &&
+  /"15м"/.test(endpoint) && /"1ч"/.test(endpoint) &&
+  /"4ч"/.test(endpoint) && /"1д"/.test(endpoint));
+must("5м timeframe is highlighted as active",
+  /tfActive\s*=\s*1/.test(endpoint));
+must("banner draws programmatic candlesticks",
+  /buildCandles\s*\(/.test(endpoint) && /candleSvg\b/.test(endpoint));
+must("banner draws a dashed current price line",
+  /stroke-dasharray="6 6"/.test(endpoint));
+must("banner shows a current price chip on the chart",
+  /priceChipW\b/.test(endpoint));
+must("KPI cards present: RSI(14), MACD, Объём 24ч",
+  /RSI \(14\)/.test(endpoint) && /MACD/.test(endpoint) && /Объём 24ч/.test(endpoint));
+must("RSI status uses ru terms (перекуплен/перепродан/нейтрально)",
+  /перекуплен/.test(endpoint) && /перепродан/.test(endpoint) && /нейтрально/.test(endpoint));
+must("chart labels '24ч изменение'",
+  /24ч изменение/.test(endpoint));
+must("banner footer links bot domain t.me/QUANTSIGNAL_AI_BOT",
+  /t\.me\/QUANTSIGNAL_AI_BOT/.test(endpoint));
+must("old generic 'СВОДКА РЫНКА · RU' SVG header removed",
+  !/СВОДКА РЫНКА · RU/.test(endpoint));
+must("old mood pill 'Настроение: ' in SVG removed",
+  !/Настроение:\s*"\s*\+/.test(endpoint) && !/>Настроение:\s*</.test(endpoint));
 must("uses Bybit -> Coinbase -> Kraken market fallback",
   /api\.bybit\.com/.test(endpoint) &&
   /api\.exchange\.coinbase\.com/.test(endpoint) &&
