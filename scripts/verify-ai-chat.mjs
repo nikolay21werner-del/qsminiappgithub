@@ -374,6 +374,69 @@ async function run() {
   const body7 = JSON.parse(res.body);
   expect("oidc missing token error code", body7.error, "ai_oidc_unavailable");
 
+  // ---- System prompt + market context are actually sent upstream ----
+  resetEnv();
+  process.env.AI_ALLOW_NO_KEY = "true";
+  process.env.AI_BASE_URL = "https://example.test/v1";
+  process.env.AI_MODEL = "openai";
+
+  const capturedPrompt = {};
+  const restorePrompt = installMockFetch(capturedPrompt, {
+    model: "openai",
+    choices: [{ message: { content: "ok" } }]
+  });
+  try {
+    res = makeRes();
+    await handler(
+      makeReq("POST", {
+        messages: [{ role: "user", content: "Что думаешь по BTCUSDT?" }],
+        language_code: "ru",
+        market_context: {
+          symbol: "BTCUSDT",
+          last_price: 67234.5,
+          change_pct_24h: 1.234,
+          volume_24h: 9876543,
+          high_24h: 68000,
+          low_24h: 66000,
+          transport: "websocket",
+          provider: "Bybit V5 (linear)"
+        }
+      }),
+      res
+    );
+    expect("prompt-snapshot status", res.statusCode, 200);
+    const sentBody = JSON.parse(String(capturedPrompt.body || "{}"));
+    const sysContents = (sentBody.messages || [])
+      .filter((m) => m && m.role === "system")
+      .map((m) => String(m.content || ""))
+      .join("\n");
+    // Guardrails must be present verbatim in the system prompt.
+    const guardrails = [
+      "QUANTSIGNAL AI",
+      "professional crypto-markets assistant",
+      "Never call this financial advice",
+      "Never promise profit",
+      "Never fabricate",
+      "Never recommend specific leverage",
+      "natural Russian"
+    ];
+    for (const g of guardrails) {
+      const ok = sysContents.indexOf(g) !== -1;
+      expect("system prompt contains: " + g, ok, true);
+    }
+    // Live market context must be forwarded with real values.
+    expect("market context: symbol present", sysContents.indexOf("BTCUSDT") !== -1, true);
+    expect("market context: price present", sysContents.indexOf("67234.5") !== -1, true);
+    // Risk caveat for ru locale must be wired in.
+    expect(
+      "risk caveat (ru) present",
+      sysContents.indexOf("не является инвестиционной рекомендацией") !== -1,
+      true
+    );
+  } finally {
+    restorePrompt();
+  }
+
   console.log("\nAll AI chat handler smoke checks passed.");
 }
 

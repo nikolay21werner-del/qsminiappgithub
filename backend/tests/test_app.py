@@ -266,6 +266,96 @@ class AppSmokeTests(unittest.TestCase):
         detail = r.json().get("detail") or {}
         self.assertEqual(detail.get("error"), "ai_oidc_unavailable")
 
+    def test_ai_system_prompt_contains_guardrails(self) -> None:
+        """The system prompt must enforce the trader-style guardrails so the
+        upstream model can't drift into financial-advice territory."""
+        from app.services.ai_assistant import SYSTEM_PROMPT_BASE
+
+        for phrase in (
+            "QUANTSIGNAL AI",
+            "professional crypto-markets assistant",
+            "Never call this financial advice",
+            "Never promise profit",
+            "Never fabricate",
+            "Never recommend specific leverage",
+            "natural Russian",
+        ):
+            self.assertIn(phrase, SYSTEM_PROMPT_BASE)
+
+    def test_ai_chat_forwards_market_context_and_guardrails(self) -> None:
+        """A successful chat call must forward the live market context and
+        the guardrailed system prompt to the upstream provider."""
+        captured: dict = {}
+
+        class _StubResponse:
+            status_code = 200
+            text = ""
+
+            def json(self) -> dict:
+                return {
+                    "model": "openai",
+                    "choices": [{"message": {"content": "ok"}}],
+                }
+
+        class _StubClient:
+            def __init__(self, *_a, **_kw) -> None:
+                pass
+
+            async def __aenter__(self) -> "_StubClient":
+                return self
+
+            async def __aexit__(self, *_a) -> None:
+                return None
+
+            async def post(self, url, json=None, headers=None):  # noqa: A002
+                captured["json"] = json
+                return _StubResponse()
+
+        env = {
+            "AI_API_KEY": "",
+            "OPENAI_API_KEY": "",
+            "AI_ALLOW_NO_KEY": "true",
+            "AI_BASE_URL": "https://example.test/v1",
+            "AI_MODEL": "openai",
+        }
+        with patch.dict(os.environ, env, clear=False), \
+                patch("app.services.ai_assistant.httpx.AsyncClient", _StubClient):
+            r = self.client.post(
+                "/api/ai/chat",
+                json={
+                    "messages": [
+                        {"role": "user", "content": "Что думаешь по BTCUSDT?"}
+                    ],
+                    "language_code": "ru",
+                    "market_context": {
+                        "symbol": "BTCUSDT",
+                        "last_price": 67234.5,
+                        "change_pct_24h": 1.234,
+                        "volume_24h": 9876543,
+                        "high_24h": 68000,
+                        "low_24h": 66000,
+                        "transport": "websocket",
+                        "provider": "Bybit V5 (linear)",
+                    },
+                },
+            )
+        self.assertEqual(r.status_code, 200, r.text)
+        sent = captured.get("json") or {}
+        sys_contents = "\n".join(
+            str(m.get("content") or "")
+            for m in sent.get("messages", [])
+            if m.get("role") == "system"
+        )
+        self.assertIn("QUANTSIGNAL AI", sys_contents)
+        self.assertIn("Never call this financial advice", sys_contents)
+        self.assertIn("Never recommend specific leverage", sys_contents)
+        self.assertIn("BTCUSDT", sys_contents)
+        self.assertIn("67234.5", sys_contents)
+        self.assertIn(
+            "не является инвестиционной рекомендацией",
+            sys_contents,
+        )
+
     def test_ai_chat_no_key_disabled_returns_503(self) -> None:
         """With neither AI_API_KEY nor AI_ALLOW_NO_KEY set, the endpoint
         must refuse with 503 ai_not_configured."""
