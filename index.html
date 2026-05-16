@@ -70,16 +70,17 @@
           class="topbar__icon"
           data-testid="topbar-icon"
           src="./assets/brand/qsi-mark.png"
-          alt="QUANTSIGNAL AI"
+          alt=""
+          aria-hidden="true"
           width="32" height="32"
           loading="eager"
           decoding="async" />
-        <span class="topbar__brand-text visually-hidden">
+        <span class="topbar__brand-text" data-testid="topbar-brand-text">
           <span class="topbar__brand-line">
             <span class="dot-live" id="dot-live" aria-hidden="true"></span>
-            QUANTSIGNAL <b>AI</b>
+            <span class="topbar__brand-name">QUANTSIGNAL <b>AI</b></span>
           </span>
-          <span class="topbar__brand-sub" data-i18n="miniAppSub">mini app</span>
+          <span class="topbar__brand-sub visually-hidden" data-i18n="miniAppSub">mini app</span>
         </span>
         <span class="conn-pill" id="conn-pill" data-i18n="connecting">connecting…</span>
       </div>

@@ -147,13 +147,12 @@ button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
   50% { transform: scale(1.3); opacity: 0.7; }
 }
 .topbar__brand {
-  text-align: center;
   font-weight: 800;
   font-size: 14px;
   letter-spacing: 0.04em;
   color: var(--ink-0);
   cursor: pointer;
-  display: inline-flex; align-items: center; justify-content: center;
+  display: flex; align-items: center; justify-content: flex-start;
   gap: 8px;
   min-width: 0;
 }
@@ -163,12 +162,20 @@ button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
 }
 .topbar__icon {
   display: block;
-  height: 32px;
-  width: 32px;
-  border-radius: 9px;
+  height: 28px;
+  width: 28px;
+  border-radius: 8px;
   object-fit: contain;
   flex-shrink: 0;
   box-shadow: 0 0 14px rgba(38,230,242,0.22);
+}
+.topbar__brand-name {
+  font-size: 13.5px;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 .visually-hidden {
   position: absolute !important;
@@ -181,11 +188,11 @@ button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
 }
 .topbar__brand-text {
   display: inline-flex; flex-direction: column; align-items: flex-start;
-  line-height: 1.05; min-width: 0;
+  line-height: 1.05; min-width: 0; flex: 1 1 auto;
 }
 .topbar__brand-line {
   display: inline-flex; align-items: center; gap: 6px;
-  white-space: nowrap;
+  min-width: 0; max-width: 100%;
 }
 .topbar__brand-sub {
   font-family: "JetBrains Mono", monospace;
@@ -218,7 +225,9 @@ button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
   border-radius: 999px;
   border: 1px solid var(--line);
   background: rgba(11, 18, 28, 0.6);
-  margin-left: 4px;
+  margin-left: auto;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 .conn-pill.is-ws { color: var(--pos); border-color: rgba(38,230,242,.35); }
 .conn-pill.is-rest { color: #f5b551; border-color: rgba(245,181,81,.35); }

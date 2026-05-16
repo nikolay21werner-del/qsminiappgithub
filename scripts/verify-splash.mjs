@@ -73,6 +73,16 @@ must("topbar does not use the stylized qsi-icon.svg approximation",
 must("topbar does not use the full label JPEG (the full label belongs on splash/banners)",
   !/class="topbar__icon"[\s\S]{0,200}quantsignal-label\.(jpe?g|png)/.test(html),
   "topbar icon must be the cropped no-text mark, not the full label artwork");
+// The topbar must show the qsi-mark icon plus adjacent readable brand text
+// "QUANTSIGNAL AI" — real text, not an image. The text lives in the same
+// .topbar__brand cluster and must NOT carry the visually-hidden class.
+must("topbar exposes the brand text cluster (.topbar__brand-text, not visually-hidden)",
+  /class="topbar__brand-text"(?![^>]*visually-hidden)[\s\S]*?data-testid="topbar-brand-text"/.test(html) ||
+  /data-testid="topbar-brand-text"[^>]*class="topbar__brand-text"(?![^>]*visually-hidden)/.test(html),
+  "topbar must render visible .topbar__brand-text adjacent to the icon");
+must("topbar brand text contains real QUANTSIGNAL AI wording (not an image)",
+  /class="topbar__brand-name"[^>]*>\s*QUANTSIGNAL\s*<b>AI<\/b>\s*<\/span>/.test(html),
+  "topbar must show 'QUANTSIGNAL AI' as real text next to the icon");
 must("mini app subtitle i18n", /data-i18n="miniAppSub"/.test(html));
 
 // --- Top section nav removed by user request -----------------------------
