@@ -53,9 +53,13 @@
 
       <!-- ========== OVERVIEW ========== -->
       <section class="screen is-active" data-screen="overview" aria-label="Обзор">
-        <div class="hero-card">
+        <div class="hero-card" id="hero-card" data-coin="BTC">
+          <div class="hero-card__banner" id="hero-banner" aria-hidden="true">
+            <span class="hero-card__banner-glyph" id="hero-banner-glyph"></span>
+            <span class="hero-card__banner-tag" id="hero-banner-tag">BTC</span>
+          </div>
           <div class="hero-card__top">
-            <span class="coin-btc" aria-hidden="true">₿</span>
+            <span class="coin-mark" id="hero-coin-mark" data-coin="BTC" aria-hidden="true">₿</span>
             <div class="hero-card__sym">
               <div class="hero-card__row">
                 <b id="hero-pair">BTCUSDT</b>

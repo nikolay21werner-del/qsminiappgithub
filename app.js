@@ -86,6 +86,43 @@
     return String(Math.round(n));
   }
   function shortSym(sym) { return String(sym || "").replace(/USDT$/i, ""); }
+
+  // ---------- Per-coin brand identity ----------
+  // Glyph is intentionally ASCII / Unicode (no external assets) so the Telegram
+  // WebView renders consistently. Palettes are driven by CSS [data-coin="..."].
+  var COIN_BRANDS = {
+    BTC: { glyph: "₿", mark: "₿", label: "BTC" },     // ₿
+    ETH: { glyph: "Ξ", mark: "Ξ", label: "ETH" },     // Ξ
+    SOL: { glyph: "◈", mark: "S",      label: "SOL" },     // ◈
+    TON: { glyph: "◇", mark: "T",      label: "TON" },     // ◇
+    BNB: { glyph: "♦", mark: "B",      label: "BNB" },     // ♦
+    XRP: { glyph: "✕", mark: "X",      label: "XRP" }      // ✕
+  };
+  var COIN_BRAND_DEFAULT = { glyph: "◎", mark: "¤", label: "USD" }; // ◎ / ¤
+
+  function coinKey(symbol) {
+    var s = shortSym(symbol).toUpperCase();
+    return COIN_BRANDS[s] ? s : "DEFAULT";
+  }
+  function coinBrand(symbol) {
+    var key = coinKey(symbol);
+    return key === "DEFAULT" ? COIN_BRAND_DEFAULT : COIN_BRANDS[key];
+  }
+  function applyCoinBranding(symbol) {
+    var key = coinKey(symbol);
+    var brand = coinBrand(symbol);
+    var card = $("#hero-card");
+    var mark = $("#hero-coin-mark");
+    var glyph = $("#hero-banner-glyph");
+    var tag = $("#hero-banner-tag");
+    if (card) card.setAttribute("data-coin", key);
+    if (mark) {
+      mark.setAttribute("data-coin", key);
+      mark.textContent = brand.mark;
+    }
+    if (glyph) glyph.textContent = brand.glyph;
+    if (tag) tag.textContent = brand.label;
+  }
   function relTime(ts) {
     if (!ts) return "—";
     var diff = Math.max(0, Date.now() - ts);
@@ -173,6 +210,7 @@
     var deltaEl = $("#hero-delta");
     var tagEl = $("#hero-chart-tag");
     var volEl = $("#hero-vol");
+    applyCoinBranding(t.symbol);
     if (pairEl) pairEl.textContent = t.symbol;
     if (priceEl) priceEl.textContent = fmtPrice(t.last_price);
     if (tagEl) tagEl.textContent = fmtPrice(t.last_price);
@@ -332,8 +370,10 @@
     var html = "";
     rows.forEach(function (t) {
       var pos = t.change_pct_24h >= 0;
+      var cKey = coinKey(t.symbol);
+      var brand = coinBrand(t.symbol);
       html += '<div class="row" data-symbol="' + escapeHtml(t.symbol) + '">' +
-        '<span class="row-coin">' + escapeHtml(shortSym(t.symbol).slice(0, 3)) + '</span>' +
+        '<span class="row-coin" data-coin="' + cKey + '">' + escapeHtml(brand.mark) + '</span>' +
         '<span><b>' + escapeHtml(shortSym(t.symbol)) + '</b><br><span style="color:var(--ink-2);font-size:11px;">$' + fmtPrice(t.last_price) + '</span></span>' +
         '<span class="' + (pos ? "up" : "dn") + '">' + fmtPct(t.change_pct_24h) + '</span>' +
         '<span style="color:var(--ink-3);font-family:JetBrains Mono,monospace;font-size:10px;">vol ' + fmtCompact(t.volume_24h) + '</span>' +
@@ -410,9 +450,11 @@
       var status = idx === 0 ? "new" : (idx % 3 === 0 ? "watch" : "active");
       var statusLabel = (status === "new") ? I18N.t("statusNew") :
                         (status === "watch") ? I18N.t("statusWatch") : I18N.t("statusActive");
-      html += '<article class="signal-card ' + cardClass + '" data-signal-id="' + escapeHtml(s.id) + '" data-signal-idx="' + idx + '">' +
+      var sKey = coinKey(s.symbol);
+      var sBrand = coinBrand(s.symbol);
+      html += '<article class="signal-card ' + cardClass + '" data-signal-id="' + escapeHtml(s.id) + '" data-signal-idx="' + idx + '" data-coin="' + sKey + '">' +
         '<div class="signal-card__head">' +
-          '<div class="signal-card__sym"><span class="row-coin">' + escapeHtml(shortSym(s.symbol).slice(0, 3)) + '</span>' + escapeHtml(s.symbol) + '</div>' +
+          '<div class="signal-card__sym"><span class="row-coin" data-coin="' + sKey + '">' + escapeHtml(sBrand.mark) + '</span>' + escapeHtml(s.symbol) + '</div>' +
           '<span class="signal-card__dir ' + dirClass + '">' + (s.direction === "LONG" ? "↑ " : "↓ ") + escapeHtml(s.direction) + '</span>' +
         '</div>' +
         '<div class="signal-card__grid">' +
@@ -476,7 +518,9 @@
       var absChg = Math.abs(t.change_pct_24h || 0);
       var strength = absChg >= 2 ? "high" : absChg >= 1 ? "mid" : "low";
       var strengthLabel = strength === "high" ? I18N.t("strHigh") : strength === "mid" ? I18N.t("strMid") : I18N.t("strLow");
-      html += '<div class="matrix-cell ' + (pos ? "up" : "down") + '" data-symbol="' + escapeHtml(t.symbol) + '">' +
+      var mKey = coinKey(t.symbol);
+      var mBrand = coinBrand(t.symbol);
+      html += '<div class="matrix-cell ' + (pos ? "up" : "down") + '" data-symbol="' + escapeHtml(t.symbol) + '" data-coin="' + mKey + '" data-glyph="' + escapeHtml(mBrand.glyph) + '">' +
         '<div class="matrix-sym">' + escapeHtml(shortSym(t.symbol)) + '<span class="matrix-strength ' + strength + '">' + escapeHtml(strengthLabel) + '</span></div>' +
         '<div class="matrix-price">$' + fmtPrice(t.last_price) + '</div>' +
         '<div class="matrix-delta">' + fmtPct(t.change_pct_24h) + '</div>' +
@@ -931,6 +975,7 @@
     applyI18N();
     I18N.on(function () { applyI18N(); });
     wireEvents();
+    applyCoinBranding(state.selectedSymbol);
     renderTicker();
     renderOverviewRows();
     renderAIInitial();
