@@ -1,5 +1,5 @@
 /* =========================================================
-   QUANTSIGNAL AI — Telegram Mini App (full-stack edition)
+   QUANTSIGNAL AI — Telegram Mini App (app-first edition)
    No localStorage / sessionStorage / cookies. In-memory state only.
    ========================================================= */
 (function () {
@@ -13,10 +13,14 @@
   function initTelegram() {
     if (!tg) return;
     try {
-      tg.ready();
-      tg.expand();
-      if (typeof tg.setHeaderColor === "function") tg.setHeaderColor("#0b0f14");
-      if (typeof tg.setBackgroundColor === "function") tg.setBackgroundColor("#0b0f14");
+      tg.ready && tg.ready();
+      tg.expand && tg.expand();
+      if (typeof tg.setHeaderColor === "function") {
+        try { tg.setHeaderColor("#04070d"); } catch (e) {}
+      }
+      if (typeof tg.setBackgroundColor === "function") {
+        try { tg.setBackgroundColor("#04070d"); } catch (e) {}
+      }
       if (typeof tg.disableVerticalSwipes === "function") {
         try { tg.disableVerticalSwipes(); } catch (e) {}
       }
@@ -27,7 +31,6 @@
       tg.onEvent && tg.onEvent("themeChanged", function () {
         applyTelegramTheme(tg.themeParams || {});
       });
-      // Capture raw initData for server-side validation; never trust initDataUnsafe.
       if (API && typeof tg.initData === "string") API.setInitData(tg.initData);
     } catch (e) {
       console.warn("[QUANTSIGNAL] Telegram init warning:", e);
@@ -36,23 +39,34 @@
 
   function applyTelegramTheme(params) {
     var root = document.documentElement.style;
-    if (params.bg_color)         root.setProperty("--tg-theme-bg-color", params.bg_color);
-    if (params.text_color)       root.setProperty("--tg-theme-text-color", params.text_color);
-    if (params.hint_color)       root.setProperty("--tg-theme-hint-color", params.hint_color);
-    if (params.button_color)     root.setProperty("--tg-theme-button-color", params.button_color);
-    if (params.button_text_color)root.setProperty("--tg-theme-button-text-color", params.button_text_color);
+    if (params.bg_color)          root.setProperty("--tg-theme-bg-color", params.bg_color);
+    if (params.text_color)        root.setProperty("--tg-theme-text-color", params.text_color);
+    if (params.hint_color)        root.setProperty("--tg-theme-hint-color", params.hint_color);
+    if (params.button_color)      root.setProperty("--tg-theme-button-color", params.button_color);
+    if (params.button_text_color) root.setProperty("--tg-theme-button-text-color", params.button_text_color);
   }
 
   function haptic(type) {
     try {
       if (tg && tg.HapticFeedback) {
         if (type === "selection") tg.HapticFeedback.selectionChanged();
-        else tg.HapticFeedback.impactOccurred(type || "light");
+        else if (type === "success" || type === "warning" || type === "error") {
+          tg.HapticFeedback.notificationOccurred(type);
+        } else {
+          tg.HapticFeedback.impactOccurred(type || "light");
+        }
       }
     } catch (e) {}
   }
 
   // ---------- Helpers ----------
+  function $(sel, root) { return (root || document).querySelector(sel); }
+  function $$(sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
+  function escapeHtml(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
   function fmtPrice(n) {
     if (n == null || isNaN(n)) return "—";
     var abs = Math.abs(n);
@@ -61,8 +75,7 @@
   }
   function fmtPct(n) {
     if (n == null || isNaN(n)) return "—";
-    var s = (n >= 0 ? "+" : "") + Number(n).toFixed(2) + "%";
-    return s;
+    return (n >= 0 ? "+" : "") + Number(n).toFixed(2) + "%";
   }
   function fmtCompact(n) {
     if (n == null || isNaN(n)) return "—";
@@ -72,67 +85,129 @@
     return String(Math.round(n));
   }
   function shortSym(sym) { return String(sym || "").replace(/USDT$/i, ""); }
+  function coinSeed(sym) {
+    var s = String(sym || "");
+    var h = 0;
+    for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+    return h;
+  }
+
+  // ---------- State ----------
+  var state = {
+    screen: "overview",
+    tf: "5m",
+    marketTf: "5m",
+    tickers: null,
+    signals: null,
+    aiHistory: [],
+    aiBusy: false,
+    backendOk: false
+  };
+
+  // ---------- Screen routing ----------
+  function setScreen(name) {
+    if (!name) return;
+    state.screen = name;
+    $$(".screen").forEach(function (s) {
+      s.classList.toggle("is-active", s.getAttribute("data-screen") === name);
+    });
+    $$(".tab").forEach(function (b) {
+      b.classList.toggle("is-active", b.getAttribute("data-nav") === name);
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    // Lazy renders
+    if (name === "signals" && !state.signals) renderSignalsScreen();
+    if (name === "market" && (!state.tickers || !state.tickers.length)) renderMarketScreen();
+    if (name === "ai" && !state.aiHistory.length) renderAIInitial();
+    if (name === "profile") renderProfileScreen();
+    if (name === "signals") renderSignalsScreen();
+    if (name === "market") renderMarketScreen();
+  }
 
   // ---------- Live tickers ----------
-  var liveTickers = null;
-
   function renderTicker() {
-    var track = document.getElementById("ticker-track");
+    var track = $("#ticker-track");
     if (!track) return;
-    var rows = liveTickers && liveTickers.length ? liveTickers : null;
+    var rows = state.tickers && state.tickers.length ? state.tickers : null;
+    if (!rows) {
+      track.innerHTML = '<span class="ticker-item"><span class="sym">…</span></span>';
+      return;
+    }
+    var seq = rows.concat(rows);
     var html = "";
-    if (rows) {
-      var seq = rows.concat(rows);
-      for (var i = 0; i < seq.length; i++) {
-        var t = seq[i];
-        var dir = t.change_pct_24h >= 0 ? "up" : "dn";
-        html += '<span class="ticker-item">' +
-                  '<span class="sym">' + shortSym(t.symbol) + '</span>' +
-                  '<span>$' + fmtPrice(t.last_price) + '</span>' +
-                  '<span class="' + dir + '">' + fmtPct(t.change_pct_24h) + '</span>' +
-                '</span>';
-      }
-    } else {
-      // initial loader bar
-      html = '<span class="ticker-item"><span class="sym">…</span></span>';
+    for (var i = 0; i < seq.length; i++) {
+      var t = seq[i];
+      var dir = t.change_pct_24h >= 0 ? "up" : "dn";
+      html += '<span class="ticker-item">' +
+                '<span class="sym">' + escapeHtml(shortSym(t.symbol)) + '</span>' +
+                '<span>$' + fmtPrice(t.last_price) + '</span>' +
+                '<span class="' + dir + '">' + fmtPct(t.change_pct_24h) + '</span>' +
+              '</span>';
     }
     track.innerHTML = html;
   }
 
   function applyHeroSnapshot() {
-    if (!liveTickers || !liveTickers.length) return;
-    var btc = null;
-    for (var i = 0; i < liveTickers.length; i++) {
-      if (liveTickers[i].symbol === "BTCUSDT") { btc = liveTickers[i]; break; }
-    }
+    if (!state.tickers || !state.tickers.length) return;
+    var btc = state.tickers.find(function (t) { return t.symbol === "BTCUSDT"; }) || state.tickers[0];
     if (!btc) return;
-    var priceEl = document.querySelector(".market-card .price-line");
-    var deltaEl = document.querySelector(".market-card .price-delta");
-    var markerEl = document.querySelector(".market-card .price-marker");
+    var pairEl = $("#hero-pair");
+    var priceEl = $("#hero-price");
+    var deltaEl = $("#hero-delta");
+    var tagEl = $("#hero-chart-tag");
+    var volEl = $("#hero-vol");
+    if (pairEl) pairEl.textContent = btc.symbol;
     if (priceEl) priceEl.textContent = fmtPrice(btc.last_price);
-    if (markerEl) markerEl.textContent = fmtPrice(btc.last_price);
+    if (tagEl) tagEl.textContent = fmtPrice(btc.last_price);
+    if (volEl) volEl.textContent = fmtCompact(btc.volume_24h);
     if (deltaEl) {
-      var changeAbs = btc.last_price * (btc.change_pct_24h / 100);
-      deltaEl.textContent = (changeAbs >= 0 ? "+" : "") + fmtPrice(changeAbs) +
-                            " (" + fmtPct(btc.change_pct_24h) + ")";
+      deltaEl.textContent = fmtPct(btc.change_pct_24h);
       deltaEl.classList.toggle("dn", btc.change_pct_24h < 0);
     }
+    renderHeroChart(btc);
+  }
+
+  function renderHeroChart(t) {
+    var g = $("#hero-chart-candles");
+    if (!g) return;
+    var seed = coinSeed(t.symbol || "BTC") + Math.floor(Date.now() / 60000);
+    function rand() { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }
+    var pos = (t.change_pct_24h || 0) >= 0;
+    var html = "";
+    var x = 6;
+    var w = 6;
+    var step = 12;
+    var baseY = pos ? 80 : 30;
+    var trendDir = pos ? -1 : 1;
+    for (var i = 0; i < 26; i++) {
+      var noise = (rand() - 0.5) * 16;
+      var trend = trendDir * i * 1.6;
+      var y = Math.max(6, Math.min(108, baseY + trend + noise));
+      var hgt = Math.max(8, 14 + (rand() * 18));
+      var color = (rand() > 0.45 ? "#26e6f2" : "#ff5577");
+      html += '<rect x="' + (x + i * step) + '" y="' + y.toFixed(1) + '" width="' + w + '" height="' + hgt.toFixed(1) + '" fill="' + color + '"/>';
+    }
+    g.innerHTML = html;
   }
 
   async function refreshTickers() {
     if (!API) return;
     try {
       var data = await API.getTickers();
-      liveTickers = (data && data.tickers) ? data.tickers : null;
+      state.tickers = (data && data.tickers) ? data.tickers : [];
+      state.backendOk = !!(data && data.source && data.source !== "demo");
       renderTicker();
       applyHeroSnapshot();
+      renderOverviewRows();
+      if (state.screen === "market") renderMarketScreen();
     } catch (e) {
       console.warn("ticker refresh failed", e);
     }
   }
 
-  // ---------- KPI counters ----------
+  // ---------- KPI animation ----------
   function animateCounter(el, target) {
+    if (!el) return;
     var dur = 900;
     var start = performance.now();
     var unit = el.querySelector(".kpi-unit");
@@ -140,386 +215,413 @@
       var p = Math.min(1, (t - start) / dur);
       var eased = 1 - Math.pow(1 - p, 3);
       var v = Math.round(eased * target);
-      el.firstChild ? (el.firstChild.nodeValue = String(v)) : (el.textContent = String(v));
+      el.textContent = String(v);
       if (unit) el.appendChild(unit);
       if (p < 1) requestAnimationFrame(frame);
     }
-    el.textContent = "0";
-    if (unit) el.appendChild(unit);
     requestAnimationFrame(frame);
   }
-
   function renderKPIs() {
-    var sig = document.querySelector('[data-counter="signals"]');
-    var coi = document.querySelector('[data-counter="coins"]');
-    var acc = document.querySelector('[data-counter="accuracy"]');
-    if (sig) animateCounter(sig, 24);
-    if (coi) animateCounter(coi, 187);
-    if (acc) animateCounter(acc, 72);
+    animateCounter($('[data-counter="signals"]'), 24);
+    animateCounter($('[data-counter="coins"]'), 187);
+    animateCounter($('[data-counter="accuracy"]'), 72);
   }
 
-  // ---------- Panel renderer (dynamic screens) ----------
-  var panelState = { screen: "default" };
-
-  function setPanelTitle(text) {
-    var el = document.getElementById("panel-title");
-    if (el) el.textContent = text;
-  }
-
-  function panelLoading() {
-    var bodyEl = document.getElementById("panel-body");
-    if (!bodyEl) return;
-    bodyEl.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
-  }
-
-  function panelEmpty(msg) {
-    var bodyEl = document.getElementById("panel-body");
-    if (!bodyEl) return;
-    bodyEl.innerHTML = '<div class="row"><span class="row-text" style="opacity:.7">' + msg + '</span></div>';
-  }
-
-  function scrollToPanel() {
-    var panel = document.getElementById("content-panel");
-    if (!panel) return;
-    var top = panel.getBoundingClientRect().top + window.scrollY - 12;
-    window.scrollTo({ top: top, behavior: "smooth" });
-  }
-
-  // --- Signals screen ---
-  async function renderSignalsScreen() {
-    panelState.screen = "signals";
-    setPanelTitle(I18N.t("sectionSignals"));
-    panelLoading();
-    scrollToPanel();
-    var data = await API.getSignals();
-    var bodyEl = document.getElementById("panel-body");
-    if (!bodyEl) return;
-    if (!data.signals || !data.signals.length) {
-      panelEmpty("—");
+  // ---------- Overview rows ----------
+  function renderOverviewRows() {
+    var el = $("#overview-rows");
+    if (!el) return;
+    var rows = (state.tickers || []).slice(0, 5);
+    if (!rows.length) {
+      el.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div>';
       return;
     }
     var html = "";
-    data.signals.forEach(function (s) {
-      var dirClass = s.direction === "LONG" ? "up" : "down";
-      var dirSign = s.direction === "LONG" ? "↑" : "↓";
-      var conf = Math.round((s.confidence || 0) * 100);
-      html +=
-        '<div class="row">' +
-          '<span class="row-sym">' + shortSym(s.symbol) + '</span>' +
-          '<span class="row-text">' +
-            '<b>' + s.direction + '</b> @ <b>' + fmtPrice(s.entry) + '</b> · ' +
-            I18N.t("tp1") + ' <b>' + fmtPrice(s.take_profit_1) + '</b> · ' +
-            I18N.t("stop") + ' <b class="danger">' + fmtPrice(s.stop_loss) + '</b> · ' +
-            'R:R <b>' + (s.risk_reward || 0).toFixed(2) + '</b> · ' +
-            I18N.t("aiConfidence") + ' <b>' + conf + '%</b>' +
-          '</span>' +
-          '<span class="row-value ' + dirClass + '">' + dirSign + ' ' + s.direction + '</span>' +
-        '</div>';
-    });
-    bodyEl.innerHTML = html;
-  }
-
-  // --- Market matrix screen ---
-  async function renderMatrixScreen() {
-    panelState.screen = "matrix";
-    setPanelTitle(I18N.t("sectionMatrix"));
-    panelLoading();
-    scrollToPanel();
-    var data = await API.getTickers();
-    liveTickers = data.tickers || [];
-    renderTicker();
-    applyHeroSnapshot();
-    var bodyEl = document.getElementById("panel-body");
-    if (!bodyEl) return;
-    if (!liveTickers.length) { panelEmpty("—"); return; }
-    var html = '<div class="matrix">';
-    liveTickers.forEach(function (t) {
+    rows.forEach(function (t) {
       var pos = t.change_pct_24h >= 0;
-      html +=
-        '<div class="matrix-cell ' + (pos ? "up" : "down") + '">' +
-          '<div class="matrix-sym">' + shortSym(t.symbol) + '</div>' +
-          '<div class="matrix-price">$' + fmtPrice(t.last_price) + '</div>' +
-          '<div class="matrix-delta">' + fmtPct(t.change_pct_24h) + '</div>' +
-          '<div class="matrix-vol">vol ' + fmtCompact(t.volume_24h) + '</div>' +
-        '</div>';
+      html += '<div class="row">' +
+        '<span class="row-coin">' + escapeHtml(shortSym(t.symbol).slice(0, 3)) + '</span>' +
+        '<span><b>' + escapeHtml(shortSym(t.symbol)) + '</b><br><span style="color:var(--ink-2);font-size:11px;">$' + fmtPrice(t.last_price) + '</span></span>' +
+        '<span class="' + (pos ? "up" : "dn") + '">' + fmtPct(t.change_pct_24h) + '</span>' +
+        '<span style="color:var(--ink-3);font-family:JetBrains Mono,monospace;font-size:10px;">vol ' + fmtCompact(t.volume_24h) + '</span>' +
+      '</div>';
     });
-    html += '</div>';
-    bodyEl.innerHTML = html;
+    el.innerHTML = html;
   }
 
-  // --- AI Assistant screen ---
-  var aiHistory = []; // in-memory only
-  async function renderAIScreen() {
-    panelState.screen = "ai";
-    setPanelTitle(I18N.t("sectionAI"));
-    scrollToPanel();
-    var bodyEl = document.getElementById("panel-body");
-    if (!bodyEl) return;
-    bodyEl.innerHTML =
-      '<div class="ai-chat" id="ai-chat"></div>' +
-      '<form class="ai-input" id="ai-form">' +
-        '<input type="text" id="ai-text" autocomplete="off" placeholder="' + I18N.t("askAI") + '" />' +
-        '<button type="submit" class="cta primary" id="ai-send">' + I18N.t("send") + '</button>' +
-      '</form>';
-
-    renderAIHistory();
-
-    var form = document.getElementById("ai-form");
-    if (form) {
-      form.addEventListener("submit", function (e) {
-        e.preventDefault();
-        var input = document.getElementById("ai-text");
-        if (!input) return;
-        var text = (input.value || "").trim();
-        if (!text) return;
-        input.value = "";
-        sendAIMessage(text);
-      });
+  // ---------- Signals screen ----------
+  async function renderSignalsScreen() {
+    var el = $("#signals-list");
+    if (!el) return;
+    if (!state.signals) el.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
+    try {
+      var data = await API.getSignals();
+      state.signals = (data && data.signals) ? data.signals : [];
+    } catch (e) {
+      state.signals = [];
     }
+    if (!state.signals.length) {
+      el.innerHTML = '<div class="card"><div class="muted">' + escapeHtml(I18N.t("noSignals")) + '</div></div>';
+      return;
+    }
+    var html = "";
+    state.signals.forEach(function (s, idx) {
+      var dirClass = s.direction === "LONG" ? "up" : "dn";
+      var cardClass = s.direction === "LONG" ? "signal-card--long" : "signal-card--short";
+      var conf = Math.round((s.confidence || 0) * 100);
+      var status = idx === 0 ? "new" : (idx % 3 === 0 ? "watch" : "active");
+      var statusLabel = (status === "new") ? I18N.t("statusNew") :
+                        (status === "watch") ? I18N.t("statusWatch") : I18N.t("statusActive");
+      html += '<article class="signal-card ' + cardClass + '" data-signal-id="' + escapeHtml(s.id || s.symbol) + '" data-signal-idx="' + idx + '">' +
+        '<div class="signal-card__head">' +
+          '<div class="signal-card__sym"><span class="row-coin">' + escapeHtml(shortSym(s.symbol).slice(0, 3)) + '</span>' + escapeHtml(s.symbol) + '</div>' +
+          '<span class="signal-card__dir ' + dirClass + '">' + (s.direction === "LONG" ? "↑ " : "↓ ") + escapeHtml(s.direction) + '</span>' +
+        '</div>' +
+        '<div class="signal-card__grid">' +
+          '<div class="signal-card__cell"><div class="signal-card__cell-label">' + I18N.t("entry") + '</div><div class="signal-card__cell-value">' + fmtPrice(s.entry) + '</div></div>' +
+          '<div class="signal-card__cell"><div class="signal-card__cell-label">' + I18N.t("tp1") + '</div><div class="signal-card__cell-value">' + fmtPrice(s.take_profit_1) + '</div></div>' +
+          '<div class="signal-card__cell signal-card__cell--danger"><div class="signal-card__cell-label">' + I18N.t("stop") + '</div><div class="signal-card__cell-value">' + fmtPrice(s.stop_loss) + '</div></div>' +
+        '</div>' +
+        '<div class="signal-card__foot">' +
+          '<span class="signal-card__conf">' + I18N.t("aiConfidence") + ' <b>' + conf + '%</b><span class="signal-card__conf-bar"><i style="width:' + conf + '%"></i></span></span>' +
+          '<span>R:R <b>' + (s.risk_reward || 0).toFixed(2) + '</b></span>' +
+          '<button type="button" class="signal-card__cta" data-action="open-signal" data-signal-idx="' + idx + '">' + escapeHtml(statusLabel) + ' ›</button>' +
+        '</div>' +
+      '</article>';
+    });
+    el.innerHTML = html;
+  }
+
+  function renderSignalDetail(idx) {
+    var s = state.signals && state.signals[idx];
+    if (!s) return;
+    var body = $("#signal-sheet-body");
+    if (!body) return;
+    var dirClass = s.direction === "LONG" ? "up" : "dn";
+    var conf = Math.round((s.confidence || 0) * 100);
+    var potential = ((s.take_profit_1 - s.entry) / s.entry) * 100;
+    if (s.direction === "SHORT") potential = -potential;
+    body.innerHTML =
+      '<div class="sheet-signal__head">' +
+        '<div class="sheet-signal__sym">' + escapeHtml(s.symbol) + ' · <span class="signal-card__dir ' + dirClass + '">' + (s.direction === "LONG" ? "↑ " : "↓ ") + escapeHtml(s.direction) + '</span></div>' +
+      '</div>' +
+      '<div class="sheet-signal__grid">' +
+        '<div class="sheet-signal__cell"><div class="sheet-signal__cell-label">' + I18N.t("entry") + '</div><div class="sheet-signal__cell-value">' + fmtPrice(s.entry) + '</div></div>' +
+        '<div class="sheet-signal__cell sheet-signal__cell--pos"><div class="sheet-signal__cell-label">' + I18N.t("tp1") + '</div><div class="sheet-signal__cell-value">' + fmtPrice(s.take_profit_1) + '</div></div>' +
+        '<div class="sheet-signal__cell sheet-signal__cell--pos"><div class="sheet-signal__cell-label">' + I18N.t("tp2") + '</div><div class="sheet-signal__cell-value">' + fmtPrice(s.take_profit_2) + '</div></div>' +
+        '<div class="sheet-signal__cell sheet-signal__cell--danger"><div class="sheet-signal__cell-label">' + I18N.t("stop") + '</div><div class="sheet-signal__cell-value">' + fmtPrice(s.stop_loss) + '</div></div>' +
+        '<div class="sheet-signal__cell"><div class="sheet-signal__cell-label">' + I18N.t("aiConfidence") + '</div><div class="sheet-signal__cell-value">' + conf + '%</div></div>' +
+        '<div class="sheet-signal__cell"><div class="sheet-signal__cell-label">R:R</div><div class="sheet-signal__cell-value">' + (s.risk_reward || 0).toFixed(2) + '</div></div>' +
+      '</div>' +
+      '<p class="sheet-signal__rationale">' + escapeHtml(s.rationale || I18N.t("signalRationaleDefault")) + '</p>' +
+      '<div class="chips" style="margin-top:4px;">' +
+        '<span><b>' + I18N.t("potential") + '</b>: <em>' + fmtPct(potential) + '</em></span>' +
+        '<span><b>' + I18N.t("aiTrend") + '</b>: <em>' + (s.direction === "LONG" ? I18N.t("bullish") : I18N.t("bearish")) + '</em></span>' +
+      '</div>';
+    openSheet("#signal-sheet");
+  }
+
+  // ---------- Market screen ----------
+  async function renderMarketScreen() {
+    var el = $("#matrix");
+    if (!el) return;
+    if (!state.tickers) el.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div>';
+    try {
+      var data = await API.getTickers();
+      state.tickers = (data && data.tickers) ? data.tickers : [];
+    } catch (e) {}
+    if (!state.tickers.length) {
+      el.innerHTML = '<div class="card"><div class="muted">—</div></div>';
+      return;
+    }
+    var html = "";
+    state.tickers.forEach(function (t) {
+      var pos = t.change_pct_24h >= 0;
+      var absChg = Math.abs(t.change_pct_24h || 0);
+      var strength = absChg >= 2 ? "high" : absChg >= 1 ? "mid" : "low";
+      var strengthLabel = strength === "high" ? I18N.t("strHigh") : strength === "mid" ? I18N.t("strMid") : I18N.t("strLow");
+      html += '<div class="matrix-cell ' + (pos ? "up" : "down") + '">' +
+        '<div class="matrix-sym">' + escapeHtml(shortSym(t.symbol)) + '<span class="matrix-strength ' + strength + '">' + escapeHtml(strengthLabel) + '</span></div>' +
+        '<div class="matrix-price">$' + fmtPrice(t.last_price) + '</div>' +
+        '<div class="matrix-delta">' + fmtPct(t.change_pct_24h) + '</div>' +
+        '<div class="matrix-vol">vol ' + fmtCompact(t.volume_24h) + '</div>' +
+      '</div>';
+    });
+    el.innerHTML = html;
+  }
+
+  // ---------- AI screen ----------
+  function renderAIInitial() {
+    renderAISuggestions();
+    renderAIHistory();
+  }
+
+  function renderAISuggestions() {
+    var el = $("#ai-suggest");
+    if (!el) return;
+    var suggestions = [
+      I18N.t("askSuggest1"),
+      I18N.t("askSuggest2"),
+      I18N.t("askSuggest3"),
+      I18N.t("askSuggest4")
+    ];
+    el.innerHTML = suggestions.map(function (s) {
+      return '<button type="button" data-suggest="1">' + escapeHtml(s) + '</button>';
+    }).join("");
   }
 
   function renderAIHistory() {
-    var chat = document.getElementById("ai-chat");
+    var chat = $("#ai-chat");
     if (!chat) return;
-    if (!aiHistory.length) {
-      chat.innerHTML = '<div class="ai-empty">' + I18N.t("aiMockNotice") + '</div>';
+    if (!state.aiHistory.length) {
+      chat.innerHTML = '<div class="ai-empty">' + escapeHtml(I18N.t("aiMockNotice")) + '</div>';
       return;
     }
     var html = "";
-    aiHistory.forEach(function (m) {
-      html += '<div class="ai-msg ' + m.role + '">' +
-                '<div class="ai-bubble">' + escapeHtml(m.content) + '</div>' +
-              '</div>';
+    state.aiHistory.forEach(function (m) {
+      var thinkingClass = m.thinking ? " ai-msg__thinking" : "";
+      html += '<div class="ai-msg ' + m.role + thinkingClass + '">' + escapeHtml(m.content) + '</div>';
     });
     chat.innerHTML = html;
     chat.scrollTop = chat.scrollHeight;
   }
 
-  function escapeHtml(s) {
-    return String(s || "").replace(/[&<>"']/g, function (c) {
-      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
-    });
-  }
-
   async function sendAIMessage(text) {
-    aiHistory.push({ role: "user", content: text });
-    aiHistory.push({ role: "assistant", content: "… " + I18N.t("thinking") });
+    if (!text || state.aiBusy) return;
+    state.aiBusy = true;
+    state.aiHistory.push({ role: "user", content: text });
+    state.aiHistory.push({ role: "assistant", content: I18N.t("thinking"), thinking: true });
     renderAIHistory();
     haptic("light");
-    var reply = await API.aiChat(
-      aiHistory.filter(function (m) { return m.role !== "assistant" || m.content.indexOf("…") !== 0; }),
-      I18N.get()
-    );
-    aiHistory.pop(); // remove thinking placeholder
-    aiHistory.push({ role: "assistant", content: reply.content + (reply.mock ? "\n\n— " + I18N.t("aiMockNotice") : "") });
+    try {
+      var msgs = state.aiHistory
+        .filter(function (m) { return !m.thinking; })
+        .map(function (m) { return { role: m.role, content: m.content }; });
+      var reply = await API.aiChat(msgs, I18N.get());
+      state.aiHistory.pop();
+      var body = reply.content || "—";
+      if (reply.mock) body += "\n\n— " + I18N.t("aiMockNotice");
+      state.aiHistory.push({ role: "assistant", content: body });
+    } catch (e) {
+      state.aiHistory.pop();
+      state.aiHistory.push({ role: "assistant", content: I18N.t("aiError") });
+    }
+    state.aiBusy = false;
     renderAIHistory();
+    haptic("success");
   }
 
-  // --- Profile screen ---
+  // ---------- Profile ----------
   function renderProfileScreen() {
-    panelState.screen = "profile";
-    setPanelTitle(I18N.t("sectionProfile"));
-    scrollToPanel();
-    var bodyEl = document.getElementById("panel-body");
-    if (!bodyEl) return;
     var user = null;
     try { user = tg && tg.initDataUnsafe && tg.initDataUnsafe.user; } catch (e) {}
     var name = user ? [user.first_name, user.last_name].filter(Boolean).join(" ") : "Guest";
     var uname = user && user.username ? "@" + user.username : "—";
-    var lc = (user && user.language_code) || "—";
+    var lc = (user && user.language_code) || I18N.get();
     var platform = (tg && tg.platform && tg.platform !== "unknown") ? tg.platform : "web";
-    var supported = I18N.supported();
-    var cur = I18N.get();
-    var langButtons = supported.map(function (code) {
-      return '<button type="button" class="chip lang-chip ' + (code === cur ? "active" : "") +
-             '" data-lang="' + code + '">' + code.toUpperCase() + '</button>';
-    }).join("");
-    bodyEl.innerHTML =
-      '<div class="profile">' +
-        '<div class="profile-row"><span>Telegram</span><b>' + escapeHtml(name) + '</b></div>' +
-        '<div class="profile-row"><span>Username</span><b>' + escapeHtml(uname) + '</b></div>' +
-        '<div class="profile-row"><span>Lang code</span><b>' + escapeHtml(lc) + '</b></div>' +
-        '<div class="profile-row"><span>Platform</span><b>' + escapeHtml(platform) + '</b></div>' +
-        '<div class="profile-row lang-switch"><span>' + I18N.t("languageLabel") + '</span>' +
-          '<span class="lang-chips">' + langButtons + '</span>' +
-        '</div>' +
-        '<p class="about-text" style="margin-top:14px">' + I18N.t("aboutLead") + '</p>' +
-      '</div>';
+    setText("#prof-name", name);
+    setText("#prof-platform", "Telegram · " + platform);
+    setText("#prof-username", uname);
+    setText("#prof-lang", lc);
+    setText("#prof-status", state.backendOk ? I18N.t("connected") : I18N.t("demoMode"));
+    renderLangGrid();
   }
 
-  // --- Default overview (the panel that ships at the bottom) ---
-  function renderDefaultScreen() {
-    panelState.screen = "default";
-    setPanelTitle(I18N.t("sectionMain"));
-    panelLoading();
-    setTimeout(function () {
-      var bodyEl = document.getElementById("panel-body");
-      if (!bodyEl) return;
-      var rows = (liveTickers && liveTickers.length ? liveTickers : []).slice(0, 4);
-      if (!rows.length) {
-        panelEmpty("…");
+  function renderLangGrid() {
+    var el = $("#lang-grid");
+    if (!el) return;
+    var meta = {
+      ru: { flag: "🇷🇺", name: "Русский" },
+      en: { flag: "🇺🇸", name: "English" },
+      zh: { flag: "🇨🇳", name: "中文" }
+    };
+    var cur = I18N.get();
+    var html = I18N.supported().map(function (code) {
+      var m = meta[code] || { flag: "🌐", name: code.toUpperCase() };
+      return '<button type="button" class="lang-chip ' + (code === cur ? "is-active" : "") +
+             '" data-lang="' + code + '"><span class="flag">' + m.flag + '</span><b>' + escapeHtml(m.name) + '</b></button>';
+    }).join("");
+    el.innerHTML = html;
+  }
+
+  // ---------- Sheets ----------
+  function openSheet(sel) {
+    var s = $(sel);
+    if (!s) return;
+    s.classList.add("is-open");
+    s.setAttribute("aria-hidden", "false");
+  }
+  function closeSheet(sel) {
+    var s = $(sel);
+    if (!s) return;
+    s.classList.remove("is-open");
+    s.setAttribute("aria-hidden", "true");
+  }
+
+  // ---------- Events ----------
+  function setText(sel, text) {
+    var el = $(sel);
+    if (el) el.textContent = text;
+  }
+
+  function wireEvents() {
+    document.addEventListener("click", function (e) {
+      var navBtn = e.target.closest("[data-nav]");
+      if (navBtn) {
+        haptic("light");
+        setScreen(navBtn.getAttribute("data-nav"));
         return;
       }
-      var html = "";
-      rows.forEach(function (t) {
-        var dirClass = t.change_pct_24h >= 0 ? "up" : "down";
-        html +=
-          '<div class="row">' +
-            '<span class="row-sym">' + shortSym(t.symbol) + '</span>' +
-            '<span class="row-text">$' + fmtPrice(t.last_price) +
-              ' · vol ' + fmtCompact(t.volume_24h) + '</span>' +
-            '<span class="row-value ' + dirClass + '">' + fmtPct(t.change_pct_24h) + '</span>' +
-          '</div>';
+      var actionEl = e.target.closest("[data-action]");
+      if (actionEl) {
+        var act = actionEl.getAttribute("data-action");
+        handleAction(act, actionEl);
+        return;
+      }
+      var langBtn = e.target.closest("[data-lang]");
+      if (langBtn) {
+        var code = langBtn.getAttribute("data-lang");
+        I18N.set(code);
+        haptic("selection");
+        return;
+      }
+      var tfBtn = e.target.closest("[data-tf]");
+      if (tfBtn) {
+        state.tf = tfBtn.getAttribute("data-tf");
+        $$("#tf-tabs button").forEach(function (b) {
+          b.classList.toggle("is-active", b === tfBtn);
+        });
+        setText("#set-tf", state.tf);
+        applyHeroSnapshot();
+        haptic("selection");
+        return;
+      }
+      var mtfBtn = e.target.closest("[data-mtf]");
+      if (mtfBtn) {
+        state.marketTf = mtfBtn.getAttribute("data-mtf");
+        $$("#market-tabs button").forEach(function (b) {
+          b.classList.toggle("is-active", b === mtfBtn);
+        });
+        renderMarketScreen();
+        haptic("selection");
+        return;
+      }
+      var togg = e.target.closest("[data-toggle]");
+      if (togg) {
+        togg.classList.toggle("is-on");
+        var on = togg.classList.contains("is-on");
+        togg.setAttribute("aria-pressed", on ? "true" : "false");
+        haptic("selection");
+        return;
+      }
+      var sug = e.target.closest("[data-suggest]");
+      if (sug) {
+        var input = $("#ai-text");
+        if (input) {
+          input.value = sug.textContent || "";
+          input.focus();
+        }
+        return;
+      }
+    });
+
+    // AI form
+    var aiForm = $("#ai-form");
+    if (aiForm) {
+      aiForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var input = $("#ai-text");
+        if (!input) return;
+        var v = (input.value || "").trim();
+        if (!v) return;
+        input.value = "";
+        sendAIMessage(v);
       });
-      bodyEl.innerHTML = html;
-    }, 220);
+    }
+    // Mic placeholder
+    var mic = $("#ai-mic");
+    if (mic) {
+      mic.addEventListener("click", function () {
+        mic.classList.toggle("is-recording");
+        haptic("light");
+        // Voice not implemented — just toggle visual state.
+        if (mic.classList.contains("is-recording")) {
+          setTimeout(function () {
+            mic.classList.remove("is-recording");
+            var input = $("#ai-text");
+            if (input && !input.value) {
+              input.value = I18N.t("micPlaceholder");
+            }
+          }, 1200);
+        }
+      });
+    }
+
+    // Keyboard
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") {
+        closeSheet("#signal-sheet");
+        closeSheet("#roadmap-sheet");
+      }
+    });
   }
 
-  // ---------- Actions ----------
-  function handleAction(action, el) {
-    switch (action) {
+  function handleAction(act, el) {
+    switch (act) {
+      case "go-overview":
+        haptic("selection"); setScreen("overview"); break;
       case "open-signals":
-      case "open-derivs": // legacy alias
-        haptic("light"); renderSignalsScreen(); break;
-      case "open-coins":
-      case "open-matrix":
-        haptic("light"); renderMatrixScreen(); break;
+        haptic("light"); setScreen("signals"); break;
+      case "open-market":
+        haptic("light"); setScreen("market"); break;
       case "open-ai":
-        haptic("light"); renderAIScreen(); break;
-      case "open-about":
+        haptic("light"); setScreen("ai"); break;
       case "open-profile":
-        haptic("selection"); renderProfileScreen(); break;
+        haptic("light"); setScreen("profile"); break;
       case "refresh":
         haptic("light");
         refreshTickers();
-        if (panelState.screen === "signals") renderSignalsScreen();
-        else if (panelState.screen === "matrix") renderMatrixScreen();
-        else if (panelState.screen === "ai") { /* no-op */ }
-        else if (panelState.screen === "profile") renderProfileScreen();
-        else renderDefaultScreen();
+        if (state.screen === "signals") { state.signals = null; renderSignalsScreen(); }
+        if (state.screen === "market") renderMarketScreen();
         break;
-      case "reset":
+      case "open-signal":
+        var idx = parseInt(el.getAttribute("data-signal-idx"), 10);
+        renderSignalDetail(idx);
         haptic("selection");
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        renderDefaultScreen();
         break;
-      case "set-lang":
-        var lang = el && el.getAttribute("data-lang");
-        if (lang) { I18N.set(lang); haptic("selection"); }
+      case "close-sheet":
+        closeSheet("#signal-sheet");
+        haptic("selection");
+        break;
+      case "open-roadmap":
+        openSheet("#roadmap-sheet");
+        haptic("selection");
+        break;
+      case "close-roadmap":
+        closeSheet("#roadmap-sheet");
+        haptic("selection");
         break;
       default: break;
     }
   }
 
-  function wireEvents() {
-    document.addEventListener("click", function (e) {
-      var langBtn = e.target.closest("[data-lang]");
-      if (langBtn) {
-        e.preventDefault();
-        handleAction("set-lang", langBtn);
-        if (panelState.screen === "profile") renderProfileScreen();
-        return;
-      }
-      var el = e.target.closest("[data-action]");
-      if (!el) return;
-      e.preventDefault();
-      handleAction(el.getAttribute("data-action"), el);
-    });
-    document.addEventListener("keydown", function (e) {
-      if (e.key !== "Enter" && e.key !== " ") return;
-      var el = document.activeElement;
-      if (el && el.matches("[data-action]")) {
-        e.preventDefault();
-        handleAction(el.getAttribute("data-action"), el);
-      }
-    });
-  }
-
-  // ---------- i18n binding ----------
-  function syncLangChips() {
-    var cur = I18N.get();
-    var chips = document.querySelectorAll('.lang-chip[data-lang]');
-    chips.forEach(function (c) {
-      c.classList.toggle('is-active', c.getAttribute('data-lang') === cur);
-      c.classList.toggle('active', c.getAttribute('data-lang') === cur);
-    });
-  }
-
+  // ---------- i18n ----------
   function applyI18N() {
-    var t = I18N.t;
     document.documentElement.setAttribute("lang", I18N.get());
-    syncLangChips();
-    // Hero tagline
-    var tagline = document.querySelector(".brand-copy p");
-    if (tagline) tagline.innerHTML = t("brandTagline").replace("AI", "<strong>AI</strong>");
-    var badge = document.querySelector(".brand-copy .eyebrow");
-    if (badge) {
-      // keep the live-dot, replace text node
-      var dot = badge.querySelector(".live-dot");
-      badge.innerHTML = "";
-      if (dot) badge.appendChild(dot);
-      badge.appendChild(document.createTextNode(" " + t("heroBadge")));
-    }
-    // CTAs
-    setText('[data-action="open-signals"].primary', t("ctaOpenSignals"));
-    setText('[data-action="open-about"].secondary', t("ctaAbout"));
-    // KPI labels
-    var k = document.querySelectorAll(".kpi .kpi-label");
-    if (k.length >= 3) {
-      k[0].textContent = t("kpiSignals");
-      k[1].textContent = t("kpiCoins");
-      k[2].textContent = t("kpiAccuracy");
-    }
-    var trends = document.querySelectorAll(".kpi .kpi-trend");
-    if (trends.length >= 3) {
-      trends[0].textContent = "↑ " + t("kpiSignalsDelta");
-      trends[1].textContent = "↑ " + t("kpiCoinsDelta");
-      trends[2].textContent = t("kpiAccuracyDelta");
-    }
-    // AI summary card
-    var aiH = document.querySelector(".ai-card h2");
-    if (aiH) aiH.textContent = t("aiTitle");
-    var chips = document.querySelectorAll(".ai-card .chips span");
-    if (chips.length >= 3) {
-      chips[0].innerHTML = t("aiTrend") + ": <b>" + t("bullish") + "</b>";
-      chips[1].innerHTML = t("aiConfidence") + ": <b>78%</b>";
-      chips[2].innerHTML = t("aiVolatility") + ": " + t("medium");
-    }
-    // Signal card labels
-    var grid = document.querySelector(".signal-grid");
-    if (grid) {
-      var spans = grid.querySelectorAll("span");
-      var labels = [t("entry"), t("tp1"), t("tp2"), t("stop")];
-      spans.forEach(function (s, i) { if (labels[i]) s.textContent = labels[i]; });
-    }
-    setText(".signal-status", t("activeSignal"));
-    setText(".signal-potential span", t("potential"));
-    setText(".signal-card .details-button", t("details"));
-    // Section heading + refresh chip
-    setText('.section-head .chip[data-action="refresh"]', t("refresh"));
-    // About section
-    setText("#about-section h2", t("aboutTitle"));
-    setText("#about-section .about-text", t("aboutLead"));
-    // Bottom nav
-    var navBtns = document.querySelectorAll(".bottom-nav button");
-    var navLabels = [t("navOverview"), t("navSignals"), t("navMatrix"), t("navAI"), t("navProfile")];
-    navBtns.forEach(function (b, i) {
-      if (navLabels[i] == null) return;
-      var icon = b.querySelector("span");
-      b.textContent = "";
-      if (icon) b.appendChild(icon);
-      b.appendChild(document.createTextNode(navLabels[i]));
+    $$("[data-i18n]").forEach(function (el) {
+      var key = el.getAttribute("data-i18n");
+      var v = I18N.t(key);
+      if (v != null) el.textContent = v;
     });
-    // Panel title respecting active screen
-    if (panelState.screen === "signals") setPanelTitle(t("sectionSignals"));
-    else if (panelState.screen === "matrix") setPanelTitle(t("sectionMatrix"));
-    else if (panelState.screen === "ai") setPanelTitle(t("sectionAI"));
-    else if (panelState.screen === "profile") setPanelTitle(t("sectionProfile"));
-    else setPanelTitle(t("sectionMain"));
-  }
-  function setText(sel, text) {
-    var el = document.querySelector(sel);
-    if (el) el.textContent = text;
+    $$("[data-i18n-placeholder]").forEach(function (el) {
+      var key = el.getAttribute("data-i18n-placeholder");
+      var v = I18N.t(key);
+      if (v != null) el.setAttribute("placeholder", v);
+    });
+    // Re-render dynamic screens whose content depends on i18n
+    if (state.signals) renderSignalsScreen();
+    if (state.screen === "ai") renderAIInitial();
+    if (state.screen === "profile") renderProfileScreen();
   }
 
   // ---------- Boot ----------
@@ -527,27 +629,22 @@
     initTelegram();
     I18N.init();
     applyI18N();
-    I18N.on(function () {
-      applyI18N();
-      // Re-render whatever screen is active so labels update too.
-      if (panelState.screen === "signals") renderSignalsScreen();
-      else if (panelState.screen === "matrix") renderMatrixScreen();
-      else if (panelState.screen === "ai") renderAIScreen();
-      else if (panelState.screen === "profile") renderProfileScreen();
-      else renderDefaultScreen();
-    });
-    renderKPIs();
+    I18N.on(function () { applyI18N(); });
     wireEvents();
+    renderKPIs();
     renderTicker(); // placeholder
+    renderOverviewRows();
+    renderAIInitial();
     await refreshTickers();
-    renderDefaultScreen();
-    // Optional: hook live socket if backend reachable
+    // Optional live socket
     if (API && typeof API.openMarketSocket === "function") {
       API.openMarketSocket(function (msg) {
         if (msg && msg.type === "snapshot" && msg.tickers) {
-          liveTickers = msg.tickers;
+          state.tickers = msg.tickers;
           renderTicker();
           applyHeroSnapshot();
+          renderOverviewRows();
+          if (state.screen === "market") renderMarketScreen();
         }
       });
     }

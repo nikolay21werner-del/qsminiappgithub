@@ -5,17 +5,28 @@ zero build) and a FastAPI backend that ships with real Telegram `initData`
 validation, Bybit V5 public market data, a swappable signal engine, an AI
 assistant endpoint, and a WebSocket market stream.
 
-## Frontend visual design (reference-inspired roadmap)
+## Frontend UX (app-first)
 
-The landing/overview view is a dark vertical presentation page modelled on the
-attached reference (`IMG_7221.jpeg`). It pairs a six-step user-journey timeline
-(loader → analytics → AI assistant → signals → settings → push) with a stacked
-set of iPhone-style mockups demonstrating each screen. Below the roadmap, the
-actual interactive Mini App (signals, market matrix, AI chat, profile, language
-switch, ticker, KPIs) is rendered with the same neon-teal / dark-navy fintech
-system so it feels like one continuous product. No `localStorage`,
-`sessionStorage`, or cookies — language and AI history live in memory only,
-and all Telegram SDK calls remain inside safe try/catch guards.
+Opening the Mini App now drops you straight into the working product, not a
+presentation page. A mobile-first app shell (≤460px column, fixed bottom
+tabbar, top status bar with live ticker) hosts five screens:
+
+| Tab        | What it does                                                        |
+| ---------- | ------------------------------------------------------------------- |
+| Overview   | BTCUSDT hero card + chart, RSI/MACD/Volume metrics, KPIs, top coins |
+| Signals    | List of trading signals (entry/TP/SL, confidence bar, R:R, detail) |
+| Market     | 2-column matrix of coins with price, 24h Δ, signal strength chip   |
+| AI         | Chat-like assistant with suggestions, mic placeholder, mock fallback |
+| Profile    | Telegram identity, language switch (RU/EN/ZH), notification/theme   |
+|            | toggles, link to the original roadmap presentation                  |
+
+Tapping a signal opens a bottom sheet with full details. The neon-teal /
+dark-navy fintech reference design is preserved; the previous landing-style
+roadmap is now opt-in — accessible from **Profile → View user journey**.
+
+No `localStorage`, `sessionStorage`, or cookies — language, AI history, signal
+state and UI flags live in memory only. All Telegram SDK calls remain inside
+safe try/catch guards.
 
 The frontend is the same lightweight bundle that runs inside Telegram WebView;
 the backend is a separate service designed to deploy to Railway, Fly.io, Render
@@ -23,9 +34,9 @@ or a plain VPS / Docker host.
 
 ```
 quantsignal-miniapp/
-├── index.html          frontend shell (preserved reference-inspired design)
-├── styles.css          design tokens, layout, animations
-├── app.js              frontend logic: tickers, KPI, screens, language switch
+├── index.html          app shell: top bar, ticker, 5 screens, bottom tabs, sheets
+├── styles.css          design tokens, mobile-first layout, animations
+├── app.js              frontend logic: screen router, charts, AI chat, signals, profile
 ├── i18n.js             auto-detected locale (ru/en/zh) with manual override
 ├── api.js              fetch client + WebSocket; demo fallback when offline
 ├── assets/             favicon
@@ -58,15 +69,16 @@ Pure HTML/CSS/JS – ES5-compatible, no bundler, no `localStorage` /
 `sessionStorage` / cookies (Telegram WebView blocks them in some clients). All
 state is in-memory.
 
-Screens (single page, swappable panel):
+The app boots directly into the Overview dashboard. Bottom tabs swap the
+visible screen; modal sheets handle signal details and the original roadmap.
 
-| Screen          | Trigger                       |
-| --------------- | ----------------------------- |
-| Dashboard       | Overview tab (default)        |
-| Signals         | Signals tab                   |
-| Market matrix   | Market tab                    |
-| AI Assistant    | AI tab (chat input → backend) |
-| Profile / About | Profile tab                   |
+| Screen          | Trigger                                      |
+| --------------- | -------------------------------------------- |
+| Overview        | Default — hero, chart, KPIs, AI summary, top |
+| Signals         | Signals tab — tap a card for full details    |
+| Market matrix   | Market tab — 2-column coin grid + tf filter  |
+| AI Assistant    | AI tab — chat + suggestions + mic placeholder|
+| Profile         | Profile tab — language, settings, roadmap   |
 
 **Locale**
 
