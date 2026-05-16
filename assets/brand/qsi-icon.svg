@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="QUANTSIGNAL AI">
+  <defs>
+    <linearGradient id="qsi-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0A0F1C"/>
+      <stop offset="100%" stop-color="#101a2e"/>
+    </linearGradient>
+    <radialGradient id="qsi-glow" cx="50%" cy="40%" r="65%">
+      <stop offset="0%" stop-color="#22D3C0" stop-opacity="0.55"/>
+      <stop offset="70%" stop-color="#3A8DFF" stop-opacity="0.16"/>
+      <stop offset="100%" stop-color="#8A5CFF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="qsi-q" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#5EF9FF"/>
+      <stop offset="55%" stop-color="#22D3C0"/>
+      <stop offset="100%" stop-color="#3A8DFF"/>
+    </linearGradient>
+    <linearGradient id="qsi-arrow" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#8A5CFF"/>
+      <stop offset="100%" stop-color="#3A8DFF"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="0" y="0" width="64" height="64" rx="16" ry="16" fill="url(#qsi-bg)"/>
+  <rect x="0" y="0" width="64" height="64" rx="16" ry="16" fill="url(#qsi-glow)"/>
+
+  <g transform="translate(32 32)">
+    <circle cx="0" cy="0" r="18" fill="none" stroke="url(#qsi-q)" stroke-width="5.2" stroke-linecap="round"/>
+    <path d="M9 9 L19 19" stroke="url(#qsi-q)" stroke-width="5.2" stroke-linecap="round"/>
+    <path d="M-8 7 L5 -7" stroke="url(#qsi-arrow)" stroke-width="3.6" stroke-linecap="round"/>
+    <path d="M5 -7 L5 -12 M5 -7 L0 -7" stroke="url(#qsi-arrow)" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

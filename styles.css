@@ -161,15 +161,14 @@ button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
   background: linear-gradient(180deg, #fff, var(--teal));
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
-.topbar__label {
+.topbar__icon {
   display: block;
   height: 32px;
-  width: auto;
-  max-width: min(58vw, 220px);
-  border-radius: 8px;
+  width: 32px;
+  border-radius: 9px;
   object-fit: contain;
-  flex-shrink: 1;
-  box-shadow: 0 0 14px rgba(38,230,242,0.18);
+  flex-shrink: 0;
+  box-shadow: 0 0 14px rgba(38,230,242,0.22);
 }
 .visually-hidden {
   position: absolute !important;

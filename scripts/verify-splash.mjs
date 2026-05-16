@@ -49,14 +49,24 @@ must("splash progress bar", /id="boot-progress-bar"/.test(html),
 must("splash features grid", /class="boot-splash__features"/.test(html));
 must("splash hint i18n", /data-i18n="bootHint"/.test(html));
 
-// --- Topbar brand label --------------------------------------------------
-// The topbar Q-mark was replaced by the canonical QUANTSIGNAL AI label.
-must("topbar brand label",
-  /class="topbar__label"[\s\S]*?quantsignal-label\.jpeg/.test(html),
-  "topbar must include the QUANTSIGNAL AI label image as brand");
+// --- Topbar brand icon ---------------------------------------------------
+// In the Mini App topbar the full QUANTSIGNAL AI label is replaced by a
+// compact square brand icon (Q + trend-arrow) so the header stays clean
+// on mobile. The full label remains canonical on the boot splash, the bot
+// welcome banner, the channel banner, and the shared brand assets.
+must("topbar brand compact icon",
+  /class="topbar__icon"[\s\S]*?assets\/brand\/qsi-icon\.svg/.test(html),
+  "topbar must include the compact .topbar__icon brand icon");
+must("topbar no longer renders the full QUANTSIGNAL AI label",
+  !/class="topbar__label"/.test(html) &&
+  !/data-testid="topbar-label"/.test(html),
+  "topbar must not include the full-width .topbar__label image");
 must("old topbar qmark removed",
   !/class="topbar__qmark"/.test(html),
   "topbar must not include the old .topbar__qmark glyph");
+must("topbar does not fall back to the legacy qmark.svg",
+  !/class="topbar__icon"[\s\S]{0,200}assets\/qmark\.svg/.test(html),
+  "topbar icon must be the new qsi-icon.svg, not the old qmark.svg");
 must("mini app subtitle i18n", /data-i18n="miniAppSub"/.test(html));
 
 // --- Top section nav removed by user request -----------------------------
@@ -99,12 +109,17 @@ must("AI summary radar variant", /class="card ai-summary ai-summary--radar"[\s\S
 must("AI radar core text", /class="ai-radar__core">AI<\/span>/.test(html));
 
 // --- Brand label asset sanity --------------------------------------------
-// The canonical brand asset is the user-provided QUANTSIGNAL AI label JPEG.
-// The old qmark.svg may still exist on disk for backwards-compat but is
-// no longer a required visible brand element.
+// The canonical brand asset is the user-provided QUANTSIGNAL AI label JPEG
+// (splash + bot welcome + channel banner). The compact .topbar__icon used
+// in the Mini App header is a separate square SVG cropped from the same
+// brand system. The old qmark.svg may still exist on disk for backwards
+// compatibility but is no longer a visible brand element.
 must("brand label JPEG asset present",
   existsSync(resolve(root, "assets/telegram/quantsignal-label.jpeg")),
   "assets/telegram/quantsignal-label.jpeg must exist");
+must("compact topbar icon asset present",
+  existsSync(resolve(root, "assets/brand/qsi-icon.svg")),
+  "assets/brand/qsi-icon.svg must exist for the Mini App topbar");
 
 // --- i18n keys for all three languages -----------------------------------
 const requiredKeys = [
