@@ -9,6 +9,7 @@
     "verify": "node scripts/verify-realtime.mjs",
     "verify:ai": "node scripts/verify-ai-chat.mjs",
     "verify:banners": "node scripts/verify-banners.mjs",
-    "verify:proxy": "node scripts/verify-bybit-proxy.mjs"
+    "verify:proxy": "node scripts/verify-bybit-proxy.mjs",
+    "verify:splash": "node scripts/verify-splash.mjs"
   }
 }

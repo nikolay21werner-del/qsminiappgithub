@@ -224,7 +224,7 @@
     $$(".screen").forEach(function (s) {
       s.classList.toggle("is-active", s.getAttribute("data-screen") === name);
     });
-    $$(".tab").forEach(function (b) {
+    $$(".tab, .topnav__tab").forEach(function (b) {
       b.classList.toggle("is-active", b.getAttribute("data-nav") === name);
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -283,6 +283,43 @@
     else if (state.klineError[key]) setChartStatus(I18N.t("chartUnavailable"), true);
     else if (state.klineLoading[key]) setChartStatus(I18N.t("chartLoading"), false);
     renderHeroChart(t);
+    renderLastSignal();
+  }
+
+  // ---------- Last-signal card (reference-style summary on overview) ----------
+  function renderLastSignal() {
+    var card = $("#last-signal-card");
+    if (!card) return;
+    var signals = computeSignals();
+    var top = signals && signals[0];
+    if (!top) return;
+    var k = coinKey(top.symbol);
+    var brand = coinBrand(top.symbol);
+    var mark = $("#last-signal-mark");
+    if (mark) {
+      mark.setAttribute("data-coin", k);
+      mark.textContent = brand.mark;
+    }
+    var pairEl = $("#last-signal-pair");
+    if (pairEl) {
+      var s = String(top.symbol || "");
+      var quote = s.indexOf("USDT") >= 0 ? "USDT" : (s.slice(-4));
+      pairEl.textContent = shortSym(top.symbol) + "/" + quote;
+    }
+    var sideEl = $("#last-signal-side");
+    if (sideEl) {
+      sideEl.classList.toggle("last-signal__side--short", top.direction === "SHORT");
+      sideEl.classList.toggle("last-signal__side--long", top.direction !== "SHORT");
+      sideEl.textContent = top.direction === "SHORT" ? I18N.t("sideShort") : I18N.t("sideLong");
+    }
+    var entryEl = $("#last-signal-entry");
+    var tp1El = $("#last-signal-tp1");
+    var tp2El = $("#last-signal-tp2");
+    var stopEl = $("#last-signal-stop");
+    if (entryEl) entryEl.textContent = fmtPrice(top.entry);
+    if (tp1El) tp1El.textContent = fmtPrice(top.take_profit_1);
+    if (tp2El) tp2El.textContent = fmtPrice(top.take_profit_2);
+    if (stopEl) stopEl.textContent = fmtPrice(top.stop_loss);
   }
 
   function klineKey(symbol, tf) { return symbol + "|" + tf; }
@@ -1158,8 +1195,88 @@
     applyConnectionStatus();
   }
 
+  // ---------- Splash / boot screen ----------
+  // The splash shows the QUANTSIGNAL Q-mark, an animated progress bar, and a
+  // rotating boot-status line ("Connecting to the market…", "Loading charts…",
+  // "Warming up the AI…", "Almost ready…"). Hidden once tickers arrive AND a
+  // short minimum display time has passed — bounded by a hard ceiling so the
+  // splash never traps the user if the network is slow.
+  var splash = (function () {
+    var startedAt = Date.now();
+    var hidden = false;
+    var reduced = false;
+    try {
+      reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    } catch (e) {}
+    var MIN_MS = reduced ? 350 : 1400;
+    var MAX_MS = reduced ? 1500 : 4500;
+    var dataReady = false;
+    var steps = ["bootStep1", "bootStep2", "bootStep3", "bootStep4"];
+    var stepIdx = 0;
+    var rafId = null;
+    var hardTimer = null;
+
+    function setStep(key) {
+      var el = document.getElementById("boot-status");
+      if (el) el.textContent = I18N.t(key);
+    }
+    function setProgress(pct) {
+      var bar = document.getElementById("boot-progress-bar");
+      var box = document.getElementById("boot-progress");
+      var clamped = Math.max(4, Math.min(100, pct));
+      if (bar) bar.style.width = clamped + "%";
+      if (box) box.setAttribute("aria-valuenow", String(Math.round(clamped)));
+    }
+    function tick() {
+      if (hidden) return;
+      var elapsed = Date.now() - startedAt;
+      var pct = dataReady
+        ? Math.min(100, 70 + ((elapsed - Math.min(elapsed, 600)) / MAX_MS) * 30)
+        : Math.min(70, (elapsed / MAX_MS) * 70);
+      setProgress(pct);
+      var idx = Math.min(steps.length - 1, Math.floor((elapsed / MAX_MS) * steps.length));
+      if (idx !== stepIdx) {
+        stepIdx = idx;
+        setStep(steps[idx]);
+      }
+      if (elapsed >= MIN_MS && (dataReady || elapsed >= MAX_MS)) {
+        hide();
+        return;
+      }
+      rafId = requestAnimationFrame(tick);
+    }
+    function hide() {
+      if (hidden) return;
+      hidden = true;
+      if (rafId) cancelAnimationFrame(rafId);
+      if (hardTimer) clearTimeout(hardTimer);
+      setProgress(100);
+      document.body.classList.add("boot-done");
+      var node = document.getElementById("boot-splash");
+      if (node) {
+        setTimeout(function () {
+          if (node && node.parentNode) node.parentNode.removeChild(node);
+        }, 700);
+      }
+    }
+    return {
+      start: function () {
+        setStep(steps[0]);
+        setProgress(8);
+        rafId = requestAnimationFrame(tick);
+        // Hard ceiling: never let the splash linger past MAX_MS regardless.
+        hardTimer = setTimeout(hide, MAX_MS + 200);
+      },
+      dataReady: function () {
+        dataReady = true;
+      },
+      hide: hide
+    };
+  })();
+
   // ---------- Boot ----------
   function boot() {
+    splash.start();
     initTelegram();
     I18N.init();
     applyI18N();
@@ -1178,7 +1295,10 @@
       symbols: API.CURATED_SYMBOLS || API.DEFAULT_SYMBOLS,
       wsSymbols: API.CORE_SYMBOLS
     });
-    realtime.onTickers(onRealtimeTickers);
+    realtime.onTickers(function (list) {
+      onRealtimeTickers(list);
+      if (list && list.length) splash.dataReady();
+    });
     realtime.onStatus(onRealtimeStatus);
     realtime.start();
 

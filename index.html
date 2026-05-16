@@ -18,6 +18,34 @@
   <script>window.QSI_API_BASE = "";</script>
 </head>
 <body>
+  <!-- ===== Boot splash (shown on initial load, fades out after data warms up) ===== -->
+  <div class="boot-splash" id="boot-splash" data-testid="boot-splash" role="status" aria-live="polite">
+    <div class="boot-splash__bg" aria-hidden="true">
+      <div class="boot-splash__grid"></div>
+      <div class="boot-splash__glow boot-splash__glow--teal"></div>
+      <div class="boot-splash__glow boot-splash__glow--orange"></div>
+    </div>
+    <div class="boot-splash__inner">
+      <div class="boot-splash__mark" data-testid="boot-qmark" aria-hidden="true">
+        <span class="boot-splash__halo"></span>
+        <img src="./assets/qmark.svg" alt="" width="148" height="148" />
+      </div>
+      <h1 class="boot-splash__title">QUANTSIGNAL <span class="boot-splash__ai">AI</span></h1>
+      <p class="boot-splash__tagline" id="boot-tagline" data-i18n="bootTagline">Сигналы, рынок, AI-анализ</p>
+      <div class="boot-splash__features" aria-hidden="true">
+        <span class="boot-splash__feat"><i class="boot-splash__feat-ico boot-splash__feat-ico--target"></i><b data-i18n="bootFeatSignals">Точные сигналы</b></span>
+        <span class="boot-splash__feat"><i class="boot-splash__feat-ico boot-splash__feat-ico--chart"></i><b data-i18n="bootFeatMarket">Анализ рынка</b></span>
+        <span class="boot-splash__feat"><i class="boot-splash__feat-ico boot-splash__feat-ico--ai"></i><b data-i18n="bootFeatAI">AI аналитика</b></span>
+        <span class="boot-splash__feat"><i class="boot-splash__feat-ico boot-splash__feat-ico--shield"></i><b data-i18n="bootFeatRisk">Риск-менеджмент</b></span>
+      </div>
+      <div class="boot-splash__progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="boot-progress">
+        <span class="boot-splash__progress-bar" id="boot-progress-bar"></span>
+      </div>
+      <p class="boot-splash__status" id="boot-status" data-testid="boot-status" data-i18n="bootStep1">Подключаем рынок…</p>
+      <p class="boot-splash__hint" data-i18n="bootHint">Telegram Mini App · Ваш AI-помощник в мире крипто</p>
+    </div>
+  </div>
+
   <div class="bg-stack" aria-hidden="true">
     <div class="bg-grid"></div>
     <div class="bg-glow bg-glow--teal"></div>
@@ -31,8 +59,16 @@
         <span></span><span></span><span></span>
       </button>
       <div class="topbar__brand" data-action="go-overview">
-        <span class="dot-live" id="dot-live" aria-hidden="true"></span>
-        QUANTSIGNAL <b>AI</b>
+        <span class="topbar__qmark" aria-hidden="true">
+          <img src="./assets/qmark.svg" alt="" width="22" height="22" />
+        </span>
+        <span class="topbar__brand-text">
+          <span class="topbar__brand-line">
+            <span class="dot-live" id="dot-live" aria-hidden="true"></span>
+            QUANTSIGNAL <b>AI</b>
+          </span>
+          <span class="topbar__brand-sub" data-i18n="miniAppSub">mini app</span>
+        </span>
         <span class="conn-pill" id="conn-pill" data-i18n="connecting">connecting…</span>
       </div>
       <button class="topbar__btn topbar__btn--bell" type="button" aria-label="Обновить" data-action="refresh">
@@ -43,6 +79,30 @@
         <i class="topbar__pulse"></i>
       </button>
     </header>
+
+    <!-- ===== Top section nav (mirrors bottom tabbar; matches reference) ===== -->
+    <nav class="topnav" aria-label="Разделы" data-testid="topnav">
+      <button type="button" class="topnav__tab is-active" data-nav="overview">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true"><path d="M3 12l9-9 9 9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 10v10h14V10" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span data-i18n="navDashboard">Дашборд</span>
+      </button>
+      <button type="button" class="topnav__tab" data-nav="signals">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true"><path d="M3 12h3l2-6 4 12 2-6h3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span data-i18n="navSignals">Сигналы</span>
+      </button>
+      <button type="button" class="topnav__tab" data-nav="market">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true"><path d="M3 18l5-6 4 4 5-8 4 6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span data-i18n="navMatrix">Рынок</span>
+      </button>
+      <button type="button" class="topnav__tab" data-nav="ai">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true"><path d="M4 8h12a3 3 0 0 1 3 3v2a3 3 0 0 1-3 3H8l-4 3V8Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
+        <span data-i18n="navPortfolio">Портфель</span>
+      </button>
+      <button type="button" class="topnav__tab" data-nav="profile">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true"><circle cx="12" cy="9" r="3.2" stroke="currentColor" stroke-width="1.7"/><path d="M5 20c1.2-3.5 4-5 7-5s5.8 1.5 7 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        <span data-i18n="navProfile">Профиль</span>
+      </button>
+    </nav>
 
     <section class="ticker" aria-label="Рыночный тикер">
       <div class="ticker-track" id="ticker-track"></div>
@@ -127,6 +187,26 @@
           </div>
         </div>
 
+        <!-- ===== Reference-style last-signal summary card ===== -->
+        <section class="last-signal" id="last-signal-card" data-testid="last-signal-card" aria-label="Последний сигнал">
+          <div class="last-signal__head">
+            <span class="last-signal__title" data-i18n="lastSignalTitle">ПОСЛЕДНИЙ СИГНАЛ</span>
+            <span class="coin-mark last-signal__mark" id="last-signal-mark" data-coin="BTC" aria-hidden="true">₿</span>
+            <span class="last-signal__pair" id="last-signal-pair">BTC/USDT</span>
+            <span class="last-signal__side last-signal__side--long" id="last-signal-side" data-i18n="sideLong">LONG</span>
+          </div>
+          <ul class="last-signal__rows">
+            <li><span data-i18n="entry">Точка входа</span><b id="last-signal-entry">—</b></li>
+            <li><span data-i18n="tp1">Тейк-профит 1</span><b id="last-signal-tp1">—</b></li>
+            <li><span data-i18n="tp2">Тейк-профит 2</span><b id="last-signal-tp2">—</b></li>
+            <li class="last-signal__danger"><span data-i18n="stop">Стоп-лосс</span><b id="last-signal-stop">—</b></li>
+          </ul>
+          <button class="cta cta--strong" type="button" data-action="open-signals" data-testid="strong-signal-cta">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true"><path d="M4 18 L10 12 L13 15 L20 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 7 L20 7 L20 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span data-i18n="strongSignal">СИЛЬНЫЙ СИГНАЛ</span>
+          </button>
+        </section>
+
         <section class="kpis" aria-label="KPI">
           <div class="kpi">
             <div class="kpi-label" data-i18n="kpiSignals">Активных сигналов</div>
@@ -145,17 +225,32 @@
           </div>
         </section>
 
-        <section class="card ai-summary" aria-label="AI summary">
+        <section class="card ai-summary ai-summary--radar" aria-label="AI summary" data-testid="ai-summary-card">
           <div class="card__head">
             <h2 data-i18n="aiTitle">AI-анализ</h2>
             <span class="chip chip--ghost" data-i18n="aiBadge">Beta</span>
           </div>
           <div class="ai-summary__body">
-            <span class="ai-summary__icon" aria-hidden="true">🧠</span>
-            <p id="ai-summary-text" data-i18n="aiSummary">
-              Рынок в бычьем тренде. Объёмы растут, ключевые уровни поддержки удерживаются. Индикаторы указывают на продолжение роста в краткосрочной перспективе.
-            </p>
+            <span class="ai-radar" aria-hidden="true">
+              <span class="ai-radar__ring"></span>
+              <span class="ai-radar__ring ai-radar__ring--2"></span>
+              <span class="ai-radar__sweep"></span>
+              <span class="ai-radar__core">AI</span>
+            </span>
+            <div class="ai-summary__col">
+              <div class="ai-summary__mood">
+                <span data-i18n="aiMood">Настроение рынка</span>
+                <b data-i18n="bullish">Бычий</b>
+              </div>
+              <div class="ai-summary__confidence">
+                <span data-i18n="aiConfidence">Уверенность</span>
+                <b id="ai-confidence">78%</b>
+              </div>
+            </div>
           </div>
+          <p id="ai-summary-text" class="ai-summary__text" data-i18n="aiSummary">
+            Рынок в бычьем тренде. Объёмы растут, ключевые уровни поддержки удерживаются. Индикаторы указывают на продолжение роста в краткосрочной перспективе.
+          </p>
           <div class="chips">
             <span><b data-i18n="aiTrend">Тренд</b>: <em data-i18n="bullish">Бычий</em></span>
             <span><b data-i18n="aiConfidence">Уверенность</b>: <em>78%</em></span>
