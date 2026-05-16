@@ -199,6 +199,14 @@ For public OpenAI-compatible providers that accept unauthenticated requests
 without `AI_API_KEY` and omits the `Authorization` header entirely from the
 upstream call.
 
+For Vercel deployments that want a managed provider without a manual API key,
+set `AI_AUTH_MODE=oidc` (or `AI_PROVIDER=vercel-ai-gateway`) and point
+`AI_BASE_URL` at the Vercel AI Gateway. The server then sends
+`Authorization: Bearer <AI_GATEWAY_API_KEY>` when set, falling back to the
+deployment-injected `VERCEL_OIDC_TOKEN`. With neither token available the
+endpoint returns `HTTP 503 {"error":"ai_oidc_unavailable"}` so the failure
+mode stays explicit.
+
 The frontend includes the current live market context (selected symbol, last
 price, 24h Δ, volume, 24h range, transport, recent tickers) and the user's
 recent chat history in the request, so model output is grounded in real Bybit
@@ -216,7 +224,10 @@ V5 data. A risk caveat is always appended in the user's language.
 | `AI_TIMEOUT_MS`    | no                 | `25000` (Vercel only)            | Upstream request timeout.                                                  |
 | `AI_TEMPERATURE`   | no                 | `0.2` (Vercel only)              | Sampling temperature.                                                      |
 | `AI_ALLOW_NO_KEY`  | no                 | `false`                          | When `true`/`1`/`yes`, the endpoint is considered configured without `AI_API_KEY` and **no** Authorization header is sent upstream. Use for public no-auth providers (e.g. Pollinations). |
-| `AI_AUTH_MODE`     | no                 | `bearer`                         | `bearer` (default) sends `Authorization: Bearer <AI_API_KEY>`. `none` disables Authorization entirely (alias for `AI_ALLOW_NO_KEY=true`). |
+| `AI_AUTH_MODE`     | no                 | `bearer`                         | `bearer` (default) sends `Authorization: Bearer <AI_API_KEY>`. `none` disables Authorization entirely (alias for `AI_ALLOW_NO_KEY=true`). `oidc` uses the Vercel AI Gateway — see below. |
+| `AI_PROVIDER`      | no                 | empty                            | Alias for `AI_AUTH_MODE`. `vercel-ai-gateway` is equivalent to `AI_AUTH_MODE=oidc`. |
+| `AI_GATEWAY_API_KEY` | no               | empty                            | Bearer token for `AI_AUTH_MODE=oidc`. Takes precedence over `VERCEL_OIDC_TOKEN`. |
+| `VERCEL_OIDC_TOKEN` | auto              | empty                            | OIDC token automatically injected by Vercel when the project's OIDC identity is enabled. Used as a fallback for `AI_AUTH_MODE=oidc`. |
 
 Legacy `OPENAI_API_KEY` / `OPENAI_MODEL` are still accepted as fallbacks.
 
@@ -228,6 +239,21 @@ AI_MODEL=openai
 AI_ALLOW_NO_KEY=true
 # AI_API_KEY left unset on purpose — provider requires no auth
 ```
+
+**Vercel AI Gateway with OIDC (no manual key):**
+
+```
+AI_BASE_URL=https://ai-gateway.vercel.sh/v1
+AI_MODEL=openai/gpt-4o-mini
+AI_AUTH_MODE=oidc
+# AI_API_KEY left unset — token comes from VERCEL_OIDC_TOKEN.
+# Optional manual fallback if OIDC is not enabled on the project:
+# AI_GATEWAY_API_KEY=vck_…
+```
+
+This works only on Vercel deployments where the project's OIDC identity is
+enabled (`VERCEL_OIDC_TOKEN` is injected at runtime). For local development
+or non-Vercel hosts, provide `AI_GATEWAY_API_KEY` explicitly.
 
 **Recommended for production / private providers:** leave `AI_ALLOW_NO_KEY`
 unset and provide a real `AI_API_KEY`.
@@ -306,7 +332,10 @@ Behind nginx (TLS termination + reverse proxy) is the recommended VPS layout.
 | `AI_BASE_URL`                  | no       | `https://api.openai.com/v1`                   | OpenAI-compatible base URL                                 |
 | `AI_MODEL`                     | no       | `gpt-4o-mini`                                 | Chat completions model id                                  |
 | `AI_ALLOW_NO_KEY`              | no       | `false`                                       | When `true`, allow operation without `AI_API_KEY` and omit the Authorization header. For public no-auth providers (Pollinations etc.). |
-| `AI_AUTH_MODE`                 | no       | `bearer`                                      | `none` is an alias for `AI_ALLOW_NO_KEY=true`.             |
+| `AI_AUTH_MODE`                 | no       | `bearer`                                      | `none` is an alias for `AI_ALLOW_NO_KEY=true`. `oidc` uses Vercel AI Gateway (see `AI_GATEWAY_API_KEY` / `VERCEL_OIDC_TOKEN`). |
+| `AI_PROVIDER`                  | no       | empty                                         | `vercel-ai-gateway` is an alias for `AI_AUTH_MODE=oidc`.   |
+| `AI_GATEWAY_API_KEY`           | no       | empty                                         | Bearer token used when `AI_AUTH_MODE=oidc`. Falls back to `VERCEL_OIDC_TOKEN`. |
+| `VERCEL_OIDC_TOKEN`            | auto     | empty                                         | OIDC token injected by Vercel; used as a bearer in `AI_AUTH_MODE=oidc`. |
 | `OPENAI_API_KEY` / `OPENAI_MODEL` | no    | empty                                         | Legacy fallback names                                      |
 | `PORT`                         | no       | `8000`                                        | Standard Railway/Heroku port                               |
 | `DEBUG`                        | no       | `false`                                       | Verbose logging                                            |

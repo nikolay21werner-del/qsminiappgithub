@@ -58,11 +58,20 @@ function installMockFetch(captured, replyJson) {
   return () => { globalThis.fetch = realFetch; };
 }
 
-async function run() {
+function resetEnv() {
   delete process.env.AI_API_KEY;
   delete process.env.OPENAI_API_KEY;
   delete process.env.AI_ALLOW_NO_KEY;
   delete process.env.AI_AUTH_MODE;
+  delete process.env.AI_PROVIDER;
+  delete process.env.AI_GATEWAY_API_KEY;
+  delete process.env.VERCEL_OIDC_TOKEN;
+  delete process.env.AI_BASE_URL;
+  delete process.env.AI_MODEL;
+}
+
+async function run() {
+  resetEnv();
 
   let res = makeRes();
   await handler(makeReq("POST", { messages: [{ role: "user", content: "hi" }], language_code: "en" }), res);
@@ -172,6 +181,104 @@ async function run() {
   } finally {
     restore3();
   }
+
+  // ---- AI_AUTH_MODE=oidc with VERCEL_OIDC_TOKEN ----
+  resetEnv();
+  process.env.AI_AUTH_MODE = "oidc";
+  process.env.AI_BASE_URL = "https://ai-gateway.vercel.sh/v1";
+  process.env.AI_MODEL = "openai/gpt-4o-mini";
+  process.env.VERCEL_OIDC_TOKEN = "stub-oidc-token";
+
+  const captured4 = {};
+  const restore4 = installMockFetch(captured4, {
+    model: "openai/gpt-4o-mini",
+    choices: [{ message: { content: "oidc ok" } }]
+  });
+  try {
+    res = makeRes();
+    await handler(
+      makeReq("POST", { messages: [{ role: "user", content: "hi" }], language_code: "en" }),
+      res
+    );
+    expect("oidc mode status", res.statusCode, 200);
+    const hdrs4 = captured4.headers || {};
+    const auth4 = hdrs4.Authorization || hdrs4.authorization;
+    expect("oidc mode sends VERCEL_OIDC_TOKEN bearer", auth4, "Bearer stub-oidc-token");
+    expect(
+      "oidc mode upstream url",
+      captured4.url,
+      "https://ai-gateway.vercel.sh/v1/chat/completions"
+    );
+  } finally {
+    restore4();
+  }
+
+  // ---- AI_AUTH_MODE=oidc with AI_GATEWAY_API_KEY (preferred over VERCEL_OIDC_TOKEN) ----
+  resetEnv();
+  process.env.AI_AUTH_MODE = "oidc";
+  process.env.AI_BASE_URL = "https://ai-gateway.vercel.sh/v1";
+  process.env.AI_MODEL = "openai/gpt-4o-mini";
+  process.env.AI_GATEWAY_API_KEY = "vck-stub-gateway-key";
+  process.env.VERCEL_OIDC_TOKEN = "stub-oidc-token";
+
+  const captured5 = {};
+  const restore5 = installMockFetch(captured5, {
+    model: "openai/gpt-4o-mini",
+    choices: [{ message: { content: "oidc gateway-key ok" } }]
+  });
+  try {
+    res = makeRes();
+    await handler(
+      makeReq("POST", { messages: [{ role: "user", content: "hi" }], language_code: "en" }),
+      res
+    );
+    expect("oidc gateway-key status", res.statusCode, 200);
+    const hdrs5 = captured5.headers || {};
+    const auth5 = hdrs5.Authorization || hdrs5.authorization;
+    expect("oidc prefers AI_GATEWAY_API_KEY", auth5, "Bearer vck-stub-gateway-key");
+  } finally {
+    restore5();
+  }
+
+  // ---- AI_PROVIDER=vercel-ai-gateway alias also triggers OIDC ----
+  resetEnv();
+  process.env.AI_PROVIDER = "vercel-ai-gateway";
+  process.env.AI_BASE_URL = "https://ai-gateway.vercel.sh/v1";
+  process.env.AI_MODEL = "openai/gpt-4o-mini";
+  process.env.VERCEL_OIDC_TOKEN = "alias-token";
+
+  const captured6 = {};
+  const restore6 = installMockFetch(captured6, {
+    model: "openai/gpt-4o-mini",
+    choices: [{ message: { content: "alias ok" } }]
+  });
+  try {
+    res = makeRes();
+    await handler(
+      makeReq("POST", { messages: [{ role: "user", content: "hi" }], language_code: "en" }),
+      res
+    );
+    expect("AI_PROVIDER alias status", res.statusCode, 200);
+    const hdrs6 = captured6.headers || {};
+    const auth6 = hdrs6.Authorization || hdrs6.authorization;
+    expect("AI_PROVIDER alias sends bearer", auth6, "Bearer alias-token");
+  } finally {
+    restore6();
+  }
+
+  // ---- AI_AUTH_MODE=oidc but neither token present -> 503 ai_oidc_unavailable ----
+  resetEnv();
+  process.env.AI_AUTH_MODE = "oidc";
+  process.env.AI_BASE_URL = "https://ai-gateway.vercel.sh/v1";
+
+  res = makeRes();
+  await handler(
+    makeReq("POST", { messages: [{ role: "user", content: "hi" }], language_code: "en" }),
+    res
+  );
+  expect("oidc missing token status", res.statusCode, 503);
+  const body7 = JSON.parse(res.body);
+  expect("oidc missing token error code", body7.error, "ai_oidc_unavailable");
 
   console.log("\nAll AI chat handler smoke checks passed.");
 }

@@ -161,24 +161,34 @@ def _provider_settings() -> Dict[str, Any]:
     ``allow_no_key`` indicates that the provider accepts unauthenticated
     requests (e.g. https://gen.pollinations.ai/v1). When true, the
     Authorization header is omitted entirely from the upstream request.
+
+    ``oidc_mode`` indicates the Vercel AI Gateway path: the bearer token
+    comes from AI_GATEWAY_API_KEY or VERCEL_OIDC_TOKEN, not AI_API_KEY.
     """
     import os
 
     api_key = os.getenv("AI_API_KEY") or settings.openai_api_key
     base_url = (os.getenv("AI_BASE_URL") or "https://api.openai.com/v1").rstrip("/")
     model = os.getenv("AI_MODEL") or settings.openai_model
+    provider_alias = (os.getenv("AI_PROVIDER") or "").lower()
     auth_mode = (os.getenv("AI_AUTH_MODE") or "").lower()
+    if not auth_mode and provider_alias == "vercel-ai-gateway":
+        auth_mode = "oidc"
     allow_flag = (os.getenv("AI_ALLOW_NO_KEY") or "").lower()
     allow_no_key = (
         auth_mode == "none"
         or allow_flag in {"1", "true", "yes"}
         or settings.ai_allow_no_key
     )
+    oidc_mode = auth_mode == "oidc"
+    oidc_token = os.getenv("AI_GATEWAY_API_KEY") or os.getenv("VERCEL_OIDC_TOKEN") or ""
     return {
         "api_key": api_key,
         "base_url": base_url,
         "model": model,
         "allow_no_key": allow_no_key,
+        "oidc_mode": oidc_mode,
+        "oidc_token": oidc_token,
     }
 
 
@@ -193,7 +203,14 @@ async def chat(
         raise AIError("last_message_not_user", "Last message must be from the user.", status=400)
 
     cfg = _provider_settings()
-    if not cfg["api_key"] and not cfg["allow_no_key"]:
+    if cfg["oidc_mode"] and not cfg["oidc_token"]:
+        raise AIError(
+            "ai_oidc_unavailable",
+            "AI_AUTH_MODE=oidc is set but neither AI_GATEWAY_API_KEY nor "
+            "VERCEL_OIDC_TOKEN is available.",
+            status=503,
+        )
+    if not cfg["api_key"] and not cfg["allow_no_key"] and not cfg["oidc_mode"]:
         raise AIError(
             "ai_not_configured",
             "Server-side AI key (AI_API_KEY) is not configured.",
@@ -217,7 +234,9 @@ async def chat(
         "max_tokens": 600,
     }
     headers: Dict[str, str] = {"Content-Type": "application/json"}
-    if cfg["api_key"] and not cfg["allow_no_key"]:
+    if cfg["oidc_mode"]:
+        headers["Authorization"] = f"Bearer {cfg['oidc_token']}"
+    elif cfg["api_key"] and not cfg["allow_no_key"]:
         headers["Authorization"] = f"Bearer {cfg['api_key']}"
     elif cfg["api_key"] and cfg["allow_no_key"]:
         # Explicit no-key mode: do NOT send Authorization even if a stub
