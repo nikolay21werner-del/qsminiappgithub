@@ -501,6 +501,38 @@ async function run() {
       sysContents.indexOf("materially negative") !== -1,
       true
     );
+    // Exactly-one-bias-label enforcement must be present in the system
+    // prompt to prevent combined labels like "Бычий / Нейтральный".
+    expect(
+      "system prompt requires exactly one bias label",
+      sysContents.indexOf("EXACTLY ONE") !== -1,
+      true
+    );
+    expect(
+      "system prompt forbids combined bias labels",
+      sysContents.indexOf("NEVER combine bias labels") !== -1,
+      true
+    );
+    expect(
+      "system prompt enumerates RU label triple",
+      sysContents.indexOf("Бычий OR Медвежий OR Нейтральный") !== -1,
+      true
+    );
+    expect(
+      "system prompt enumerates EN label triple",
+      sysContents.indexOf("Bullish OR Bearish OR Neutral") !== -1,
+      true
+    );
+    expect(
+      "system prompt enumerates ZH label triple",
+      sysContents.indexOf("看涨 OR 看跌 OR 中性") !== -1,
+      true
+    );
+    expect(
+      "system prompt prescribes first-line Bias format",
+      sysContents.indexOf("Bias: <label>") !== -1,
+      true
+    );
     // No spurious 'n/a' for fields the user actually supplied.
     expect(
       "no n/a for last price",

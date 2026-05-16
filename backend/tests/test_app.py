@@ -269,7 +269,10 @@ class AppSmokeTests(unittest.TestCase):
     def test_ai_system_prompt_contains_guardrails(self) -> None:
         """The system prompt must enforce the trader-style guardrails so the
         upstream model can't drift into financial-advice territory."""
-        from app.services.ai_assistant import SYSTEM_PROMPT_BASE
+        from app.services.ai_assistant import (
+            BIAS_CONSISTENCY_RULE,
+            SYSTEM_PROMPT_BASE,
+        )
 
         for phrase in (
             "QUANTSIGNAL AI",
@@ -281,6 +284,27 @@ class AppSmokeTests(unittest.TestCase):
             "natural Russian",
         ):
             self.assertIn(phrase, SYSTEM_PROMPT_BASE)
+
+        # Exactly-one-bias-label enforcement must be present in the prompt so
+        # the model cannot drift back to combined labels like "Бычий /
+        # Нейтральный". Both the structural prompt and the bias-consistency
+        # rule should mention this requirement explicitly.
+        self.assertIn("EXACTLY ONE", SYSTEM_PROMPT_BASE)
+        self.assertIn("NEVER combine bias labels", SYSTEM_PROMPT_BASE)
+        self.assertIn("EXACTLY ONE", BIAS_CONSISTENCY_RULE)
+        self.assertIn("NEVER combine bias labels", BIAS_CONSISTENCY_RULE)
+        # Allowed-label triples (RU/EN/ZH) must be enumerated so the model
+        # has zero ambiguity about what's permitted.
+        for token in (
+            "Bullish OR Bearish OR Neutral",
+            "Бычий OR Медвежий OR Нейтральный",
+            "看涨 OR 看跌 OR 中性",
+        ):
+            self.assertIn(token, BIAS_CONSISTENCY_RULE)
+        # The first-line format hint must appear so the model emits a
+        # single explicit label rather than free-form prose.
+        self.assertIn("Bias: <label>", SYSTEM_PROMPT_BASE)
+        self.assertIn("уверенность", SYSTEM_PROMPT_BASE)
 
     def test_ai_chat_forwards_market_context_and_guardrails(self) -> None:
         """A successful chat call must forward the live market context and
@@ -434,6 +458,11 @@ class AppSmokeTests(unittest.TestCase):
         # Bias-consistency rule must reach the model.
         self.assertIn("Bias-consistency rule", sys_contents)
         self.assertIn("materially negative", sys_contents)
+        # Exactly-one-bias enforcement must reach the model in the same
+        # payload so the bias-consistency rule cannot be silently dropped.
+        self.assertIn("EXACTLY ONE", sys_contents)
+        self.assertIn("NEVER combine bias labels", sys_contents)
+        self.assertIn("Бычий OR Медвежий OR Нейтральный", sys_contents)
         # No spurious n/a for fields the user supplied.
         self.assertNotIn("Last price: n/a", sys_contents)
         self.assertNotIn("24h volume: n/a", sys_contents)
