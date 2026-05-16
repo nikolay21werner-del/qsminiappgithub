@@ -49,40 +49,38 @@ must("splash progress bar", /id="boot-progress-bar"/.test(html),
 must("splash features grid", /class="boot-splash__features"/.test(html));
 must("splash hint i18n", /data-i18n="bootHint"/.test(html));
 
-// --- Topbar brand icon ---------------------------------------------------
-// In the Mini App topbar the full QUANTSIGNAL AI label is replaced by a
-// compact square brand icon (Q + trend-arrow) so the header stays clean
-// on mobile. The full label remains canonical on the boot splash, the bot
-// welcome banner, the channel banner, and the shared brand assets.
-must("topbar brand compact icon (no-text mark cropped from label)",
-  /class="topbar__icon"[\s\S]*?assets\/brand\/qsi-mark\.png/.test(html),
-  "topbar must include the compact .topbar__icon brand icon (qsi-mark.png)");
-must("topbar no longer renders the full QUANTSIGNAL AI label",
-  !/class="topbar__label"/.test(html) &&
-  !/data-testid="topbar-label"/.test(html),
-  "topbar must not include the full-width .topbar__label image");
+// --- Topbar brand label --------------------------------------------------
+// First-variant topbar: the canonical QUANTSIGNAL AI label image renders
+// directly in the Mini App header. No separate icon-plus-text combo, no
+// stylized approximation icon, no legacy qmark.svg. The full label is the
+// single brand mark in the topbar, kept compact via CSS (height ~32px,
+// max-width clamp) so it sits cleanly between the side buttons and the
+// LIVE conn-pill on mobile.
+must("topbar uses the QUANTSIGNAL AI label image",
+  /class="topbar__label"[\s\S]*?assets\/telegram\/quantsignal-label\.jpeg/.test(html),
+  "topbar must render the canonical label JPEG via .topbar__label");
+must("topbar exposes data-testid='topbar-label' on the label image",
+  /data-testid="topbar-label"[\s\S]{0,200}quantsignal-label\.jpeg/.test(html) ||
+  /quantsignal-label\.jpeg[\s\S]{0,200}data-testid="topbar-label"/.test(html),
+  "topbar label image must carry data-testid='topbar-label'");
+must("topbar no longer renders a separate icon+text combo",
+  !/class="topbar__icon"/.test(html),
+  "topbar must not include the separate .topbar__icon element");
 must("old topbar qmark removed",
   !/class="topbar__qmark"/.test(html),
   "topbar must not include the old .topbar__qmark glyph");
-must("topbar does not fall back to the legacy qmark.svg",
-  !/class="topbar__icon"[\s\S]{0,200}assets\/qmark\.svg/.test(html),
-  "topbar icon must be the no-text qsi-mark.png, not the old qmark.svg");
-must("topbar does not use the stylized qsi-icon.svg approximation",
-  !/class="topbar__icon"[\s\S]{0,200}assets\/brand\/qsi-icon\.svg/.test(html),
-  "topbar icon must be the cropped no-text mark (qsi-mark.png), not the stylized qsi-icon.svg");
-must("topbar does not use the full label JPEG (the full label belongs on splash/banners)",
-  !/class="topbar__icon"[\s\S]{0,200}quantsignal-label\.(jpe?g|png)/.test(html),
-  "topbar icon must be the cropped no-text mark, not the full label artwork");
-// The topbar must show the qsi-mark icon plus adjacent readable brand text
-// "QUANTSIGNAL AI" — real text, not an image. The text lives in the same
-// .topbar__brand cluster and must NOT carry the visually-hidden class.
-must("topbar exposes the brand text cluster (.topbar__brand-text, not visually-hidden)",
-  /class="topbar__brand-text"(?![^>]*visually-hidden)[\s\S]*?data-testid="topbar-brand-text"/.test(html) ||
-  /data-testid="topbar-brand-text"[^>]*class="topbar__brand-text"(?![^>]*visually-hidden)/.test(html),
-  "topbar must render visible .topbar__brand-text adjacent to the icon");
-must("topbar brand text contains real QUANTSIGNAL AI wording (not an image)",
-  /class="topbar__brand-name"[^>]*>\s*QUANTSIGNAL\s*<b>AI<\/b>\s*<\/span>/.test(html),
-  "topbar must show 'QUANTSIGNAL AI' as real text next to the icon");
+must("legacy qmark.svg not referenced as topbar brand",
+  !/class="topbar__label"[\s\S]{0,200}assets\/qmark\.svg/.test(html),
+  "topbar must not fall back to the old assets/qmark.svg");
+must("stylized qsi-icon.svg not used as topbar brand",
+  !/class="topbar__label"[\s\S]{0,200}assets\/brand\/qsi-icon\.svg/.test(html),
+  "topbar must not use the stylized qsi-icon.svg approximation");
+// Brand text is kept in the DOM (visually-hidden) so screen readers and
+// i18n still resolve, but the visible brand element is the label image.
+must("topbar brand text kept in DOM (visually-hidden) for a11y/i18n",
+  /class="topbar__brand-text visually-hidden"/.test(html) ||
+  /class="topbar__brand-text"[^>]*visually-hidden/.test(html),
+  ".topbar__brand-text must carry visually-hidden so the label image is the visible brand");
 must("mini app subtitle i18n", /data-i18n="miniAppSub"/.test(html));
 
 // --- Top section nav removed by user request -----------------------------
@@ -125,19 +123,15 @@ must("AI summary radar variant", /class="card ai-summary ai-summary--radar"[\s\S
 must("AI radar core text", /class="ai-radar__core">AI<\/span>/.test(html));
 
 // --- Brand label asset sanity --------------------------------------------
-// The canonical brand asset is the user-provided QUANTSIGNAL AI label JPEG
-// (splash + bot welcome + channel banner). The compact .topbar__icon used
-// in the Mini App header is a separate square SVG cropped from the same
-// brand system: the Q + trend-arrow mark cropped directly from the canonical
-// QUANTSIGNAL AI label JPEG with all text (QUANTSIGNAL, AI, RU subtitle)
-// removed. The old qmark.svg and the earlier stylized qsi-icon.svg may still
-// exist on disk for reference but are no longer visible brand elements.
+// The canonical brand asset is the user-provided QUANTSIGNAL AI label JPEG.
+// It is now the single brand mark surfaced on the boot splash, the bot
+// welcome banner, the channel banner, AND the Mini App topbar. The legacy
+// qmark.svg, the no-text qsi-mark.png crop, and the stylized qsi-icon.svg
+// approximation may still exist on disk for reference but are not visible
+// brand elements in the current UI.
 must("brand label JPEG asset present",
   existsSync(resolve(root, "assets/telegram/quantsignal-label.jpeg")),
   "assets/telegram/quantsignal-label.jpeg must exist");
-must("compact topbar icon asset present (no-text mark cropped from label)",
-  existsSync(resolve(root, "assets/brand/qsi-mark.png")),
-  "assets/brand/qsi-mark.png must exist for the Mini App topbar");
 
 // --- i18n keys for all three languages -----------------------------------
 const requiredKeys = [

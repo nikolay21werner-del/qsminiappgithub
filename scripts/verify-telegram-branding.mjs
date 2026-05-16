@@ -139,28 +139,32 @@ must("index.html exposes the brand label image with data-testid",
   /data-testid="brand-label"[\s\S]{0,200}quantsignal-label\.jpeg/.test(html) ||
   /quantsignal-label\.jpeg[\s\S]{0,200}data-testid="brand-label"/.test(html));
 
-// Mini App topbar = exact no-text icon (qsi-mark.png) + adjacent readable
-// "QUANTSIGNAL AI" text. The full label image, the legacy qmark.svg, and
-// the stylized qsi-icon.svg are explicitly NOT allowed in the topbar.
-must("topbar uses the no-text qsi-mark.png icon",
-  /class="topbar__icon"[\s\S]{0,200}assets\/brand\/qsi-mark\.png/.test(html),
-  "topbar must render the cropped no-text mark assets/brand/qsi-mark.png");
-must("topbar renders adjacent real text 'QUANTSIGNAL AI'",
-  /class="topbar__brand-name"[^>]*>\s*QUANTSIGNAL\s*<b>AI<\/b>\s*<\/span>/.test(html),
-  "topbar must show 'QUANTSIGNAL AI' as real text next to the icon");
-must("topbar brand text cluster is visible (not visually-hidden)",
-  /class="topbar__brand-text"(?![^>]*visually-hidden)/.test(html),
-  ".topbar__brand-text must not carry the visually-hidden class");
-must("topbar does not embed the full QUANTSIGNAL AI label image",
-  !/class="topbar__icon"[\s\S]{0,200}quantsignal-label\.(jpe?g|png)/.test(html) &&
-  !/class="topbar__label"/.test(html),
-  "the full QUANTSIGNAL AI label image stays on splash/welcome/channel banners, not in the topbar");
+// Mini App topbar = canonical QUANTSIGNAL AI label image (first variant).
+// No icon+text combo, no legacy qmark.svg, no stylized qsi-icon.svg, no
+// no-text qsi-mark.png crop. Just the full label image, sized down via CSS.
+must("topbar uses the canonical QUANTSIGNAL AI label image",
+  /class="topbar__label"[\s\S]{0,200}assets\/telegram\/quantsignal-label\.jpeg/.test(html),
+  "topbar must render assets/telegram/quantsignal-label.jpeg via .topbar__label");
+must("topbar label image carries data-testid='topbar-label'",
+  /data-testid="topbar-label"[\s\S]{0,200}quantsignal-label\.jpeg/.test(html) ||
+  /quantsignal-label\.jpeg[\s\S]{0,200}data-testid="topbar-label"/.test(html),
+  "topbar label image must expose data-testid='topbar-label'");
+must("topbar brand text kept visually-hidden (label image is the visible brand)",
+  /class="topbar__brand-text visually-hidden"/.test(html) ||
+  /class="topbar__brand-text"[^>]*visually-hidden/.test(html),
+  ".topbar__brand-text must carry visually-hidden so the label image is the visible brand");
+must("topbar does not render a separate .topbar__icon element",
+  !/class="topbar__icon"/.test(html),
+  "the topbar must not include a separate icon element next to the label");
 must("topbar does not fall back to the legacy qmark.svg",
-  !/class="topbar__icon"[\s\S]{0,200}assets\/qmark\.svg/.test(html),
+  !/class="topbar__label"[\s\S]{0,200}assets\/qmark\.svg/.test(html),
   "topbar must not use the old assets/qmark.svg");
 must("topbar does not use the stylized qsi-icon.svg",
-  !/class="topbar__icon"[\s\S]{0,200}assets\/brand\/qsi-icon\.svg/.test(html),
-  "topbar must use the exact cropped qsi-mark.png, not the stylized qsi-icon.svg");
+  !/class="topbar__label"[\s\S]{0,200}assets\/brand\/qsi-icon\.svg/.test(html),
+  "topbar must use the canonical label JPEG, not the stylized qsi-icon.svg");
+must("topbar does not use the no-text qsi-mark.png crop",
+  !/class="topbar__label"[\s\S]{0,200}assets\/brand\/qsi-mark\.png/.test(html),
+  "topbar must use the full canonical label JPEG, not the cropped qsi-mark.png");
 
 // ---- 4. Setup doc -------------------------------------------------------
 must("TELEGRAM_BRANDING_SETUP.md exists", setup.length > 0);
