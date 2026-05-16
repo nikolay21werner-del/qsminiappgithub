@@ -23,10 +23,14 @@
 
   function fetchJSON(url, opts) {
     opts = opts || {};
+    // Same-origin URLs (the Bybit proxy) need `same-origin` mode in some
+    // strict CSP contexts; external URLs need `cors`. The browser tolerates
+    // `cors` for same-origin requests, but explicit is friendlier to DevTools.
+    var isAbsolute = /^https?:/i.test(url);
     var req = fetch(url, {
       method: opts.method || "GET",
       headers: Object.assign({ "Accept": "application/json" }, opts.headers || {}),
-      mode: "cors",
+      mode: isAbsolute ? "cors" : "same-origin",
       credentials: "omit",
       cache: "no-store"
     }).then(function (r) {
@@ -71,8 +75,51 @@
   }
 
   /* ---------- Bybit V5 ---------- */
-  var BYBIT_REST = "https://api.bybit.com";
+  // Same-origin Vercel serverless proxy. Bybit's REST API rejects browser
+  // CORS preflights, so calling api.bybit.com directly from a Telegram
+  // WebView fails. Routing through `/api/bybit/*` puts the request on our
+  // own origin and avoids CORS entirely. The direct host is kept as a
+  // last-resort fallback for local dev (`npm run dev` serves the static
+  // bundle without serverless functions).
+  var BYBIT_PROXY = "/api/bybit";
+  var BYBIT_REST_DIRECT = "https://api.bybit.com";
   var BYBIT_WS = "wss://stream.bybit.com/v5/public/linear";
+  // Per-process flag: once the proxy answers successfully we stop trying
+  // the direct host (avoids needless CORS errors in the console).
+  var proxyHealthy = null; // null = unknown, true = working, false = unavailable
+  function proxyUrl(endpoint, params) {
+    var qs = [];
+    if (params) {
+      Object.keys(params).forEach(function (k) {
+        var v = params[k];
+        if (v === undefined || v === null || v === "") return;
+        qs.push(encodeURIComponent(k) + "=" + encodeURIComponent(v));
+      });
+    }
+    return BYBIT_PROXY + "/" + endpoint + (qs.length ? "?" + qs.join("&") : "");
+  }
+  // Try the same-origin proxy first; if it fails (e.g. static-only deploy,
+  // local `npm run dev` without functions, or 5xx) fall back to direct
+  // Bybit so feature parity is preserved when the proxy genuinely isn't
+  // available. Once the proxy is known-healthy we stop falling back.
+  function bybitFetch(endpoint, params, directUrl, timeoutMs) {
+    var url = proxyUrl(endpoint, params);
+    var attempt = fetchJSON(url, { timeout: timeoutMs });
+    if (proxyHealthy === false) {
+      // Proxy already proven unavailable — skip straight to direct.
+      return fetchJSON(directUrl, { timeout: timeoutMs });
+    }
+    return attempt.then(function (data) {
+      proxyHealthy = true;
+      return data;
+    }, function (err) {
+      // Only fall back when the proxy itself failed (404/5xx/timeout). If
+      // the proxy reports an upstream Bybit problem we surface it as-is.
+      if (proxyHealthy === true) throw err;
+      proxyHealthy = false;
+      return fetchJSON(directUrl, { timeout: timeoutMs });
+    });
+  }
   // Curated Bybit V5 linear USDT perpetual universe. Names follow Bybit's
   // conventions (1000PEPE/1000SHIB for low-priced memes; POLUSDT replaced
   // MATICUSDT after the Polygon rebrand). The CORE subset is kept narrow
@@ -143,8 +190,8 @@
   }
 
   function bybitGetTickers(symbols) {
-    var url = BYBIT_REST + "/v5/market/tickers?category=linear";
-    return fetchJSON(url, { timeout: 8000 }).then(function (resp) {
+    var directUrl = BYBIT_REST_DIRECT + "/v5/market/tickers?category=linear";
+    return bybitFetch("tickers", null, directUrl, 8000).then(function (resp) {
       if (!resp || resp.retCode !== 0 || !resp.result || !resp.result.list) {
         throw new Error("bybit-bad-response");
       }
@@ -171,8 +218,8 @@
     if (!force && INSTRUMENT_CACHE && (now - INSTRUMENT_CACHE_TS) < 30 * 60 * 1000) {
       return Promise.resolve(INSTRUMENT_CACHE.slice());
     }
-    var url = BYBIT_REST + "/v5/market/instruments-info?category=linear&limit=1000";
-    return fetchJSON(url, { timeout: 10000 }).then(function (resp) {
+    var directUrl = BYBIT_REST_DIRECT + "/v5/market/instruments-info?category=linear&limit=1000";
+    return bybitFetch("instruments-info", { limit: 1000 }, directUrl, 10000).then(function (resp) {
       if (!resp || resp.retCode !== 0 || !resp.result || !resp.result.list) {
         throw new Error("bybit-bad-instruments");
       }
@@ -190,12 +237,18 @@
   }
 
   function bybitGetKlines(symbol, interval, limit) {
-    var url = BYBIT_REST +
+    var safeInterval = interval || "5";
+    var safeLimit = limit || 60;
+    var directUrl = BYBIT_REST_DIRECT +
       "/v5/market/kline?category=linear" +
       "&symbol=" + encodeURIComponent(symbol) +
-      "&interval=" + encodeURIComponent(interval || "5") +
-      "&limit=" + encodeURIComponent(limit || 60);
-    return fetchJSON(url, { timeout: 8000 }).then(function (resp) {
+      "&interval=" + encodeURIComponent(safeInterval) +
+      "&limit=" + encodeURIComponent(safeLimit);
+    return bybitFetch("kline", {
+      symbol: symbol,
+      interval: safeInterval,
+      limit: safeLimit
+    }, directUrl, 8000).then(function (resp) {
       if (!resp || resp.retCode !== 0 || !resp.result || !resp.result.list) {
         throw new Error("bybit-bad-kline");
       }

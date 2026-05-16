@@ -8,6 +8,7 @@
     "start": "npx --yes serve@14 -l 3000 .",
     "verify": "node scripts/verify-realtime.mjs",
     "verify:ai": "node scripts/verify-ai-chat.mjs",
-    "verify:banners": "node scripts/verify-banners.mjs"
+    "verify:banners": "node scripts/verify-banners.mjs",
+    "verify:proxy": "node scripts/verify-bybit-proxy.mjs"
   }
 }
