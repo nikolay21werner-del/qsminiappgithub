@@ -296,7 +296,25 @@
     if (state.screen === "overview" && state.selectedSymbol === symbol && state.tf === tf) {
       setChartStatus(I18N.t("chartLoading"), false);
     }
+    // Hard ceiling so the "Loading chart…" overlay can never live forever
+    // even if both the proxy and the fallbacks hang. The API layer already
+    // applies its own 8s per-request timeout; this is belt-and-suspenders.
+    var settled = false;
+    var watchdog = setTimeout(function () {
+      if (settled) return;
+      settled = true;
+      state.klineLoading[key] = false;
+      state.klineError[key] = "timeout";
+      if (state.screen === "overview" && state.selectedSymbol === symbol && state.tf === tf) {
+        setChartStatus(I18N.t("chartUnavailable"), true);
+        var t = state.tickerMap[symbol];
+        if (t) renderHeroChart(t); // keep placeholder bars visible
+      }
+    }, 15000);
     API.bybitGetKlines(symbol, interval, 60).then(function (rows) {
+      if (settled) return;
+      settled = true;
+      clearTimeout(watchdog);
       state.klines[key] = rows;
       state.klineLoading[key] = false;
       if (state.screen === "overview" && state.selectedSymbol === symbol && state.tf === tf) {
@@ -305,10 +323,24 @@
         if (t) renderHeroChart(t);
       }
     }).catch(function (err) {
+      if (settled) return;
+      settled = true;
+      clearTimeout(watchdog);
       state.klineLoading[key] = false;
-      state.klineError[key] = (err && err.message) || "error";
+      // Proxy returns a structured `provider_unavailable` body when neither
+      // Bybit nor any fallback could serve the request; surface that code so
+      // the overlay reflects the real situation instead of a generic error.
+      var code = "error";
+      if (err && err.payload && typeof err.payload === "object" && err.payload.error) {
+        code = err.payload.error;
+      } else if (err && err.message) {
+        code = err.message;
+      }
+      state.klineError[key] = code;
       if (state.screen === "overview" && state.selectedSymbol === symbol && state.tf === tf) {
         setChartStatus(I18N.t("chartUnavailable"), true);
+        var tk = state.tickerMap[symbol];
+        if (tk) renderHeroChart(tk); // placeholder bars still drawn
       }
     });
   }

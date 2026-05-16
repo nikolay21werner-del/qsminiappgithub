@@ -18,7 +18,7 @@ import path from "node:path";
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const handler = require(path.join(__dirname, "..", "api", "bybit", "[endpoint].js"));
-const { buildUpstreamUrl, ALLOWED_INTERVALS, SYMBOL_RE } = handler._internals;
+const { buildUpstreamUrl, ALLOWED_INTERVALS, SYMBOL_RE, COINBASE_MAP, KRAKEN_MAP } = handler._internals;
 
 let pass = 0;
 let fail = 0;
@@ -137,19 +137,121 @@ async function runHandler(query, mockFetch) {
     check("handler sets cache for tickers", /s-maxage=5/.test(r.headers["cache-control"] || ""), r.headers["cache-control"]);
   }
 
-  // Upstream returns retCode != 0 -> 502
+  // Upstream returns retCode != 0 for an unmapped symbol -> no fallback, surfaces as 503
   {
-    const r = await runHandler({ endpoint: "kline", symbol: "BTCUSDT", interval: "5", limit: "10" }, async () => {
-      return { ok: true, status: 200, text: async () => JSON.stringify({ retCode: 10001, retMsg: "params error" }) };
+    const r = await runHandler({ endpoint: "kline", symbol: "EXOTICUSDT", interval: "5", limit: "10" }, async (url) => {
+      // Only Bybit gets called; both fallbacks reject because EXOTICUSDT
+      // is not in COINBASE_MAP / KRAKEN_MAP and the handler short-circuits.
+      if (url.startsWith("https://api.bybit.com/")) {
+        return { ok: true, status: 200, text: async () => JSON.stringify({ retCode: 10001, retMsg: "params error" }) };
+      }
+      throw new Error("no fallback expected for EXOTICUSDT: " + url);
     });
-    check("handler 502 on upstream retCode != 0", r.status === 502 && r.body && r.body.error === "upstream_error", JSON.stringify(r));
+    check("handler 503 provider_unavailable when no fallback covers symbol",
+      r.status === 503 && r.body && r.body.error === "provider_unavailable", JSON.stringify(r));
   }
 
-  // Upstream network failure -> 504
+  // Bybit 403 (production scenario) + Coinbase fallback succeeds -> 200 with coinbase shape
   {
-    const r = await runHandler({ endpoint: "tickers" }, async () => { throw new Error("network down"); });
-    check("handler 504 on upstream failure", r.status === 504 && r.body && /upstream_/.test(r.body.error), JSON.stringify(r));
+    const cbCandles = [
+      // [time(s), low, high, open, close, volume]   newest first
+      [1715000000, 100, 110, 105, 108, 12.34],
+      [1714999700, 99, 109, 104, 105, 9.87]
+    ];
+    const r = await runHandler({ endpoint: "kline", symbol: "BTCUSDT", interval: "5", limit: "10" }, async (url) => {
+      if (url.startsWith("https://api.bybit.com/")) {
+        return { ok: false, status: 403, text: async () => "Forbidden" };
+      }
+      if (url.startsWith("https://api.exchange.coinbase.com/products/BTC-USDT/candles")) {
+        return { ok: true, status: 200, json: async () => cbCandles, text: async () => JSON.stringify(cbCandles) };
+      }
+      throw new Error("unexpected fallback url: " + url);
+    });
+    check("handler falls back to Coinbase on Bybit 403 (kline)",
+      r.status === 200 && r.body && r.body.retCode === 0 && r.body._provider === "coinbase"
+        && Array.isArray(r.body.result.list) && r.body.result.list.length === 2,
+      JSON.stringify(r));
+    // Bybit kline shape is [start_ms, open, high, low, close, volume, turnover]
+    const row = r.body && r.body.result && r.body.result.list && r.body.result.list[0];
+    check("Coinbase fallback row uses Bybit-like [ts,o,h,l,c,v,turnover] shape",
+      Array.isArray(row) && row.length === 7 && row[0] === "1715000000000",
+      JSON.stringify(row));
   }
+
+  // Bybit 403 for tickers, Coinbase succeeds for BTCUSDT
+  {
+    const r = await runHandler({ endpoint: "tickers", symbol: "BTCUSDT" }, async (url) => {
+      if (url.startsWith("https://api.bybit.com/")) {
+        return { ok: false, status: 403, text: async () => "Forbidden" };
+      }
+      if (url.indexOf("/products/BTC-USDT/ticker") >= 0) {
+        return { ok: true, status: 200, json: async () => ({ price: "67000" }), text: async () => "{}" };
+      }
+      if (url.indexOf("/products/BTC-USDT/stats") >= 0) {
+        return { ok: true, status: 200, json: async () => ({ open: "66000", high: "68000", low: "65000", volume: "1234.5" }), text: async () => "{}" };
+      }
+      throw new Error("unexpected url: " + url);
+    });
+    check("handler falls back to Coinbase on Bybit 403 (tickers)",
+      r.status === 200 && r.body && r.body._provider === "coinbase"
+        && r.body.result && Array.isArray(r.body.result.list) && r.body.result.list[0].symbol === "BTCUSDT"
+        && parseFloat(r.body.result.list[0].lastPrice) === 67000,
+      JSON.stringify(r));
+  }
+
+  // Bybit 403, Coinbase fails, Kraken succeeds for BTCUSDT kline
+  {
+    const krakenRows = [
+      [1714999700, "104", "109", "99", "105", "104.5", "9.87", 12],
+      [1715000000, "105", "110", "100", "108", "107", "12.34", 18]
+    ];
+    const r = await runHandler({ endpoint: "kline", symbol: "BTCUSDT", interval: "5", limit: "10" }, async (url) => {
+      if (url.startsWith("https://api.bybit.com/")) return { ok: false, status: 403, text: async () => "Forbidden" };
+      if (url.indexOf("api.exchange.coinbase.com") >= 0) return { ok: false, status: 451, text: async () => "blocked" };
+      if (url.indexOf("api.kraken.com") >= 0) {
+        return { ok: true, status: 200, json: async () => ({ result: { XBTUSDT: krakenRows, last: 1715000000 } }), text: async () => "{}" };
+      }
+      throw new Error("unexpected url: " + url);
+    });
+    check("handler falls back to Kraken when Coinbase also fails",
+      r.status === 200 && r.body && r.body._provider === "kraken"
+        && Array.isArray(r.body.result.list) && r.body.result.list.length === 2,
+      JSON.stringify(r));
+  }
+
+  // Bybit 403 + no provider supports the symbol -> 503 provider_unavailable
+  {
+    const r = await runHandler({ endpoint: "kline", symbol: "NOTREALUSDT", interval: "5", limit: "10" }, async (url) => {
+      if (url.startsWith("https://api.bybit.com/")) return { ok: false, status: 403, text: async () => "Forbidden" };
+      throw new Error("fallback should be skipped for unmapped symbol");
+    });
+    check("handler 503 provider_unavailable when no provider supports symbol",
+      r.status === 503 && r.body && r.body.error === "provider_unavailable"
+        && r.body.primary && r.body.primary.status === 403,
+      JSON.stringify(r));
+  }
+
+  // Network failure on Bybit + fallback unmapped -> 503
+  {
+    const r = await runHandler({ endpoint: "tickers", symbol: "WEIRDUSDT" }, async (url) => {
+      if (url.startsWith("https://api.bybit.com/")) throw new Error("network down");
+      throw new Error("unexpected url: " + url);
+    });
+    check("handler 503 provider_unavailable when Bybit unreachable + symbol unmapped",
+      r.status === 503 && r.body && r.body.error === "provider_unavailable",
+      JSON.stringify(r));
+  }
+
+  // instruments-info has no fallback — still surfaces upstream errors as before
+  {
+    const r = await runHandler({ endpoint: "instruments-info" }, async () => { throw new Error("network down"); });
+    check("instruments-info has no fallback (504 on network failure)",
+      r.status === 504 && r.body && /upstream_/.test(r.body.error), JSON.stringify(r));
+  }
+
+  // Sanity-check the maps are populated with the common symbols the user asked for.
+  check("COINBASE_MAP covers BTC/ETH/SOL/DOGE/XRP", ["BTCUSDT","ETHUSDT","SOLUSDT","DOGEUSDT","XRPUSDT"].every(s => !!COINBASE_MAP[s]));
+  check("KRAKEN_MAP covers BTC/ETH/SOL/ADA/LTC/DOT/LINK/AVAX", ["BTCUSDT","ETHUSDT","SOLUSDT","ADAUSDT","LTCUSDT","DOTUSDT","LINKUSDT","AVAXUSDT"].every(s => !!KRAKEN_MAP[s]));
 
   // ---------- Frontend URL construction smoke test ----------
   // Load api.js as text and run it in a fake window where fetch is mocked.

@@ -34,8 +34,17 @@
       credentials: "omit",
       cache: "no-store"
     }).then(function (r) {
-      if (!r.ok) throw new Error("http-" + r.status);
-      return r.json();
+      var ct = r.headers && r.headers.get && r.headers.get("content-type") || "";
+      var parse = ct.indexOf("application/json") >= 0 ? r.json() : r.text();
+      return parse.then(function (data) {
+        if (!r.ok) {
+          var err = new Error("http-" + r.status);
+          err.status = r.status;
+          err.payload = data;
+          throw err;
+        }
+        return data;
+      });
     });
     return withTimeout(req, opts.timeout || 8000);
   }
@@ -98,24 +107,36 @@
     }
     return BYBIT_PROXY + "/" + endpoint + (qs.length ? "?" + qs.join("&") : "");
   }
-  // Try the same-origin proxy first; if it fails (e.g. static-only deploy,
-  // local `npm run dev` without functions, or 5xx) fall back to direct
-  // Bybit so feature parity is preserved when the proxy genuinely isn't
-  // available. Once the proxy is known-healthy we stop falling back.
+  // Try the same-origin proxy first. The proxy already chains Bybit ->
+  // Coinbase -> Kraken upstreams, so a structured failure from it (e.g. a
+  // 503 `provider_unavailable` JSON body) is authoritative — we surface
+  // it as-is and never fall back to api.bybit.com from the browser, since
+  // that path would either be CORS-blocked or hit the same Bybit IP block.
+  //
+  // We only fall back to the direct host when the proxy itself appears
+  // missing (404 / network error / no JSON), which happens during static
+  // `npm run dev` without serverless functions or behind a misconfigured
+  // CDN. Once any proxy call succeeds, we lock to proxy-only mode.
   function bybitFetch(endpoint, params, directUrl, timeoutMs) {
     var url = proxyUrl(endpoint, params);
-    var attempt = fetchJSON(url, { timeout: timeoutMs });
     if (proxyHealthy === false) {
-      // Proxy already proven unavailable — skip straight to direct.
       return fetchJSON(directUrl, { timeout: timeoutMs });
     }
-    return attempt.then(function (data) {
+    return fetchJSON(url, { timeout: timeoutMs }).then(function (data) {
       proxyHealthy = true;
       return data;
     }, function (err) {
-      // Only fall back when the proxy itself failed (404/5xx/timeout). If
-      // the proxy reports an upstream Bybit problem we surface it as-is.
+      // If the proxy itself answered with a JSON error envelope, surface
+      // that — the proxy already tried Coinbase/Kraken fallback.
+      if (err && err.payload && typeof err.payload === "object") {
+        proxyHealthy = true;
+        throw err;
+      }
+      // If the proxy was previously healthy in this session, treat this as
+      // a transient upstream failure and propagate.
       if (proxyHealthy === true) throw err;
+      // First-time proxy failure with no parseable body -> probably absent.
+      // Try the direct host once as a last-resort dev affordance.
       proxyHealthy = false;
       return fetchJSON(directUrl, { timeout: timeoutMs });
     });
