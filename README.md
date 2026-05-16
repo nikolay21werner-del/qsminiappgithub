@@ -5,6 +5,18 @@ zero build) and a FastAPI backend that ships with real Telegram `initData`
 validation, Bybit V5 public market data, a swappable signal engine, an AI
 assistant endpoint, and a WebSocket market stream.
 
+## Frontend visual design (reference-inspired roadmap)
+
+The landing/overview view is a dark vertical presentation page modelled on the
+attached reference (`IMG_7221.jpeg`). It pairs a six-step user-journey timeline
+(loader → analytics → AI assistant → signals → settings → push) with a stacked
+set of iPhone-style mockups demonstrating each screen. Below the roadmap, the
+actual interactive Mini App (signals, market matrix, AI chat, profile, language
+switch, ticker, KPIs) is rendered with the same neon-teal / dark-navy fintech
+system so it feels like one continuous product. No `localStorage`,
+`sessionStorage`, or cookies — language and AI history live in memory only,
+and all Telegram SDK calls remain inside safe try/catch guards.
+
 The frontend is the same lightweight bundle that runs inside Telegram WebView;
 the backend is a separate service designed to deploy to Railway, Fly.io, Render
 or a plain VPS / Docker host.

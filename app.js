@@ -436,9 +436,19 @@
   }
 
   // ---------- i18n binding ----------
+  function syncLangChips() {
+    var cur = I18N.get();
+    var chips = document.querySelectorAll('.lang-chip[data-lang]');
+    chips.forEach(function (c) {
+      c.classList.toggle('is-active', c.getAttribute('data-lang') === cur);
+      c.classList.toggle('active', c.getAttribute('data-lang') === cur);
+    });
+  }
+
   function applyI18N() {
     var t = I18N.t;
     document.documentElement.setAttribute("lang", I18N.get());
+    syncLangChips();
     // Hero tagline
     var tagline = document.querySelector(".brand-copy p");
     if (tagline) tagline.innerHTML = t("brandTagline").replace("AI", "<strong>AI</strong>");
