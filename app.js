@@ -1277,6 +1277,11 @@
       var actionEl = e.target.closest("[data-action]");
       if (actionEl) {
         var act = actionEl.getAttribute("data-action");
+        // For anchor-based actions (e.g. partner card) prevent the default
+        // <a href> navigation so we can route through Telegram.WebApp.
+        if (actionEl.tagName === "A") {
+          try { e.preventDefault(); } catch (e2) {}
+        }
         handleAction(act, actionEl);
         return;
       }
@@ -1432,8 +1437,40 @@
         closeSheet("#roadmap-sheet");
         haptic("selection");
         break;
+      case "open-partner-antarctic":
+        openPartnerLink(el);
+        break;
       default: break;
     }
+  }
+
+  // Open a sponsored partner link in the safest way for a Telegram Mini App:
+  //   - inside Telegram, prefer openTelegramLink for t.me URLs (deep-links to
+  //     the partner bot/mini-app inline) and openLink for http(s) URLs
+  //   - outside Telegram (e.g. web preview), fall back to window.open so the
+  //     normal <a href> still works
+  function openPartnerLink(el) {
+    if (!el) return;
+    var url = el.getAttribute("data-partner-url") || el.getAttribute("href");
+    if (!url) return;
+    haptic("light");
+    try {
+      if (tg) {
+        var isTme = /^https?:\/\/t\.me\//i.test(url);
+        if (isTme && typeof tg.openTelegramLink === "function") {
+          tg.openTelegramLink(url);
+          return;
+        }
+        if (typeof tg.openLink === "function") {
+          tg.openLink(url, { try_instant_view: false });
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn("[QUANTSIGNAL] openPartnerLink fallback:", e);
+    }
+    try { window.open(url, "_blank", "noopener,noreferrer"); }
+    catch (e) { window.location.href = url; }
   }
 
   // ---------- i18n ----------

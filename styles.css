@@ -2280,6 +2280,160 @@ h1, h2, h3, .screen__title, .brand-title, .boot-splash__title {
   box-shadow: var(--shadow-card);
 }
 
+/* ============================================================
+   Sponsored partner module — Antarctic Wallet
+   Blends with the app's dark/glass system. Uses a cool
+   blue/cyan gradient that aligns with both the partner's
+   brand and QUANTSIGNAL's accent palette.
+   ============================================================ */
+.partner-card {
+  position: relative;
+  display: block;
+  margin: 10px 14px 0;
+  padding: 14px 14px 14px 14px;
+  border-radius: 18px;
+  text-decoration: none;
+  color: #eaf6ff;
+  background:
+    linear-gradient(180deg, rgba(11, 18, 28, 0.72), rgba(7, 12, 21, 0.82)),
+    linear-gradient(135deg, #1d4ed8 0%, #2a7bff 45%, #26d4ff 100%);
+  background-blend-mode: overlay, normal;
+  border: 1px solid rgba(126, 198, 224, 0.22);
+  box-shadow:
+    0 12px 28px rgba(7, 12, 21, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+  isolation: isolate;
+  min-height: 88px;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 120ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+.partner-card:hover,
+.partner-card:focus-visible {
+  border-color: rgba(126, 198, 224, 0.38);
+  box-shadow:
+    0 16px 32px rgba(7, 12, 21, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  outline: none;
+}
+.partner-card:active { transform: scale(0.995); }
+
+.partner-card__glow {
+  position: absolute;
+  inset: -1px;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 80% at 110% 0%, rgba(94, 249, 255, 0.18), transparent 60%),
+    radial-gradient(80% 80% at -10% 110%, rgba(42, 123, 255, 0.22), transparent 60%);
+}
+
+.partner-card__label {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  z-index: 2;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(234, 246, 255, 0.62);
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: rgba(7, 12, 21, 0.55);
+  border: 1px solid rgba(126, 198, 224, 0.18);
+}
+
+.partner-card__body {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 44px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 60px;
+}
+
+.partner-card__mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: rgba(7, 12, 21, 0.55);
+  border: 1px solid rgba(126, 198, 224, 0.2);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.partner-card__text {
+  min-width: 0;
+}
+.partner-card__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+  line-height: 1.2;
+}
+.partner-card__title b {
+  font-size: 14.5px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: #f5fbff;
+}
+.partner-card__chip {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #04070d;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #7ed8ff, #26d4ff);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  white-space: nowrap;
+}
+.partner-card__lede {
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: rgba(234, 246, 255, 0.78);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.partner-card__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 12px;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #04070d;
+  background: linear-gradient(180deg, #ffffff 0%, #cfeeff 100%);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 6px 14px rgba(38, 212, 255, 0.22);
+  white-space: nowrap;
+}
+.partner-card:hover .partner-card__cta,
+.partner-card:focus-visible .partner-card__cta {
+  background: linear-gradient(180deg, #ffffff 0%, #b9e6ff 100%);
+}
+
+@media (max-width: 360px) {
+  .partner-card__lede { -webkit-line-clamp: 3; }
+  .partner-card__cta { padding: 0 10px; font-size: 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .partner-card,
+  .partner-card__cta { transition: none; }
+}
+
 /* Boot splash polish — slightly richer ambient */
 .boot-splash {
   background:

@@ -12,6 +12,7 @@
     "verify:proxy": "node scripts/verify-bybit-proxy.mjs",
     "verify:splash": "node scripts/verify-splash.mjs",
     "verify:tap": "node scripts/verify-tap-stability.mjs",
-    "verify:no-game": "node scripts/verify-no-game.mjs"
+    "verify:no-game": "node scripts/verify-no-game.mjs",
+    "verify:partner-ad": "node scripts/verify-partner-ad.mjs"
   }
 }
