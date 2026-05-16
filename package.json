@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "npx --yes serve@14 -l 3000 .",
     "start": "npx --yes serve@14 -l 3000 .",
-    "verify": "node scripts/verify-realtime.mjs"
+    "verify": "node scripts/verify-realtime.mjs",
+    "verify:ai": "node scripts/verify-ai-chat.mjs"
   }
 }

@@ -510,50 +510,91 @@
     var chat = $("#ai-chat");
     if (!chat) return;
     if (!state.aiHistory.length) {
-      chat.innerHTML = '<div class="ai-empty">' + escapeHtml(buildSnapshotReply(state.selectedSymbol, true)) + '</div>';
+      chat.innerHTML = '<div class="ai-empty">' + escapeHtml(buildSnapshotHint(state.selectedSymbol)) + '</div>';
       return;
     }
     var html = "";
     state.aiHistory.forEach(function (m) {
-      var thinkingClass = m.thinking ? " ai-msg__thinking" : "";
-      html += '<div class="ai-msg ' + m.role + thinkingClass + '">' + escapeHtml(m.content) + '</div>';
+      var cls = "ai-msg " + m.role;
+      if (m.thinking) cls += " ai-msg__thinking";
+      if (m.error) cls += " ai-msg__error";
+      html += '<div class="' + cls + '">' + escapeHtml(m.content) + '</div>';
     });
     chat.innerHTML = html;
     chat.scrollTop = chat.scrollHeight;
   }
 
-  // Build a local snapshot reply from realtime data — used as the offline AI fallback.
-  function buildSnapshotReply(symbol, isIntro) {
+  // Build a short market snapshot string for the empty-state placeholder.
+  // This is never sent as an "AI reply" — it's just a non-AI hint that lives
+  // in the empty chat panel before the user has asked anything.
+  function buildSnapshotHint(symbol) {
     var sym = symbol || state.selectedSymbol || "BTCUSDT";
     var t = state.tickerMap[sym] || state.tickers[0];
-    if (!t) {
-      return I18N.t("aiIntro");
-    }
+    if (!t) return I18N.t("aiIntro");
     var head = I18N.t("aiSnapshotIntro", { sym: t.symbol });
     var change = t.change_pct_24h || 0;
     var dirWord = change >= 0 ? I18N.t("bullish") : I18N.t("bearish");
     var hi = t.high_24h || t.last_price;
     var lo = t.low_24h || t.last_price;
     var rangePct = hi > lo ? ((hi - lo) / lo) * 100 : 0;
-    var lines = [
+    return [
       head,
       "• Price: $" + fmtPrice(t.last_price) + " (24h " + fmtPct(change) + ", " + dirWord + ")",
       "• Range 24h: $" + fmtPrice(lo) + " — $" + fmtPrice(hi) + " (" + rangePct.toFixed(2) + "%)",
-      "• Volume: " + fmtCompact(t.volume_24h)
-    ];
-    if (isIntro) lines.push("— " + I18N.t("signalEngineNote"));
-    return lines.join("\n");
+      "• Volume: " + fmtCompact(t.volume_24h),
+      "— " + I18N.t("signalEngineNote")
+    ].join("\n");
+  }
+
+  function buildMarketContext(targetSymbol) {
+    var t = state.tickerMap[targetSymbol] || state.tickerMap[state.selectedSymbol] || state.tickers[0];
+    if (!t) return null;
+    var st = state.status || {};
+    var ageMs = st.lastUpdateTs ? (Date.now() - st.lastUpdateTs) : null;
+    var peers = (state.tickers || []).slice(0, 8).map(function (p) {
+      return {
+        symbol: p.symbol,
+        last_price: p.last_price,
+        change_pct_24h: p.change_pct_24h
+      };
+    });
+    return {
+      symbol: t.symbol,
+      last_price: t.last_price,
+      change_pct_24h: t.change_pct_24h,
+      volume_24h: t.volume_24h,
+      high_24h: t.high_24h,
+      low_24h: t.low_24h,
+      transport: st.transport || "rest",
+      provider: st.provider || "Bybit V5 (linear)",
+      last_update_age_ms: ageMs,
+      top_tickers: peers
+    };
+  }
+
+  function aiErrorMessage(code) {
+    if (code === "ai_not_configured") return I18N.t("aiNotConfigured");
+    if (code === "ai_upstream_timeout") return I18N.t("aiTimeout");
+    if (code === "ai_upstream_unreachable") return I18N.t("aiUnreachable");
+    if (code === "ai_upstream_error" || code === "ai_upstream_bad_json" || code === "ai_empty_response") {
+      return I18N.t("aiUpstream");
+    }
+    if (code === "messages_empty" || code === "last_message_not_user") return I18N.t("aiBadRequest");
+    return I18N.t("aiError");
   }
 
   function sendAIMessage(text) {
     if (!text || state.aiBusy) return;
+    text = String(text).trim();
+    if (!text) return;
+    if (text.length > 2000) text = text.slice(0, 2000);
+
     state.aiBusy = true;
     state.aiHistory.push({ role: "user", content: text });
     state.aiHistory.push({ role: "assistant", content: I18N.t("thinking"), thinking: true });
     renderAIHistory();
     haptic("light");
 
-    // Resolve a symbol referenced in the message, falling back to the selected one.
     var upper = text.toUpperCase();
     var symMatch = null;
     state.tickers.forEach(function (t) {
@@ -566,22 +607,26 @@
       .filter(function (m) { return !m.thinking; })
       .map(function (m) { return { role: m.role, content: m.content }; });
 
-    API.aiChat(msgs, I18N.get()).then(function (reply) {
+    var ctx = buildMarketContext(targetSymbol);
+
+    API.aiChat(msgs, I18N.get(), ctx).then(function (reply) {
       state.aiHistory.pop();
-      var body = reply && reply.content;
+      var body = (reply && reply.content) || "";
       if (!body) {
-        body = buildSnapshotReply(targetSymbol, false);
+        state.aiHistory.push({ role: "assistant", content: aiErrorMessage("ai_empty_response"), error: true });
+      } else {
+        state.aiHistory.push({ role: "assistant", content: body });
       }
-      if (reply && reply.mock) body += "\n\n— " + I18N.t("aiMockNotice");
-      state.aiHistory.push({ role: "assistant", content: body });
       state.aiBusy = false;
       renderAIHistory();
       haptic("success");
-    }).catch(function () {
+    }).catch(function (err) {
       state.aiHistory.pop();
-      state.aiHistory.push({ role: "assistant", content: buildSnapshotReply(targetSymbol, false) });
+      var code = (err && err.code) || "ai_unreachable";
+      state.aiHistory.push({ role: "assistant", content: aiErrorMessage(code), error: true });
       state.aiBusy = false;
       renderAIHistory();
+      haptic("error");
     });
   }
 

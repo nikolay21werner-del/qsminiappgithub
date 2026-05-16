@@ -129,8 +129,8 @@ Visit `http://localhost:8000/docs` for OpenAPI, `/health` for readiness.
 | GET    | `/api/market/kline`   | Bybit V5 candles                                  |
 | GET    | `/api/market/orderbook` | Bybit V5 L2 depth                               |
 | GET    | `/api/signals`        | Latest signals from `SignalEngine`                |
-| POST   | `/api/ai/chat`        | LLM if `OPENAI_API_KEY` set, else structured mock |
-| POST   | `/api/ai/voice`       | Voice placeholder (mock reply)                    |
+| POST   | `/api/ai/chat`        | Real LLM proxy (requires `AI_API_KEY`); **never returns a mock** |
+| POST   | `/api/ai/voice`       | Returns 501 until STT is wired up                 |
 | WS     | `/ws/market`          | Streams market snapshots to connected clients     |
 
 ### Telegram `initData` validation
@@ -173,12 +173,67 @@ and intended as a placeholder. Swap in a real strategy by implementing
 `async evaluate(tickers: list[Ticker]) -> list[Signal]` – no caller changes
 required.
 
-### AI assistant
+### AI assistant (real, no demo)
 
-`/api/ai/chat` proxies to OpenAI when `OPENAI_API_KEY` is set, otherwise
-returns a localized structured mock (en/ru/zh) so the frontend can be
-developed end-to-end without provisioning a model. `/api/ai/voice` is a
-placeholder.
+The Mini App ships with a **real** server-side AI integration. There are two
+interchangeable deployments — pick the one that matches your hosting:
+
+1. **Vercel serverless function** (default for the static frontend deploy):
+   `api/ai/chat.js`. Reads the AI key from `AI_API_KEY` server-side, talks to
+   any OpenAI-compatible `/chat/completions` endpoint, and proxies the model's
+   reply back to the browser. The frontend calls `/api/ai/chat` on the same
+   origin, so no key is ever shipped to the client.
+
+2. **FastAPI backend** (Railway / Fly.io / VPS): same contract, implemented in
+   `backend/app/services/ai_assistant.py` + `backend/app/routers/ai.py`. Reads
+   the same env vars (`AI_API_KEY`, `AI_BASE_URL`, `AI_MODEL`).
+
+Both backends **refuse to fabricate answers**. With no key configured the
+endpoint returns `HTTP 503 {"error":"ai_not_configured"}` and the frontend
+shows a localized "AI backend is not configured yet" message in RU / EN / ZH.
+
+The frontend includes the current live market context (selected symbol, last
+price, 24h Δ, volume, 24h range, transport, recent tickers) and the user's
+recent chat history in the request, so model output is grounded in real Bybit
+V5 data. A risk caveat is always appended in the user's language.
+
+`/api/ai/voice` returns `501 voice_not_implemented` until STT is wired in.
+
+#### Required env vars
+
+| Variable        | Required | Default                          | Purpose                                                                    |
+| --------------- | -------- | -------------------------------- | -------------------------------------------------------------------------- |
+| `AI_API_KEY`    | **yes**  | empty                            | Server-side API key for the LLM provider. Never exposed to the frontend.   |
+| `AI_BASE_URL`   | no       | `https://api.openai.com/v1`      | Any OpenAI-compatible base URL (OpenAI, Azure-OAI, OpenRouter, Together…). |
+| `AI_MODEL`      | no       | `gpt-4o-mini`                    | Chat completions model id.                                                 |
+| `AI_TIMEOUT_MS` | no       | `25000` (Vercel only)            | Upstream request timeout.                                                  |
+| `AI_TEMPERATURE`| no       | `0.2` (Vercel only)              | Sampling temperature.                                                      |
+
+Legacy `OPENAI_API_KEY` / `OPENAI_MODEL` are still accepted as fallbacks.
+
+#### Configure on Vercel
+
+1. Open the Vercel project → **Settings → Environment Variables**.
+2. Add `AI_API_KEY = sk-…` for Production (and Preview/Development as needed).
+3. Optionally add `AI_BASE_URL`, `AI_MODEL`.
+4. Redeploy — `api/ai/chat.js` becomes live at `https://<your-app>/api/ai/chat`.
+
+#### Configure on Railway
+
+1. Railway service for `backend/` → **Variables** → add `AI_API_KEY`,
+   optionally `AI_BASE_URL`, `AI_MODEL`.
+2. Redeploy. The same `/api/ai/chat` contract is served by FastAPI.
+
+#### Test it
+
+```bash
+# Should return 503 ai_not_configured when AI_API_KEY is unset.
+curl -i -X POST https://<your-app>/api/ai/chat \
+  -H 'content-type: application/json' \
+  -d '{"messages":[{"role":"user","content":"hi"}],"language_code":"en"}'
+
+# Once AI_API_KEY is set in env, the same call returns a real model reply.
+```
 
 ### Bot alerts
 
@@ -226,8 +281,10 @@ Behind nginx (TLS termination + reverse proxy) is the recommended VPS layout.
 | `BYBIT_WS_PUBLIC`              | no       | `wss://stream.bybit.com/v5/public/linear`     | Public WS endpoint                                         |
 | `BYBIT_CATEGORY`               | no       | `linear`                                      | `linear`, `spot`, or `inverse`                             |
 | `MARKET_SYMBOLS`               | no       | `BTCUSDT,ETHUSDT,SOLUSDT,BNBUSDT,TONUSDT,XRPUSDT` | Default tickers                                            |
-| `OPENAI_API_KEY`               | no       | empty                                         | Enables real AI replies; mock otherwise                    |
-| `OPENAI_MODEL`                 | no       | `gpt-4o-mini`                                 | Model name                                                 |
+| `AI_API_KEY`                   | **for AI** | empty                                       | Server-side LLM key. Without it `/api/ai/chat` returns 503. |
+| `AI_BASE_URL`                  | no       | `https://api.openai.com/v1`                   | OpenAI-compatible base URL                                 |
+| `AI_MODEL`                     | no       | `gpt-4o-mini`                                 | Chat completions model id                                  |
+| `OPENAI_API_KEY` / `OPENAI_MODEL` | no    | empty                                         | Legacy fallback names                                      |
 | `PORT`                         | no       | `8000`                                        | Standard Railway/Heroku port                               |
 | `DEBUG`                        | no       | `false`                                       | Verbose logging                                            |
 

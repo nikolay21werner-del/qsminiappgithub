@@ -701,6 +701,11 @@ button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
   margin-left: 6px;
   animation: blink 1s infinite;
 }
+.ai-msg__error {
+  border-color: rgba(255, 85, 119, 0.55) !important;
+  background: rgba(40, 12, 20, 0.85) !important;
+  color: #ffd2dc !important;
+}
 @keyframes blink { 50% { opacity: 0.3; } }
 .ai-empty {
   text-align: center;

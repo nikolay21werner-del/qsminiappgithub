@@ -36,25 +36,36 @@
     return withTimeout(req, opts.timeout || 8000);
   }
 
+  // Resolve API base. When API_BASE is empty, requests go to same-origin
+  // (e.g. Vercel serverless functions deployed alongside the static site).
   function jsonFetch(path, opts) {
     opts = opts || {};
-    if (!API_BASE) return Promise.reject(new Error("no-api"));
+    var url = (API_BASE || "") + path;
     var headers = Object.assign({ "Accept": "application/json" }, opts.headers || {});
     var body = opts.body;
     if (body && typeof body !== "string") {
       headers["Content-Type"] = headers["Content-Type"] || "application/json";
       body = JSON.stringify(body);
     }
-    var req = fetch(API_BASE + path, {
+    var req = fetch(url, {
       method: opts.method || "GET",
       headers: headers,
       body: body,
-      mode: "cors",
+      mode: API_BASE ? "cors" : "same-origin",
       credentials: "omit",
       cache: "no-store"
     }).then(function (r) {
-      if (!r.ok) throw new Error("http-" + r.status);
-      return r.json();
+      var ct = r.headers && r.headers.get && r.headers.get("content-type") || "";
+      var parse = ct.indexOf("application/json") >= 0 ? r.json() : r.text();
+      return parse.then(function (data) {
+        if (!r.ok) {
+          var err = new Error("http-" + r.status);
+          err.status = r.status;
+          err.payload = data;
+          throw err;
+        }
+        return data;
+      });
     });
     return withTimeout(req, opts.timeout || 6000);
   }
@@ -410,14 +421,42 @@
     return jsonFetch("/health").catch(function () { return null; });
   }
 
-  function aiChat(messages, languageCode) {
+  // Real AI chat. Throws an error with a structured `code` so the UI can show
+  // an honest config/error message — never a fake demo reply.
+  function aiChat(messages, languageCode, marketContext) {
+    var headers = {};
+    if (INIT_DATA) headers["X-Telegram-Init-Data"] = INIT_DATA;
     return jsonFetch("/api/ai/chat", {
       method: "POST",
-      body: { messages: messages, language_code: languageCode || null, init_data: INIT_DATA || null },
-      timeout: 25000
-    }).catch(function () {
-      // Local fallback handled inside app.js using realtime data.
-      return { content: null, model: "local", mock: true, ts: Date.now() };
+      headers: headers,
+      body: {
+        messages: messages,
+        language_code: languageCode || null,
+        market_context: marketContext || null,
+        init_data: INIT_DATA || null
+      },
+      timeout: 30000
+    }).then(function (data) {
+      return {
+        content: (data && data.content) || "",
+        model: (data && data.model) || "unknown",
+        ts: (data && data.ts) || Date.now()
+      };
+    }).catch(function (err) {
+      var code = "ai_unreachable";
+      if (err && err.payload) {
+        if (typeof err.payload === "object") {
+          code = err.payload.error
+            || (err.payload.detail && err.payload.detail.error)
+            || code;
+        }
+      } else if (err && err.message === "timeout") {
+        code = "ai_upstream_timeout";
+      }
+      var aiErr = new Error(code);
+      aiErr.code = code;
+      aiErr.status = (err && err.status) || 0;
+      throw aiErr;
     });
   }
 

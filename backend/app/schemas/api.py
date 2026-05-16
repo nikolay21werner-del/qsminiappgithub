@@ -1,7 +1,7 @@
 """Pydantic request/response schemas."""
 from __future__ import annotations
 
-from typing import List, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -72,6 +72,10 @@ class ChatMessageIn(BaseModel):
 class ChatRequest(BaseModel):
     messages: List[ChatMessageIn] = Field(min_length=1, max_length=24)
     language_code: Optional[str] = None
+    market_context: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Live market context (symbol, last_price, change_pct_24h, etc.).",
+    )
     init_data: Optional[str] = Field(
         default=None,
         description="Telegram WebApp initData; required when bot token is configured.",
@@ -81,7 +85,6 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     content: str
     model: str
-    mock: bool
     ts: int
 
 

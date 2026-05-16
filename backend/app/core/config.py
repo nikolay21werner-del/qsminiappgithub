@@ -48,9 +48,12 @@ class Settings:
     )
     bybit_category: str = os.getenv("BYBIT_CATEGORY", "linear")  # linear|spot|inverse
 
-    # --- AI assistant (optional) ---
-    openai_api_key: str = os.getenv("OPENAI_API_KEY", "")
-    openai_model: str = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+    # --- AI assistant (server-side LLM proxy) ---
+    # Prefer AI_API_KEY / AI_BASE_URL / AI_MODEL; legacy OPENAI_* names kept
+    # as fallbacks so existing deployments do not break.
+    openai_api_key: str = os.getenv("AI_API_KEY", "") or os.getenv("OPENAI_API_KEY", "")
+    openai_model: str = os.getenv("AI_MODEL", "") or os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+    openai_base_url: str = os.getenv("AI_BASE_URL", "") or "https://api.openai.com/v1"
 
     # --- Misc ---
     market_default_symbols: List[str] = field(

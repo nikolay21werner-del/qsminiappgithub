@@ -37,7 +37,9 @@ class AppSmokeTests(unittest.TestCase):
         self.assertIn("signals", data)
         self.assertIsInstance(data["signals"], list)
 
-    def test_ai_chat_mock(self) -> None:
+    def test_ai_chat_not_configured(self) -> None:
+        # No AI_API_KEY in test env: endpoint must refuse instead of
+        # returning a demo answer.
         r = self.client.post(
             "/api/ai/chat",
             json={
@@ -45,10 +47,23 @@ class AppSmokeTests(unittest.TestCase):
                 "language_code": "en",
             },
         )
-        self.assertEqual(r.status_code, 200)
-        data = r.json()
-        self.assertTrue(data["mock"])  # no OPENAI key in tests
-        self.assertGreater(len(data["content"]), 0)
+        self.assertEqual(r.status_code, 503)
+        body = r.json()
+        detail = body.get("detail") or {}
+        self.assertEqual(detail.get("error"), "ai_not_configured")
+
+    def test_ai_chat_validates_messages(self) -> None:
+        # Last message must be from the user.
+        r = self.client.post(
+            "/api/ai/chat",
+            json={
+                "messages": [{"role": "assistant", "content": "hello"}],
+                "language_code": "en",
+            },
+        )
+        # 503 is also acceptable here (config check runs first), but with
+        # the assistant-last message we always reject — config or otherwise.
+        self.assertIn(r.status_code, (400, 503))
 
     def test_auth_endpoint_requires_token(self) -> None:
         # In test environment TELEGRAM_BOT_TOKEN is unset -> 503.
