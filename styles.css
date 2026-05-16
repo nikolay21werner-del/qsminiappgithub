@@ -310,11 +310,13 @@ body {
     #050a12;
 }
 .phone-brand {
-  font-size: 26px;
+  font-size: 18px;
   font-weight: 800;
   letter-spacing: -0.01em;
-  margin: 8px 0 18px;
+  margin: 6px 0 14px;
   color: var(--ink-0);
+  white-space: nowrap;
+  text-align: center;
 }
 .phone-brand span {
   background: linear-gradient(180deg, #fff, var(--teal));
@@ -505,31 +507,46 @@ body {
   background: rgba(11, 18, 28, 0.7);
   border: 1px solid var(--line);
   border-radius: 12px;
-  padding: 10px 30px 18px 10px;
-  height: 138px;
+  padding: 8px 8px 22px 8px;
+  height: 130px;
   overflow: hidden;
 }
-.dash__chart svg { width: 100%; height: 100%; display: block; }
+.dash__chart svg { width: 100%; height: calc(100% - 14px); display: block; }
 .chart-tag {
   position: absolute;
-  top: 14px; right: 8px;
-  background: rgba(38, 230, 242, 0.15);
-  border: 1px solid rgba(38, 230, 242, 0.4);
+  top: 8px; right: 8px;
+  background: rgba(38, 230, 242, 0.18);
+  border: 1px solid rgba(38, 230, 242, 0.5);
   color: var(--teal);
   font-family: "JetBrains Mono", monospace;
-  font-size: 9px;
+  font-size: 8.5px;
+  font-weight: 600;
   padding: 2px 5px;
   border-radius: 4px;
+  line-height: 1;
+  z-index: 2;
 }
 .chart-axis {
   position: absolute;
   color: var(--ink-3);
-  font-size: 7.5px;
+  font-size: 7px;
   font-family: "JetBrains Mono", monospace;
-  line-height: 1.45;
+  line-height: 1.2;
+  letter-spacing: 0;
 }
-.chart-axis--y { top: 26px; right: 4px; text-align: right; }
-.chart-axis--x { bottom: 2px; left: 12px; right: 28px; display: flex; justify-content: space-between; }
+.chart-axis--y { display: none; }
+.chart-axis--x {
+  bottom: 4px;
+  left: 8px;
+  right: 8px;
+  display: flex;
+  justify-content: space-between;
+  color: var(--ink-3);
+  font-size: 7px;
+}
+.chart-axis--x > i {
+  font-style: normal;
+}
 
 .dash__metrics {
   display: grid;
