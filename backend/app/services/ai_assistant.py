@@ -153,42 +153,84 @@ def _num(value: Any) -> Optional[float]:
     return n
 
 
+_SYMBOL_ALIASES = ("symbol", "ticker", "pair")
+_LAST_PRICE_ALIASES = (
+    "last_price", "last", "price", "lastPrice", "close", "mark_price",
+)
+_CHANGE_PCT_ALIASES = (
+    "change_pct_24h", "change24h", "price24hPcnt", "priceChangePercent",
+    "changePct24h", "change_percent_24h", "pct_change_24h",
+)
+_VOLUME_ALIASES = (
+    "volume_24h", "volume24h", "turnover24h", "quoteVolume", "vol24h",
+    "volume", "turnover_24h",
+)
+_HIGH_ALIASES = ("high_24h", "high24h", "highPrice24h", "high")
+_LOW_ALIASES = ("low_24h", "low24h", "lowPrice24h", "low")
+_TRANSPORT_ALIASES = ("transport", "status", "connection")
+_PROVIDER_ALIASES = ("provider", "source", "exchange")
+_AGE_ALIASES = ("last_update_age_ms", "age_ms", "lastUpdateAgeMs")
+
+
+def _pick_field(obj: Mapping[str, Any], keys: tuple) -> Any:
+    for k in keys:
+        if k in obj:
+            v = obj[k]
+            if v is not None and v != "":
+                return v
+    return None
+
+
+def _render_field(raw: Any, parsed: Optional[float], fmt=None) -> str:
+    """Render numeric fields, preserving pre-formatted strings like '5.2B'."""
+    if parsed is not None:
+        return fmt(parsed) if fmt else str(parsed)
+    if raw is not None and raw != "":
+        return str(raw)[:64]
+    return "n/a"
+
+
 def _build_market_context(ctx: Optional[Mapping[str, Any]], lang: str) -> Optional[str]:
     if not ctx or not isinstance(ctx, Mapping):
         return None
-    symbol = _sanitize_symbol(ctx.get("symbol"))
+    symbol = _sanitize_symbol(_pick_field(ctx, _SYMBOL_ALIASES))
     if not symbol:
         return None
-    last = _num(ctx.get("last_price"))
-    change = _num(ctx.get("change_pct_24h"))
-    volume = _num(ctx.get("volume_24h"))
-    high = _num(ctx.get("high_24h"))
-    low = _num(ctx.get("low_24h"))
-    transport = str(ctx.get("transport") or "unknown")[:16]
-    provider = str(ctx.get("provider") or "Bybit V5 (linear)")[:64]
-    age_ms = _num(ctx.get("last_update_age_ms"))
+    raw_last = _pick_field(ctx, _LAST_PRICE_ALIASES)
+    raw_change = _pick_field(ctx, _CHANGE_PCT_ALIASES)
+    raw_volume = _pick_field(ctx, _VOLUME_ALIASES)
+    raw_high = _pick_field(ctx, _HIGH_ALIASES)
+    raw_low = _pick_field(ctx, _LOW_ALIASES)
+    last = _num(raw_last)
+    change = _num(raw_change)
+    volume = _num(raw_volume)
+    high = _num(raw_high)
+    low = _num(raw_low)
+    transport = str(_pick_field(ctx, _TRANSPORT_ALIASES) or "unknown")[:16]
+    provider = str(_pick_field(ctx, _PROVIDER_ALIASES) or "Bybit V5 (linear)")[:64]
+    age_ms = _num(_pick_field(ctx, _AGE_ALIASES))
 
     lines = [
         f"Symbol: {symbol}",
-        f"Last price: {'n/a' if last is None else last}",
-        f"24h change %: {'n/a' if change is None else f'{change:.3f}'}",
-        f"24h volume (quote): {'n/a' if volume is None else volume}",
-        f"24h high: {'n/a' if high is None else high}",
-        f"24h low: {'n/a' if low is None else low}",
-        f"Connection: {transport} via {provider}"
+        f"Last price: {_render_field(raw_last, last)}",
+        f"24h change %: {_render_field(raw_change, change, lambda n: f'{n:.3f}')}",
+        f"24h volume: {_render_field(raw_volume, volume)}",
+        f"24h high: {_render_field(raw_high, high)}",
+        f"24h low: {_render_field(raw_low, low)}",
+        f"Data transport: {transport} via {provider}"
         + (f" (last tick {int(age_ms)}ms ago)" if age_ms is not None else ""),
     ]
-    peers_raw = ctx.get("top_tickers")
+    peers_raw = ctx.get("top_tickers") or ctx.get("peers") or ctx.get("related")
     if isinstance(peers_raw, list) and peers_raw:
         peers = []
         for t in peers_raw[:8]:
             if not isinstance(t, Mapping):
                 continue
-            s = _sanitize_symbol(t.get("symbol"))
+            s = _sanitize_symbol(_pick_field(t, _SYMBOL_ALIASES))
             if not s:
                 continue
-            p = _num(t.get("last_price"))
-            c = _num(t.get("change_pct_24h"))
+            p = _num(_pick_field(t, _LAST_PRICE_ALIASES))
+            c = _num(_pick_field(t, _CHANGE_PCT_ALIASES))
             peers.append(
                 f"{s} {'n/a' if p is None else p}"
                 f" ({'n/a' if c is None else f'{c:.2f}%'})"
@@ -197,6 +239,27 @@ def _build_market_context(ctx: Optional[Mapping[str, Any]], lang: str) -> Option
             lines.append("Peers: " + ", ".join(peers))
 
     return f"## LIVE MARKET CONTEXT (language={lang})\n" + "\n".join(lines)
+
+
+BIAS_CONSISTENCY_RULE = (
+    "Bias-consistency rule (hard requirement):\n"
+    "- Your stated bias MUST be consistent with the LIVE MARKET CONTEXT "
+    "block unless the user explicitly asks for a hypothetical (\"what if\", "
+    "\"if BTC reclaims X\", \"contrarian view\"). In that case label the "
+    "answer as a hypothetical scenario.\n"
+    "- If 24h change % is materially negative (<= -1.0%) and no other "
+    "bullish evidence is present in the context, the default bias is "
+    "Bearish or Neutral — never Bullish.\n"
+    "- If 24h change % is materially positive (>= +1.0%) and no other "
+    "bearish evidence is present, the default bias is Bullish or Neutral — "
+    "never Bearish.\n"
+    "- When the context is mixed, sparse, or insufficient, say Neutral with "
+    "low confidence rather than guessing.\n"
+    "- In the Snapshot section, repeat the exact numbers from the context "
+    "block (Last price, 24h change %, 24h volume, 24h high, 24h low). Write "
+    "\"n/a\" only if the block literally says \"n/a\". Do NOT write \"n/a\" "
+    "for fields that are present."
+)
 
 
 def _provider_settings() -> Dict[str, Any]:
@@ -269,6 +332,7 @@ async def chat(
     market_block = _build_market_context(market_context, lang)
     if market_block:
         system_blocks.append({"role": "system", "content": market_block})
+    system_blocks.append({"role": "system", "content": BIAS_CONSISTENCY_RULE})
     system_blocks.append({
         "role": "system",
         "content": f'Always end with this exact risk caveat on its own line: "{RISK_CAVEAT[lang]}"',

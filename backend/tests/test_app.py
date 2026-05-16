@@ -356,6 +356,155 @@ class AppSmokeTests(unittest.TestCase):
             sys_contents,
         )
 
+    def test_ai_chat_forwards_aliased_market_context(self) -> None:
+        """Production-shape market_context (price/volume_24h/high_24h/low_24h
+        with aliases like 'status' for transport) must be normalized and the
+        exact labels Last price / 24h volume / 24h high / 24h low / Data
+        transport must reach the upstream system payload. Also the
+        bias-consistency rule must be present."""
+        captured: dict = {}
+
+        class _StubResponse:
+            status_code = 200
+            text = ""
+
+            def json(self) -> dict:
+                return {
+                    "model": "openai",
+                    "choices": [{"message": {"content": "ok"}}],
+                }
+
+        class _StubClient:
+            def __init__(self, *_a, **_kw) -> None:
+                pass
+
+            async def __aenter__(self) -> "_StubClient":
+                return self
+
+            async def __aexit__(self, *_a) -> None:
+                return None
+
+            async def post(self, url, json=None, headers=None):  # noqa: A002
+                captured["json"] = json
+                return _StubResponse()
+
+        env = {
+            "AI_API_KEY": "",
+            "OPENAI_API_KEY": "",
+            "AI_ALLOW_NO_KEY": "true",
+            "AI_BASE_URL": "https://example.test/v1",
+            "AI_MODEL": "openai",
+        }
+        with patch.dict(os.environ, env, clear=False), \
+                patch("app.services.ai_assistant.httpx.AsyncClient", _StubClient):
+            r = self.client.post(
+                "/api/ai/chat",
+                json={
+                    "messages": [
+                        {"role": "user", "content": "Что по BTCUSDT?"}
+                    ],
+                    "language_code": "ru",
+                    "market_context": {
+                        "symbol": "BTCUSDT",
+                        # Production-shape aliases:
+                        "price": 79064.8,
+                        "change_pct_24h": -2.69,
+                        "volume_24h": "5.2B",
+                        "high_24h": 81200,
+                        "low_24h": 78350,
+                        "status": "websocket",
+                    },
+                },
+            )
+        self.assertEqual(r.status_code, 200, r.text)
+        sent = captured.get("json") or {}
+        sys_contents = "\n".join(
+            str(m.get("content") or "")
+            for m in sent.get("messages", [])
+            if m.get("role") == "system"
+        )
+        # Exact labels — what the model must literally see.
+        self.assertIn("Symbol: BTCUSDT", sys_contents)
+        self.assertIn("Last price: 79064.8", sys_contents)
+        self.assertIn("24h change %: -2.690", sys_contents)
+        self.assertIn("24h volume: 5.2B", sys_contents)
+        self.assertIn("24h high: 81200", sys_contents)
+        self.assertIn("24h low: 78350", sys_contents)
+        self.assertIn("Data transport: websocket", sys_contents)
+        # Bias-consistency rule must reach the model.
+        self.assertIn("Bias-consistency rule", sys_contents)
+        self.assertIn("materially negative", sys_contents)
+        # No spurious n/a for fields the user supplied.
+        self.assertNotIn("Last price: n/a", sys_contents)
+        self.assertNotIn("24h volume: n/a", sys_contents)
+
+    def test_ai_chat_forwards_camelcase_aliases(self) -> None:
+        """Bybit-style camelCase aliases (lastPrice / price24hPcnt /
+        turnover24h / highPrice24h / lowPrice24h) must also normalize."""
+        captured: dict = {}
+
+        class _StubResponse:
+            status_code = 200
+            text = ""
+
+            def json(self) -> dict:
+                return {
+                    "model": "openai",
+                    "choices": [{"message": {"content": "ok"}}],
+                }
+
+        class _StubClient:
+            def __init__(self, *_a, **_kw) -> None:
+                pass
+
+            async def __aenter__(self) -> "_StubClient":
+                return self
+
+            async def __aexit__(self, *_a) -> None:
+                return None
+
+            async def post(self, url, json=None, headers=None):  # noqa: A002
+                captured["json"] = json
+                return _StubResponse()
+
+        env = {
+            "AI_API_KEY": "",
+            "OPENAI_API_KEY": "",
+            "AI_ALLOW_NO_KEY": "true",
+            "AI_BASE_URL": "https://example.test/v1",
+            "AI_MODEL": "openai",
+        }
+        with patch.dict(os.environ, env, clear=False), \
+                patch("app.services.ai_assistant.httpx.AsyncClient", _StubClient):
+            r = self.client.post(
+                "/api/ai/chat",
+                json={
+                    "messages": [{"role": "user", "content": "BTC?"}],
+                    "language_code": "en",
+                    "market_context": {
+                        "symbol": "BTCUSDT",
+                        "lastPrice": 79064.8,
+                        "price24hPcnt": -0.0269,
+                        "turnover24h": "5.2B",
+                        "highPrice24h": 81200,
+                        "lowPrice24h": 78350,
+                        "transport": "rest",
+                    },
+                },
+            )
+        self.assertEqual(r.status_code, 200, r.text)
+        sent = captured.get("json") or {}
+        sys_contents = "\n".join(
+            str(m.get("content") or "")
+            for m in sent.get("messages", [])
+            if m.get("role") == "system"
+        )
+        self.assertIn("Last price: 79064.8", sys_contents)
+        self.assertIn("24h volume: 5.2B", sys_contents)
+        self.assertIn("24h high: 81200", sys_contents)
+        self.assertIn("24h low: 78350", sys_contents)
+        self.assertIn("Data transport: rest", sys_contents)
+
     def test_ai_chat_no_key_disabled_returns_503(self) -> None:
         """With neither AI_API_KEY nor AI_ALLOW_NO_KEY set, the endpoint
         must refuse with 503 ai_not_configured."""

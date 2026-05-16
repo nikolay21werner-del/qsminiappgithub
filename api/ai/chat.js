@@ -136,35 +136,96 @@ function num(value) {
   return Number.isFinite(n) ? n : null;
 }
 
-function buildMarketContext(ctx, lang) {
+// Pick the first defined+non-empty value from a list of candidate keys.
+function pickField(obj, keys) {
+  for (const k of keys) {
+    if (obj[k] !== undefined && obj[k] !== null && obj[k] !== "") return obj[k];
+  }
+  return undefined;
+}
+
+// Normalize market context field aliases coming from various data feeds
+// (Bybit V5, Binance, generic) into a stable canonical shape.
+function normalizeMarketContext(ctx) {
   if (!ctx || typeof ctx !== "object") return null;
-  const symbol = sanitizeSymbol(ctx.symbol);
+  const out = {
+    symbol: pickField(ctx, ["symbol", "ticker", "pair"]),
+    last_price: pickField(ctx, [
+      "last_price", "last", "price", "lastPrice", "close", "mark_price"
+    ]),
+    change_pct_24h: pickField(ctx, [
+      "change_pct_24h", "change24h", "price24hPcnt", "priceChangePercent",
+      "changePct24h", "change_percent_24h", "pct_change_24h"
+    ]),
+    volume_24h: pickField(ctx, [
+      "volume_24h", "volume24h", "turnover24h", "quoteVolume", "vol24h",
+      "volume", "turnover_24h"
+    ]),
+    high_24h: pickField(ctx, [
+      "high_24h", "high24h", "highPrice24h", "high"
+    ]),
+    low_24h: pickField(ctx, [
+      "low_24h", "low24h", "lowPrice24h", "low"
+    ]),
+    transport: pickField(ctx, ["transport", "status", "connection"]),
+    provider: pickField(ctx, ["provider", "source", "exchange"]),
+    last_update_age_ms: pickField(ctx, [
+      "last_update_age_ms", "age_ms", "lastUpdateAgeMs"
+    ]),
+    top_tickers: ctx.top_tickers || ctx.peers || ctx.related || null
+  };
+  return out;
+}
+
+// Render either a parsed number or, if the raw value was a non-empty
+// pre-formatted string (e.g. "5.2B"), keep the string. Only fall back to
+// "n/a" when there is truly no value to show.
+function renderField(rawValue, parsedNumber, format) {
+  if (parsedNumber != null) {
+    return format ? format(parsedNumber) : String(parsedNumber);
+  }
+  if (rawValue !== undefined && rawValue !== null && rawValue !== "") {
+    return sanitizeStr(rawValue, 64);
+  }
+  return "n/a";
+}
+
+function buildMarketContext(ctx, lang) {
+  const raw = normalizeMarketContext(ctx);
+  if (!raw) return null;
+  const symbol = sanitizeSymbol(raw.symbol);
   if (!symbol) return null;
-  const last = num(ctx.last_price);
-  const change = num(ctx.change_pct_24h);
-  const volume = num(ctx.volume_24h);
-  const high = num(ctx.high_24h);
-  const low = num(ctx.low_24h);
-  const transport = sanitizeStr(ctx.transport, 16) || "unknown";
-  const provider = sanitizeStr(ctx.provider, 64) || "Bybit V5 (linear)";
-  const ageMs = num(ctx.last_update_age_ms);
+  const last = num(raw.last_price);
+  const change = num(raw.change_pct_24h);
+  const volume = num(raw.volume_24h);
+  const high = num(raw.high_24h);
+  const low = num(raw.low_24h);
+  const transport = sanitizeStr(raw.transport, 16) || "unknown";
+  const provider = sanitizeStr(raw.provider, 64) || "Bybit V5 (linear)";
+  const ageMs = num(raw.last_update_age_ms);
 
   const lines = [
     "Symbol: " + symbol,
-    "Last price: " + (last == null ? "n/a" : last),
-    "24h change %: " + (change == null ? "n/a" : change.toFixed(3)),
-    "24h volume (quote): " + (volume == null ? "n/a" : volume),
-    "24h high: " + (high == null ? "n/a" : high),
-    "24h low: " + (low == null ? "n/a" : low),
-    "Connection: " + transport + " via " + provider +
+    "Last price: " + renderField(raw.last_price, last),
+    "24h change %: " + renderField(raw.change_pct_24h, change, function (n) { return n.toFixed(3); }),
+    "24h volume: " + renderField(raw.volume_24h, volume),
+    "24h high: " + renderField(raw.high_24h, high),
+    "24h low: " + renderField(raw.low_24h, low),
+    "Data transport: " + transport + " via " + provider +
       (ageMs != null ? " (last tick " + Math.round(ageMs) + "ms ago)" : "")
   ];
 
-  if (Array.isArray(ctx.top_tickers) && ctx.top_tickers.length) {
-    const peers = ctx.top_tickers.slice(0, 8).map(function (t) {
-      const s = sanitizeSymbol(t && t.symbol);
-      const p = num(t && t.last_price);
-      const c = num(t && t.change_pct_24h);
+  const peersRaw = Array.isArray(raw.top_tickers) ? raw.top_tickers : null;
+  if (peersRaw && peersRaw.length) {
+    const peers = peersRaw.slice(0, 8).map(function (t) {
+      if (!t || typeof t !== "object") return null;
+      const s = sanitizeSymbol(pickField(t, ["symbol", "ticker", "pair"]));
+      const p = num(pickField(t, [
+        "last_price", "last", "price", "lastPrice", "close"
+      ]));
+      const c = num(pickField(t, [
+        "change_pct_24h", "change24h", "price24hPcnt", "priceChangePercent"
+      ]));
       if (!s) return null;
       return s + " " + (p == null ? "n/a" : p) +
         " (" + (c == null ? "n/a" : c.toFixed(2) + "%") + ")";
@@ -174,6 +235,26 @@ function buildMarketContext(ctx, lang) {
 
   return "## LIVE MARKET CONTEXT (language=" + lang + ")\n" + lines.join("\n");
 }
+
+const BIAS_CONSISTENCY_RULE = [
+  "Bias-consistency rule (hard requirement):",
+  "- Your stated bias MUST be consistent with the LIVE MARKET CONTEXT block",
+  "  unless the user explicitly asks for a hypothetical (\"what if\", \"if BTC",
+  "  reclaims X\", \"contrarian view\"). In that case label the answer as a",
+  "  hypothetical scenario.",
+  "- If 24h change % is materially negative (<= -1.0%) and no other bullish",
+  "  evidence is present in the context, the default bias is Bearish or",
+  "  Neutral — never Bullish.",
+  "- If 24h change % is materially positive (>= +1.0%) and no other bearish",
+  "  evidence is present, the default bias is Bullish or Neutral — never",
+  "  Bearish.",
+  "- When the context is mixed, sparse, or insufficient, say Neutral with",
+  "  low confidence rather than guessing.",
+  "- In the Snapshot section, repeat the exact numbers from the context",
+  "  block (Last price, 24h change %, 24h volume, 24h high, 24h low). Write",
+  "  \"n/a\" only if the block literally says \"n/a\". Do NOT write \"n/a\" for",
+  "  fields that are present."
+].join("\n");
 
 function validateMessages(raw) {
   if (!Array.isArray(raw)) return { error: "messages_must_be_array" };
@@ -299,6 +380,7 @@ module.exports = async function handler(req, res) {
 
   const systemMessages = [{ role: "system", content: SYSTEM_PROMPT_BASE }];
   if (marketBlock) systemMessages.push({ role: "system", content: marketBlock });
+  systemMessages.push({ role: "system", content: BIAS_CONSISTENCY_RULE });
   systemMessages.push({
     role: "system",
     content: 'Always end with this exact risk caveat on its own line: "' + RISK_CAVEAT[lang] + '"'

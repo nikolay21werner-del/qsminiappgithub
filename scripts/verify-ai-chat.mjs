@@ -437,6 +437,139 @@ async function run() {
     restorePrompt();
   }
 
+  // ---- Field aliases (price/volume_24h/high_24h/low_24h, Bybit-style) ----
+  // Reproduces the production bug where market_context arrived with `price`
+  // instead of `last_price` and string-formatted volume "5.2B". The handler
+  // must normalize these aliases AND embed exact labels in the upstream
+  // system payload so the model can't drift to "n/a".
+  resetEnv();
+  process.env.AI_ALLOW_NO_KEY = "true";
+  process.env.AI_BASE_URL = "https://example.test/v1";
+  process.env.AI_MODEL = "openai";
+
+  const capturedAlias = {};
+  const restoreAlias = installMockFetch(capturedAlias, {
+    model: "openai",
+    choices: [{ message: { content: "ok" } }]
+  });
+  try {
+    res = makeRes();
+    await handler(
+      makeReq("POST", {
+        messages: [{ role: "user", content: "Что по BTCUSDT?" }],
+        language_code: "ru",
+        market_context: {
+          symbol: "BTCUSDT",
+          // Production-shape aliases:
+          price: 79064.8,
+          change_pct_24h: -2.69,
+          volume_24h: "5.2B",
+          high_24h: 81200,
+          low_24h: 78350,
+          status: "websocket"
+        }
+      }),
+      res
+    );
+    expect("alias-context status", res.statusCode, 200);
+    const sentBody = JSON.parse(String(capturedAlias.body || "{}"));
+    const sysContents = (sentBody.messages || [])
+      .filter((m) => m && m.role === "system")
+      .map((m) => String(m.content || ""))
+      .join("\n");
+    // Exact labels required by spec — model must see them verbatim.
+    const expectedSnippets = [
+      "Symbol: BTCUSDT",
+      "Last price: 79064.8",
+      "24h change %: -2.690",
+      "24h volume: 5.2B",
+      "24h high: 81200",
+      "24h low: 78350",
+      "Data transport: websocket"
+    ];
+    for (const s of expectedSnippets) {
+      expect("upstream payload contains: " + s, sysContents.indexOf(s) !== -1, true);
+    }
+    // Bias-consistency rule must reach the model.
+    expect(
+      "bias-consistency rule present",
+      sysContents.indexOf("Bias-consistency rule") !== -1,
+      true
+    );
+    expect(
+      "bias rule mentions materially negative",
+      sysContents.indexOf("materially negative") !== -1,
+      true
+    );
+    // No spurious 'n/a' for fields the user actually supplied.
+    expect(
+      "no n/a for last price",
+      sysContents.indexOf("Last price: n/a") === -1,
+      true
+    );
+    expect(
+      "no n/a for 24h volume",
+      sysContents.indexOf("24h volume: n/a") === -1,
+      true
+    );
+  } finally {
+    restoreAlias();
+  }
+
+  // ---- Camel-case aliases (price24hPcnt / turnover24h / highPrice24h) ----
+  resetEnv();
+  process.env.AI_ALLOW_NO_KEY = "true";
+  process.env.AI_BASE_URL = "https://example.test/v1";
+  process.env.AI_MODEL = "openai";
+
+  const capturedCamel = {};
+  const restoreCamel = installMockFetch(capturedCamel, {
+    model: "openai",
+    choices: [{ message: { content: "ok" } }]
+  });
+  try {
+    res = makeRes();
+    await handler(
+      makeReq("POST", {
+        messages: [{ role: "user", content: "BTC?" }],
+        language_code: "en",
+        market_context: {
+          symbol: "BTCUSDT",
+          lastPrice: 79064.8,
+          price24hPcnt: -0.0269,
+          turnover24h: "5.2B",
+          highPrice24h: 81200,
+          lowPrice24h: 78350,
+          transport: "rest"
+        }
+      }),
+      res
+    );
+    expect("camel-alias status", res.statusCode, 200);
+    const sentBody = JSON.parse(String(capturedCamel.body || "{}"));
+    const sysContents = (sentBody.messages || [])
+      .filter((m) => m && m.role === "system")
+      .map((m) => String(m.content || ""))
+      .join("\n");
+    expect(
+      "camel alias: lastPrice -> Last price",
+      sysContents.indexOf("Last price: 79064.8") !== -1,
+      true
+    );
+    expect(
+      "camel alias: turnover24h -> 24h volume",
+      sysContents.indexOf("24h volume: 5.2B") !== -1,
+      true
+    );
+    expect(
+      "camel alias: highPrice24h -> 24h high",
+      sysContents.indexOf("24h high: 81200") !== -1,
+      true
+    );
+  } finally {
+    restoreCamel();
+  }
+
   console.log("\nAll AI chat handler smoke checks passed.");
 }
 
