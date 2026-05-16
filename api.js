@@ -73,8 +73,36 @@
   /* ---------- Bybit V5 ---------- */
   var BYBIT_REST = "https://api.bybit.com";
   var BYBIT_WS = "wss://stream.bybit.com/v5/public/linear";
-  // Public perpetual symbols we want to track. Bybit lists them on `linear` category.
-  var DEFAULT_SYMBOLS = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "TONUSDT", "BNBUSDT", "XRPUSDT"];
+  // Curated Bybit V5 linear USDT perpetual universe. Names follow Bybit's
+  // conventions (1000PEPE/1000SHIB for low-priced memes; POLUSDT replaced
+  // MATICUSDT after the Polygon rebrand). The CORE subset is kept narrow
+  // because every symbol becomes a WebSocket subscription; the wider
+  // CURATED_SYMBOLS list is browsable via REST polling.
+  var CORE_SYMBOLS = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "TONUSDT", "BNBUSDT", "XRPUSDT"];
+  var CURATED_SYMBOLS = [
+    "BTCUSDT", "ETHUSDT", "SOLUSDT", "TONUSDT", "BNBUSDT", "XRPUSDT",
+    "DOGEUSDT", "ADAUSDT", "AVAXUSDT", "LINKUSDT", "DOTUSDT", "POLUSDT",
+    "LTCUSDT", "TRXUSDT", "NEARUSDT", "ARBUSDT", "OPUSDT", "SUIUSDT",
+    "APTUSDT", "1000PEPEUSDT", "1000SHIBUSDT", "BCHUSDT", "UNIUSDT",
+    "ATOMUSDT", "ETCUSDT", "FILUSDT", "INJUSDT", "TIAUSDT", "WLDUSDT",
+    "AAVEUSDT", "RNDRUSDT", "FTMUSDT", "HBARUSDT", "ICPUSDT", "ALGOUSDT",
+    "GALAUSDT", "SANDUSDT", "MANAUSDT", "AXSUSDT", "STXUSDT", "SEIUSDT",
+    "BLURUSDT", "PYTHUSDT", "JTOUSDT", "JUPUSDT", "WIFUSDT", "ORDIUSDT",
+    "BONKUSDT", "FLOKIUSDT", "RUNEUSDT", "GMXUSDT", "DYDXUSDT", "ENSUSDT",
+    "CRVUSDT", "COMPUSDT", "MKRUSDT", "SNXUSDT", "1INCHUSDT", "LDOUSDT",
+    "GMTUSDT", "APEUSDT", "CHZUSDT", "FLOWUSDT", "ENJUSDT", "GRTUSDT",
+    "EOSUSDT", "XLMUSDT", "VETUSDT", "THETAUSDT", "KAVAUSDT", "ZECUSDT",
+    "DASHUSDT", "QTUMUSDT", "WAVESUSDT", "IOTAUSDT", "NEOUSDT", "BSVUSDT",
+    "MASKUSDT", "PEOPLEUSDT", "ROSEUSDT", "JASMYUSDT", "AGIXUSDT", "FETUSDT",
+    "OCEANUSDT", "MINAUSDT", "ZILUSDT", "ONEUSDT", "HOTUSDT", "CELRUSDT",
+    "ANKRUSDT", "BANDUSDT", "ARUSDT", "WOOUSDT", "CFXUSDT", "ASTRUSDT",
+    "GLMRUSDT", "MAGICUSDT", "PENDLEUSDT", "ARKMUSDT", "IDUSDT", "SSVUSDT",
+    "MAVUSDT", "LQTYUSDT", "RPLUSDT", "SUPERUSDT", "TRUUSDT", "LOOMUSDT"
+  ];
+  // Legacy alias — older callers (and tests) read DEFAULT_SYMBOLS.
+  var DEFAULT_SYMBOLS = CURATED_SYMBOLS;
+  var INSTRUMENT_CACHE = null;
+  var INSTRUMENT_CACHE_TS = 0;
 
   function normalizeBybitTicker(raw) {
     if (!raw) return null;
@@ -135,6 +163,32 @@
     });
   }
 
+  // Fetch the full linear USDT perpetual instrument list. Result is cached in
+  // memory for 30 minutes — Bybit's catalog rarely changes intraday and the
+  // payload is ~300KB which is wasteful to re-fetch on every chart render.
+  function bybitGetInstruments(force) {
+    var now = Date.now();
+    if (!force && INSTRUMENT_CACHE && (now - INSTRUMENT_CACHE_TS) < 30 * 60 * 1000) {
+      return Promise.resolve(INSTRUMENT_CACHE.slice());
+    }
+    var url = BYBIT_REST + "/v5/market/instruments-info?category=linear&limit=1000";
+    return fetchJSON(url, { timeout: 10000 }).then(function (resp) {
+      if (!resp || resp.retCode !== 0 || !resp.result || !resp.result.list) {
+        throw new Error("bybit-bad-instruments");
+      }
+      var out = resp.result.list
+        .filter(function (r) {
+          // Linear perpetual on USDT, currently trading.
+          return r && r.symbol && /USDT$/.test(r.symbol) &&
+                 (r.status === "Trading" || r.status === "trading");
+        })
+        .map(function (r) { return r.symbol; });
+      INSTRUMENT_CACHE = out;
+      INSTRUMENT_CACHE_TS = now;
+      return out.slice();
+    });
+  }
+
   function bybitGetKlines(symbol, interval, limit) {
     var url = BYBIT_REST +
       "/v5/market/kline?category=linear" +
@@ -159,10 +213,19 @@
     });
   }
 
-  /* ---------- Realtime store ---------- */
+  /* ---------- Realtime store ----------
+     Strategy when many symbols are tracked:
+       - REST poll for the full `symbols` list (1 request returns all linear
+         tickers; we filter client-side).
+       - WebSocket subscribes only to `wsSymbols` (default: CORE_SYMBOLS plus
+         any explicitly-selected symbol via setWsSymbols) so we don't ship
+         100+ subscription topics over a Telegram WebView connection. */
   function createRealtimeStore(opts) {
     opts = opts || {};
     var symbols = (opts.symbols && opts.symbols.length) ? opts.symbols.slice() : DEFAULT_SYMBOLS.slice();
+    var wsSymbols = (opts.wsSymbols && opts.wsSymbols.length)
+      ? opts.wsSymbols.slice()
+      : CORE_SYMBOLS.slice();
     var listeners = [];
     var statusListeners = [];
 
@@ -292,11 +355,12 @@
         wsAttempts = 0;
         lastWsMessageTs = Date.now();
         setTransport("ws");
-        // Subscribe to ticker streams for each symbol.
+        // Subscribe to ticker streams for the WS subset only (core watchlist
+        // + the user's selected symbol). The wider universe is polled via REST.
         try {
           s.send(JSON.stringify({
             op: "subscribe",
-            args: symbols.map(function (sym) { return "tickers." + sym; })
+            args: wsSymbols.map(function (sym) { return "tickers." + sym; })
           }));
         } catch (e) {}
         // Bybit recommends a ping every 20s.
@@ -364,6 +428,30 @@
     function get(symbol) { return tickers[symbol] || null; }
     function list() { return snapshot(); }
 
+    function setSymbols(next) {
+      if (!next || !next.length) return;
+      symbols = next.slice();
+      // Trigger an immediate REST poll so newly-added symbols populate right away.
+      poll();
+    }
+
+    function setWsSymbols(next) {
+      if (!next || !next.length) return;
+      var sorted = next.slice().sort();
+      var same = sorted.length === wsSymbols.length &&
+                 sorted.every(function (s, i) { return s === wsSymbols.slice().sort()[i]; });
+      if (same) return;
+      wsSymbols = next.slice();
+      if (wsReady && sock) {
+        try {
+          sock.send(JSON.stringify({
+            op: "subscribe",
+            args: wsSymbols.map(function (sym) { return "tickers." + sym; })
+          }));
+        } catch (e) {}
+      }
+    }
+
     function start() {
       stopped = false;
       startPolling(15000);
@@ -385,7 +473,10 @@
       get: get,
       list: list,
       getStatus: getStatus,
-      symbols: function () { return symbols.slice(); }
+      setSymbols: setSymbols,
+      setWsSymbols: setWsSymbols,
+      symbols: function () { return symbols.slice(); },
+      wsSymbols: function () { return wsSymbols.slice(); }
     };
   }
 
@@ -471,6 +562,9 @@
     createRealtimeStore: createRealtimeStore,
     bybitGetTickers: bybitGetTickers,
     bybitGetKlines: bybitGetKlines,
-    DEFAULT_SYMBOLS: DEFAULT_SYMBOLS.slice()
+    bybitGetInstruments: bybitGetInstruments,
+    DEFAULT_SYMBOLS: DEFAULT_SYMBOLS.slice(),
+    CORE_SYMBOLS: CORE_SYMBOLS.slice(),
+    CURATED_SYMBOLS: CURATED_SYMBOLS.slice()
   };
 })(window);

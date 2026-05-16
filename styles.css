@@ -417,6 +417,248 @@ button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
   --coin-line: rgba(38,230,242,.30);
   --coin-tag: #b6f1f7;
 }
+[data-coin="DOGE"] {
+  --coin-c1: rgba(194,159,72,.32); --coin-c2: rgba(150,110,30,.06);
+  --coin-glow: rgba(212,180,90,.45); --coin-ink: rgba(232,200,130,.55);
+  --coin-mark-bg: linear-gradient(180deg, #e7c97a, #a07e2d);
+  --coin-mark-fg: #1a1100; --coin-line: rgba(212,180,90,.35); --coin-tag: #ffe39a;
+}
+[data-coin="ADA"] {
+  --coin-c1: rgba(40,113,200,.32); --coin-c2: rgba(20,60,140,.06);
+  --coin-glow: rgba(64,140,230,.45); --coin-ink: rgba(140,190,255,.55);
+  --coin-mark-bg: linear-gradient(180deg, #3cc8ff, #0033ad);
+  --coin-mark-fg: #001028; --coin-line: rgba(64,140,230,.35); --coin-tag: #b3d8ff;
+}
+[data-coin="AVAX"] {
+  --coin-c1: rgba(232,65,66,.32); --coin-c2: rgba(140,30,30,.06);
+  --coin-glow: rgba(232,65,66,.45); --coin-ink: rgba(255,140,140,.55);
+  --coin-mark-bg: linear-gradient(180deg, #ff6864, #a01e1f);
+  --coin-mark-fg: #20040a; --coin-line: rgba(232,65,66,.35); --coin-tag: #ffb3b3;
+}
+[data-coin="LINK"] {
+  --coin-c1: rgba(43,93,236,.32); --coin-c2: rgba(20,40,120,.06);
+  --coin-glow: rgba(80,140,255,.45); --coin-ink: rgba(140,180,255,.55);
+  --coin-mark-bg: linear-gradient(180deg, #5b95ff, #2a5ada);
+  --coin-mark-fg: #04081f; --coin-line: rgba(80,140,255,.35); --coin-tag: #c8d6ff;
+}
+[data-coin="DOT"] {
+  --coin-c1: rgba(230,0,122,.30); --coin-c2: rgba(130,0,70,.06);
+  --coin-glow: rgba(230,0,122,.45); --coin-ink: rgba(255,140,200,.55);
+  --coin-mark-bg: linear-gradient(180deg, #ff5fb0, #b00060);
+  --coin-mark-fg: #20051a; --coin-line: rgba(230,0,122,.35); --coin-tag: #ffb6db;
+}
+[data-coin="POL"], [data-coin="MATIC"] {
+  --coin-c1: rgba(130,71,229,.32); --coin-c2: rgba(60,30,140,.06);
+  --coin-glow: rgba(130,71,229,.45); --coin-ink: rgba(190,160,255,.55);
+  --coin-mark-bg: linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%);
+  --coin-mark-fg: #100822; --coin-line: rgba(130,71,229,.35); --coin-tag: #d6c2ff;
+}
+[data-coin="LTC"] {
+  --coin-c1: rgba(180,200,220,.30); --coin-c2: rgba(80,100,130,.06);
+  --coin-glow: rgba(180,200,220,.40); --coin-ink: rgba(220,228,240,.55);
+  --coin-mark-bg: linear-gradient(180deg, #cad8e5, #6f7c8a);
+  --coin-mark-fg: #06090f; --coin-line: rgba(180,200,220,.35); --coin-tag: #e3edf5;
+}
+[data-coin="TRX"] {
+  --coin-c1: rgba(255,6,10,.30); --coin-c2: rgba(140,0,0,.06);
+  --coin-glow: rgba(255,40,40,.45); --coin-ink: rgba(255,160,160,.55);
+  --coin-mark-bg: linear-gradient(180deg, #ff5b5b, #b80000);
+  --coin-mark-fg: #20040a; --coin-line: rgba(255,40,40,.35); --coin-tag: #ffb3b3;
+}
+[data-coin="NEAR"] {
+  --coin-c1: rgba(60,200,140,.28); --coin-c2: rgba(10,10,10,.10);
+  --coin-glow: rgba(120,220,170,.45); --coin-ink: rgba(180,240,210,.55);
+  --coin-mark-bg: linear-gradient(180deg, #2dd690, #0e2a1e);
+  --coin-mark-fg: #04070d; --coin-line: rgba(120,220,170,.35); --coin-tag: #bff0d6;
+}
+[data-coin="ARB"] {
+  --coin-c1: rgba(40,160,219,.30); --coin-c2: rgba(20,80,140,.06);
+  --coin-glow: rgba(40,160,219,.45); --coin-ink: rgba(150,210,255,.55);
+  --coin-mark-bg: linear-gradient(180deg, #50b5ff, #1565a5);
+  --coin-mark-fg: #02101e; --coin-line: rgba(40,160,219,.35); --coin-tag: #b8e1ff;
+}
+[data-coin="OP"] {
+  --coin-c1: rgba(255,4,32,.30); --coin-c2: rgba(140,0,10,.06);
+  --coin-glow: rgba(255,40,80,.45); --coin-ink: rgba(255,160,180,.55);
+  --coin-mark-bg: linear-gradient(180deg, #ff5577, #b00020);
+  --coin-mark-fg: #20040a; --coin-line: rgba(255,40,80,.35); --coin-tag: #ffb6c2;
+}
+[data-coin="SUI"] {
+  --coin-c1: rgba(77,162,255,.30); --coin-c2: rgba(40,100,170,.06);
+  --coin-glow: rgba(120,200,255,.45); --coin-ink: rgba(180,220,255,.55);
+  --coin-mark-bg: linear-gradient(135deg, #6fbcf0 0%, #2b6fb8 100%);
+  --coin-mark-fg: #02141f; --coin-line: rgba(120,200,255,.35); --coin-tag: #c5e6ff;
+}
+[data-coin="APT"] {
+  --coin-c1: rgba(20,90,90,.30); --coin-c2: rgba(0,40,40,.06);
+  --coin-glow: rgba(40,160,160,.40); --coin-ink: rgba(140,220,220,.55);
+  --coin-mark-bg: linear-gradient(180deg, #2cb5b1, #0a3a3a);
+  --coin-mark-fg: #04070d; --coin-line: rgba(40,160,160,.35); --coin-tag: #b3eaea;
+}
+[data-coin="PEPE"], [data-coin="1000PEPE"] {
+  --coin-c1: rgba(70,200,80,.30); --coin-c2: rgba(20,80,30,.06);
+  --coin-glow: rgba(120,230,140,.45); --coin-ink: rgba(180,240,180,.55);
+  --coin-mark-bg: linear-gradient(135deg, #6dd56d 0%, #2a7f30 100%);
+  --coin-mark-fg: #04130a; --coin-line: rgba(120,230,140,.35); --coin-tag: #c6f0c6;
+}
+[data-coin="SHIB"], [data-coin="1000SHIB"] {
+  --coin-c1: rgba(255,138,53,.32); --coin-c2: rgba(140,60,10,.06);
+  --coin-glow: rgba(255,138,53,.45); --coin-ink: rgba(255,200,150,.55);
+  --coin-mark-bg: linear-gradient(180deg, #ffa45b, #b3531a);
+  --coin-mark-fg: #20100a; --coin-line: rgba(255,138,53,.35); --coin-tag: #ffd1a8;
+}
+[data-coin="BCH"] {
+  --coin-c1: rgba(110,200,80,.30); --coin-c2: rgba(40,100,30,.06);
+  --coin-glow: rgba(140,220,100,.45); --coin-ink: rgba(190,240,170,.55);
+  --coin-mark-bg: linear-gradient(180deg, #8edc69, #2c7b1f);
+  --coin-mark-fg: #04140a; --coin-line: rgba(140,220,100,.35); --coin-tag: #c8efb2;
+}
+[data-coin="UNI"] {
+  --coin-c1: rgba(255,90,180,.30); --coin-c2: rgba(140,30,90,.06);
+  --coin-glow: rgba(255,90,180,.45); --coin-ink: rgba(255,170,220,.55);
+  --coin-mark-bg: linear-gradient(135deg, #ff70bc 0%, #b22678 100%);
+  --coin-mark-fg: #20051a; --coin-line: rgba(255,90,180,.35); --coin-tag: #ffc0e0;
+}
+[data-coin="ATOM"] {
+  --coin-c1: rgba(110,116,220,.30); --coin-c2: rgba(40,40,120,.06);
+  --coin-glow: rgba(140,150,240,.45); --coin-ink: rgba(180,190,255,.55);
+  --coin-mark-bg: linear-gradient(180deg, #8c92ed, #3a3f9c);
+  --coin-mark-fg: #04070d; --coin-line: rgba(140,150,240,.35); --coin-tag: #c5cbff;
+}
+[data-coin="ETC"] {
+  --coin-c1: rgba(60,160,90,.30); --coin-c2: rgba(20,70,30,.06);
+  --coin-glow: rgba(80,200,110,.40); --coin-ink: rgba(170,230,180,.55);
+  --coin-mark-bg: linear-gradient(180deg, #5fc97e, #1f5c2c);
+  --coin-mark-fg: #04140a; --coin-line: rgba(80,200,110,.35); --coin-tag: #b8e8c2;
+}
+[data-coin="FIL"] {
+  --coin-c1: rgba(38,180,200,.30); --coin-c2: rgba(20,80,90,.06);
+  --coin-glow: rgba(60,210,230,.40); --coin-ink: rgba(160,220,230,.55);
+  --coin-mark-bg: linear-gradient(135deg, #4dd3e2 0%, #1e7782 100%);
+  --coin-mark-fg: #03141a; --coin-line: rgba(60,210,230,.35); --coin-tag: #b6ecf3;
+}
+[data-coin="INJ"] {
+  --coin-c1: rgba(0,228,222,.30); --coin-c2: rgba(0,90,90,.06);
+  --coin-glow: rgba(0,228,222,.45); --coin-ink: rgba(140,240,235,.55);
+  --coin-mark-bg: linear-gradient(180deg, #2af1e8, #0a6a66);
+  --coin-mark-fg: #02181a; --coin-line: rgba(0,228,222,.35); --coin-tag: #b0f3ef;
+}
+[data-coin="TIA"] {
+  --coin-c1: rgba(124,68,255,.30); --coin-c2: rgba(60,20,140,.06);
+  --coin-glow: rgba(160,120,255,.45); --coin-ink: rgba(200,180,255,.55);
+  --coin-mark-bg: linear-gradient(135deg, #b18cff 0%, #6a3ad6 100%);
+  --coin-mark-fg: #100620; --coin-line: rgba(160,120,255,.35); --coin-tag: #d6c4ff;
+}
+[data-coin="WLD"] {
+  --coin-c1: rgba(180,180,180,.28); --coin-c2: rgba(60,60,60,.06);
+  --coin-glow: rgba(200,200,210,.40); --coin-ink: rgba(220,220,230,.55);
+  --coin-mark-bg: linear-gradient(180deg, #d6d6d6, #555555);
+  --coin-mark-fg: #07090d; --coin-line: rgba(200,200,210,.35); --coin-tag: #e3e3eb;
+}
+[data-coin="AAVE"] {
+  --coin-c1: rgba(180,110,230,.30); --coin-c2: rgba(70,30,120,.06);
+  --coin-glow: rgba(200,130,250,.45); --coin-ink: rgba(220,180,255,.55);
+  --coin-mark-bg: linear-gradient(135deg, #b6509e 0%, #5a2da1 100%);
+  --coin-mark-fg: #160622; --coin-line: rgba(200,130,250,.35); --coin-tag: #e3c0ff;
+}
+[data-coin="RNDR"] {
+  --coin-c1: rgba(229,67,80,.30); --coin-c2: rgba(120,20,30,.06);
+  --coin-glow: rgba(229,67,80,.45); --coin-ink: rgba(255,160,170,.55);
+  --coin-mark-bg: linear-gradient(180deg, #ff6770, #9c1722);
+  --coin-mark-fg: #20040a; --coin-line: rgba(229,67,80,.35); --coin-tag: #ffb6bc;
+}
+[data-coin="FTM"] {
+  --coin-c1: rgba(20,160,255,.30); --coin-c2: rgba(10,80,140,.06);
+  --coin-glow: rgba(60,180,255,.45); --coin-ink: rgba(150,210,255,.55);
+  --coin-mark-bg: linear-gradient(180deg, #4bb6ff, #0058a8);
+  --coin-mark-fg: #021527; --coin-line: rgba(60,180,255,.35); --coin-tag: #b8dcff;
+}
+[data-coin="HBAR"] {
+  --coin-c1: rgba(100,100,100,.26); --coin-c2: rgba(30,30,30,.06);
+  --coin-glow: rgba(160,160,170,.35); --coin-ink: rgba(200,200,210,.50);
+  --coin-mark-bg: linear-gradient(180deg, #c0c0c8, #4a4a52);
+  --coin-mark-fg: #07090d; --coin-line: rgba(160,160,170,.30); --coin-tag: #d8d8e0;
+}
+[data-coin="ICP"] {
+  --coin-c1: rgba(255,100,90,.28); --coin-c2: rgba(100,30,140,.10);
+  --coin-glow: rgba(255,120,180,.45); --coin-ink: rgba(255,170,200,.55);
+  --coin-mark-bg: linear-gradient(135deg, #ff6e7b 0%, #6a3ad6 100%);
+  --coin-mark-fg: #20040a; --coin-line: rgba(255,120,180,.35); --coin-tag: #ffbacb;
+}
+[data-coin="ALGO"] {
+  --coin-c1: rgba(200,200,200,.26); --coin-c2: rgba(50,50,50,.06);
+  --coin-glow: rgba(220,220,220,.40); --coin-ink: rgba(230,230,235,.55);
+  --coin-mark-bg: linear-gradient(180deg, #d8d8d8, #444444);
+  --coin-mark-fg: #07090d; --coin-line: rgba(220,220,220,.30); --coin-tag: #ebebeb;
+}
+[data-coin="GALA"], [data-coin="SAND"], [data-coin="MANA"], [data-coin="AXS"] {
+  --coin-c1: rgba(232,80,140,.28); --coin-c2: rgba(110,30,70,.06);
+  --coin-glow: rgba(255,120,170,.45); --coin-ink: rgba(255,180,210,.55);
+  --coin-mark-bg: linear-gradient(135deg, #ff7aaf 0%, #b22678 100%);
+  --coin-mark-fg: #20051a; --coin-line: rgba(232,80,140,.35); --coin-tag: #ffc0d8;
+}
+[data-coin="STX"] {
+  --coin-c1: rgba(90,69,230,.30); --coin-c2: rgba(40,30,140,.06);
+  --coin-glow: rgba(140,120,250,.45); --coin-ink: rgba(180,170,255,.55);
+  --coin-mark-bg: linear-gradient(135deg, #8a7bff 0%, #4536b8 100%);
+  --coin-mark-fg: #04070d; --coin-line: rgba(140,120,250,.35); --coin-tag: #c8c0ff;
+}
+[data-coin="SEI"] {
+  --coin-c1: rgba(150,30,90,.28); --coin-c2: rgba(60,10,40,.06);
+  --coin-glow: rgba(220,80,140,.40); --coin-ink: rgba(240,160,200,.55);
+  --coin-mark-bg: linear-gradient(180deg, #cc4b7e, #631b3a);
+  --coin-mark-fg: #20060f; --coin-line: rgba(220,80,140,.35); --coin-tag: #f2bdd1;
+}
+[data-coin="BLUR"] {
+  --coin-c1: rgba(255,150,50,.28); --coin-c2: rgba(80,40,10,.06);
+  --coin-glow: rgba(255,170,80,.45); --coin-ink: rgba(255,200,130,.55);
+  --coin-mark-bg: linear-gradient(180deg, #ffaa55, #8a4b14);
+  --coin-mark-fg: #20100a; --coin-line: rgba(255,170,80,.35); --coin-tag: #ffd9a8;
+}
+[data-coin="PYTH"], [data-coin="JTO"], [data-coin="JUP"] {
+  --coin-c1: rgba(160,80,230,.28); --coin-c2: rgba(60,20,120,.06);
+  --coin-glow: rgba(180,120,255,.45); --coin-ink: rgba(210,180,255,.55);
+  --coin-mark-bg: linear-gradient(135deg, #b58cff 0%, #6a3ad6 100%);
+  --coin-mark-fg: #100622; --coin-line: rgba(180,120,255,.35); --coin-tag: #d8c2ff;
+}
+[data-coin="WIF"] {
+  --coin-c1: rgba(255,200,90,.30); --coin-c2: rgba(100,60,10,.06);
+  --coin-glow: rgba(255,210,110,.45); --coin-ink: rgba(255,230,170,.55);
+  --coin-mark-bg: linear-gradient(180deg, #ffce6e, #9c6a14);
+  --coin-mark-fg: #20140a; --coin-line: rgba(255,210,110,.35); --coin-tag: #ffe7b3;
+}
+[data-coin="ORDI"] {
+  --coin-c1: rgba(180,140,80,.30); --coin-c2: rgba(80,50,20,.06);
+  --coin-glow: rgba(220,180,120,.45); --coin-ink: rgba(240,210,160,.55);
+  --coin-mark-bg: linear-gradient(180deg, #d4ad6c, #6a4216);
+  --coin-mark-fg: #20140a; --coin-line: rgba(220,180,120,.35); --coin-tag: #f0d2a6;
+}
+[data-coin="BONK"] {
+  --coin-c1: rgba(255,170,40,.30); --coin-c2: rgba(120,60,10,.06);
+  --coin-glow: rgba(255,180,60,.45); --coin-ink: rgba(255,210,140,.55);
+  --coin-mark-bg: linear-gradient(180deg, #ffba48, #9a5a14);
+  --coin-mark-fg: #20100a; --coin-line: rgba(255,180,60,.35); --coin-tag: #ffd99c;
+}
+[data-coin="FLOKI"] {
+  --coin-c1: rgba(255,140,90,.28); --coin-c2: rgba(120,50,10,.06);
+  --coin-glow: rgba(255,160,100,.45); --coin-ink: rgba(255,200,160,.55);
+  --coin-mark-bg: linear-gradient(180deg, #ff9b65, #8e4119);
+  --coin-mark-fg: #20100a; --coin-line: rgba(255,160,100,.35); --coin-tag: #ffd0b3;
+}
+[data-coin="RUNE"] {
+  --coin-c1: rgba(48,255,164,.28); --coin-c2: rgba(0,80,50,.06);
+  --coin-glow: rgba(60,240,180,.45); --coin-ink: rgba(150,250,210,.55);
+  --coin-mark-bg: linear-gradient(180deg, #4ff0ac, #0c6a45);
+  --coin-mark-fg: #04140a; --coin-line: rgba(60,240,180,.35); --coin-tag: #b8f0d4;
+}
+[data-coin="GMX"], [data-coin="DYDX"], [data-coin="ENS"],
+[data-coin="CRV"], [data-coin="COMP"], [data-coin="MKR"],
+[data-coin="SNX"], [data-coin="LDO"] {
+  --coin-c1: rgba(38,140,242,.28); --coin-c2: rgba(80,82,255,.08);
+  --coin-glow: rgba(38,180,242,.40); --coin-ink: rgba(150,210,250,.55);
+  --coin-mark-bg: linear-gradient(135deg, #26a9f2 0%, #7064ff 100%);
+  --coin-mark-fg: #02101e; --coin-line: rgba(38,180,242,.30); --coin-tag: #b8d8f5;
+}
 .hero-card__row { display: flex; align-items: center; gap: 8px; }
 .hero-card__row b { font-size: 15px; font-weight: 800; letter-spacing: 0.02em; }
 .badge {
@@ -747,6 +989,101 @@ button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
   font-size: 11px;
   font-weight: 600;
 }
+
+/* ===== Market search / chips ===== */
+.market-search {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: center;
+  background: rgba(7, 12, 21, 0.7);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 6px 10px;
+}
+.market-search__input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--ink-0);
+  font: inherit;
+  font-size: 13px;
+  padding: 6px 0;
+  width: 100%;
+  min-width: 0;
+}
+.market-search__input::placeholder { color: var(--ink-3); }
+.market-search__count {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10.5px;
+  color: var(--ink-2);
+  padding: 2px 6px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(11, 18, 28, 0.6);
+  white-space: nowrap;
+}
+.coin-chips {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+.coin-chips::-webkit-scrollbar { display: none; }
+.coin-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background:
+    linear-gradient(135deg, var(--coin-c1, rgba(38,230,242,.10)) 0%, transparent 70%),
+    rgba(7, 12, 21, 0.6);
+  border: 1px solid var(--coin-line, var(--line));
+  color: var(--ink-1);
+  padding: 5px 10px 5px 6px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform .12s ease, border-color .12s ease;
+}
+.coin-chip:hover { transform: translateY(-1px); }
+.coin-chip.is-active {
+  color: var(--ink-0);
+  border-color: var(--coin-glow, rgba(38,230,242,.6));
+  box-shadow: 0 0 12px var(--coin-glow, rgba(38,230,242,.25));
+}
+.coin-chip__mark {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 10px;
+  font-weight: 800;
+  background: var(--coin-mark-bg, linear-gradient(180deg, #26e6f2, #8c52ff));
+  color: var(--coin-mark-fg, #04070d);
+  font-family: "JetBrains Mono", monospace;
+}
+.market-empty {
+  text-align: center;
+  margin: 12px 0;
+  color: var(--ink-2);
+}
+
+/* Chart loading / error overlays */
+.chart-status {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  font-size: 12px;
+  color: var(--ink-2);
+  letter-spacing: 0.03em;
+  background: linear-gradient(180deg, rgba(7,12,21,0), rgba(7,12,21,0.45));
+}
+.chart-status.is-error { color: var(--neg); }
 
 /* ===== Market matrix ===== */
 .matrix {

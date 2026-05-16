@@ -91,14 +91,69 @@
   // Glyph is intentionally ASCII / Unicode (no external assets) so the Telegram
   // WebView renders consistently. Palettes are driven by CSS [data-coin="..."].
   var COIN_BRANDS = {
-    BTC: { glyph: "₿", mark: "₿", label: "BTC" },     // ₿
-    ETH: { glyph: "Ξ", mark: "Ξ", label: "ETH" },     // Ξ
-    SOL: { glyph: "◈", mark: "S",      label: "SOL" },     // ◈
-    TON: { glyph: "◇", mark: "T",      label: "TON" },     // ◇
-    BNB: { glyph: "♦", mark: "B",      label: "BNB" },     // ♦
-    XRP: { glyph: "✕", mark: "X",      label: "XRP" }      // ✕
+    BTC:    { glyph: "₿", mark: "₿", label: "BTC" },
+    ETH:    { glyph: "Ξ", mark: "Ξ", label: "ETH" },
+    SOL:    { glyph: "◈", mark: "S", label: "SOL" },
+    TON:    { glyph: "◇", mark: "T", label: "TON" },
+    BNB:    { glyph: "♦", mark: "B", label: "BNB" },
+    XRP:    { glyph: "✕", mark: "X", label: "XRP" },
+    DOGE:   { glyph: "Ð", mark: "D", label: "DOGE" },
+    ADA:    { glyph: "₳", mark: "A", label: "ADA" },
+    AVAX:   { glyph: "▲", mark: "A", label: "AVAX" },
+    LINK:   { glyph: "⬡", mark: "L", label: "LINK" },
+    DOT:    { glyph: "●", mark: "D", label: "DOT" },
+    POL:    { glyph: "⬢", mark: "P", label: "POL" },
+    MATIC:  { glyph: "⬢", mark: "M", label: "MATIC" },
+    LTC:    { glyph: "Ł", mark: "Ł", label: "LTC" },
+    TRX:    { glyph: "▶", mark: "T", label: "TRX" },
+    NEAR:   { glyph: "N", mark: "N", label: "NEAR" },
+    ARB:    { glyph: "◉", mark: "A", label: "ARB" },
+    OP:     { glyph: "○", mark: "O", label: "OP" },
+    SUI:    { glyph: "💧", mark: "S", label: "SUI" },
+    APT:    { glyph: "▤", mark: "A", label: "APT" },
+    PEPE:   { glyph: "🐸", mark: "P", label: "PEPE" },
+    "1000PEPE": { glyph: "🐸", mark: "P", label: "1000PEPE" },
+    SHIB:   { glyph: "🐕", mark: "S", label: "SHIB" },
+    "1000SHIB": { glyph: "🐕", mark: "S", label: "1000SHIB" },
+    BCH:    { glyph: "Ƀ", mark: "B", label: "BCH" },
+    UNI:    { glyph: "🦄", mark: "U", label: "UNI" },
+    ATOM:   { glyph: "⚛", mark: "A", label: "ATOM" },
+    ETC:    { glyph: "ξ", mark: "E", label: "ETC" },
+    FIL:    { glyph: "⬚", mark: "F", label: "FIL" },
+    INJ:    { glyph: "◆", mark: "I", label: "INJ" },
+    TIA:    { glyph: "✧", mark: "T", label: "TIA" },
+    WLD:    { glyph: "◯", mark: "W", label: "WLD" },
+    AAVE:   { glyph: "◬", mark: "A", label: "AAVE" },
+    RNDR:   { glyph: "▣", mark: "R", label: "RNDR" },
+    FTM:    { glyph: "ƒ", mark: "F", label: "FTM" },
+    HBAR:   { glyph: "ℏ", mark: "H", label: "HBAR" },
+    ICP:    { glyph: "∞", mark: "I", label: "ICP" },
+    ALGO:   { glyph: "△", mark: "A", label: "ALGO" },
+    GALA:   { glyph: "★", mark: "G", label: "GALA" },
+    SAND:   { glyph: "■", mark: "S", label: "SAND" },
+    MANA:   { glyph: "◧", mark: "M", label: "MANA" },
+    AXS:    { glyph: "♠", mark: "A", label: "AXS" },
+    STX:    { glyph: "▰", mark: "S", label: "STX" },
+    SEI:    { glyph: "▼", mark: "S", label: "SEI" },
+    BLUR:   { glyph: "◐", mark: "B", label: "BLUR" },
+    PYTH:   { glyph: "π", mark: "P", label: "PYTH" },
+    JTO:    { glyph: "J", mark: "J", label: "JTO" },
+    JUP:    { glyph: "♃", mark: "J", label: "JUP" },
+    WIF:    { glyph: "🐶", mark: "W", label: "WIF" },
+    ORDI:   { glyph: "◆", mark: "O", label: "ORDI" },
+    BONK:   { glyph: "🔨", mark: "B", label: "BONK" },
+    FLOKI:  { glyph: "🐺", mark: "F", label: "FLOKI" },
+    RUNE:   { glyph: "ᛉ", mark: "R", label: "RUNE" },
+    GMX:    { glyph: "✦", mark: "G", label: "GMX" },
+    DYDX:   { glyph: "Δ", mark: "D", label: "DYDX" },
+    ENS:    { glyph: ".",  mark: "E", label: "ENS" },
+    CRV:    { glyph: "∿", mark: "C", label: "CRV" },
+    COMP:   { glyph: "◷", mark: "C", label: "COMP" },
+    MKR:    { glyph: "Μ", mark: "M", label: "MKR" },
+    SNX:    { glyph: "✕", mark: "S", label: "SNX" },
+    LDO:    { glyph: "Λ", mark: "L", label: "LDO" }
   };
-  var COIN_BRAND_DEFAULT = { glyph: "◎", mark: "¤", label: "USD" }; // ◎ / ¤
+  var COIN_BRAND_DEFAULT = { glyph: "◎", mark: "¤", label: "USD" };
 
   function coinKey(symbol) {
     var s = shortSym(symbol).toUpperCase();
@@ -148,6 +203,8 @@
     tickerMap: {},          // symbol -> ticker
     klines: {},             // "SYMBOL|tf" -> [{ts,open,high,low,close,volume}]
     klineLoading: {},
+    klineError: {},         // "SYMBOL|tf" -> error code
+    marketQuery: "",        // current market-screen search filter
     aiHistory: [],
     aiBusy: false,
     status: {
@@ -172,7 +229,7 @@
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
     if (name === "signals") renderSignalsScreen();
-    if (name === "market") renderMarketScreen();
+    if (name === "market") { renderCoinChips(); renderMarketScreen(); }
     if (name === "ai") renderAIInitial();
     if (name === "profile") renderProfileScreen();
   }
@@ -220,6 +277,11 @@
       deltaEl.classList.toggle("dn", t.change_pct_24h < 0);
     }
     ensureKlines(t.symbol, state.tf);
+    // Sync chart status overlay with cached load state for the current key.
+    var key = klineKey(t.symbol, state.tf);
+    if (state.klines[key]) setChartStatus(null, false);
+    else if (state.klineError[key]) setChartStatus(I18N.t("chartUnavailable"), true);
+    else if (state.klineLoading[key]) setChartStatus(I18N.t("chartLoading"), false);
     renderHeroChart(t);
   }
 
@@ -230,16 +292,39 @@
     if (state.klines[key] || state.klineLoading[key]) return;
     var interval = TF_TO_BYBIT[tf] || "5";
     state.klineLoading[key] = true;
+    state.klineError[key] = null;
+    if (state.screen === "overview" && state.selectedSymbol === symbol && state.tf === tf) {
+      setChartStatus(I18N.t("chartLoading"), false);
+    }
     API.bybitGetKlines(symbol, interval, 60).then(function (rows) {
       state.klines[key] = rows;
       state.klineLoading[key] = false;
       if (state.screen === "overview" && state.selectedSymbol === symbol && state.tf === tf) {
+        setChartStatus(null, false);
         var t = state.tickerMap[symbol];
         if (t) renderHeroChart(t);
       }
-    }).catch(function () {
+    }).catch(function (err) {
       state.klineLoading[key] = false;
+      state.klineError[key] = (err && err.message) || "error";
+      if (state.screen === "overview" && state.selectedSymbol === symbol && state.tf === tf) {
+        setChartStatus(I18N.t("chartUnavailable"), true);
+      }
     });
+  }
+
+  function setChartStatus(message, isError) {
+    var el = $("#hero-chart-status");
+    if (!el) return;
+    if (!message) {
+      el.hidden = true;
+      el.textContent = "";
+      el.classList.remove("is-error");
+      return;
+    }
+    el.hidden = false;
+    el.textContent = message;
+    el.classList.toggle("is-error", !!isError);
   }
 
   function renderHeroChart(t) {
@@ -504,23 +589,63 @@
   }
 
   // ---------- Market screen ----------
+  function filterTickers(rows, query) {
+    var q = String(query || "").trim().toUpperCase();
+    if (!q) return rows;
+    return rows.filter(function (t) {
+      var sym = String(t.symbol || "").toUpperCase();
+      var shortS = shortSym(sym).toUpperCase();
+      return sym.indexOf(q) >= 0 || shortS.indexOf(q) >= 0;
+    });
+  }
+
+  function renderCoinChips() {
+    var el = $("#coin-chips");
+    if (!el) return;
+    // Build chip set from curated symbol list so the chooser is stable even
+    // before tickers arrive — clicking a chip selects that pair.
+    var symbols = (API.CURATED_SYMBOLS || API.DEFAULT_SYMBOLS || []).slice(0, 40);
+    var html = symbols.map(function (sym) {
+      var k = coinKey(sym);
+      var b = coinBrand(sym);
+      var active = sym === state.selectedSymbol ? " is-active" : "";
+      return '<button type="button" class="coin-chip' + active +
+             '" data-coin="' + k + '" data-symbol="' + escapeHtml(sym) +
+             '" data-testid="coin-chip-' + escapeHtml(sym) + '">' +
+             '<span class="coin-chip__mark" data-coin="' + k + '">' + escapeHtml(b.mark) + '</span>' +
+             escapeHtml(shortSym(sym)) + '</button>';
+    }).join("");
+    el.innerHTML = html;
+  }
+
   function renderMarketScreen() {
     var el = $("#matrix");
     if (!el) return;
     var rows = state.tickers || [];
+    var emptyEl = $("#market-empty");
+    var countEl = $("#market-count");
     if (!rows.length) {
       el.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div>';
+      if (countEl) countEl.textContent = "—";
+      if (emptyEl) emptyEl.hidden = true;
+      return;
+    }
+    var visible = filterTickers(rows, state.marketQuery);
+    if (countEl) countEl.textContent = visible.length + " / " + rows.length;
+    if (emptyEl) emptyEl.hidden = visible.length > 0;
+    if (!visible.length) {
+      el.innerHTML = "";
       return;
     }
     var html = "";
-    rows.forEach(function (t) {
+    visible.forEach(function (t) {
       var pos = t.change_pct_24h >= 0;
       var absChg = Math.abs(t.change_pct_24h || 0);
       var strength = absChg >= 2 ? "high" : absChg >= 1 ? "mid" : "low";
       var strengthLabel = strength === "high" ? I18N.t("strHigh") : strength === "mid" ? I18N.t("strMid") : I18N.t("strLow");
       var mKey = coinKey(t.symbol);
       var mBrand = coinBrand(t.symbol);
-      html += '<div class="matrix-cell ' + (pos ? "up" : "down") + '" data-symbol="' + escapeHtml(t.symbol) + '" data-coin="' + mKey + '" data-glyph="' + escapeHtml(mBrand.glyph) + '">' +
+      html += '<div class="matrix-cell ' + (pos ? "up" : "down") + '" data-symbol="' + escapeHtml(t.symbol) + '" data-coin="' + mKey + '" data-glyph="' + escapeHtml(mBrand.glyph) + '" data-testid="matrix-cell-' + escapeHtml(t.symbol) + '">' +
         '<div class="matrix-sym">' + escapeHtml(shortSym(t.symbol)) + '<span class="matrix-strength ' + strength + '">' + escapeHtml(strengthLabel) + '</span></div>' +
         '<div class="matrix-price">$' + fmtPrice(t.last_price) + '</div>' +
         '<div class="matrix-delta">' + fmtPct(t.change_pct_24h) + '</div>' +
@@ -755,6 +880,33 @@
     s.setAttribute("aria-hidden", "true");
   }
 
+  // ---------- Symbol selection ----------
+  function selectSymbol(sym, opts) {
+    if (!sym) return;
+    opts = opts || {};
+    state.selectedSymbol = sym;
+    // Make sure the realtime store is following this symbol over WS so the
+    // hero ticker updates in true realtime, not just on the next REST poll.
+    if (realtime && typeof realtime.setWsSymbols === "function") {
+      var core = (API.CORE_SYMBOLS || []).slice();
+      if (core.indexOf(sym) < 0) core.push(sym);
+      try { realtime.setWsSymbols(core); } catch (e) {}
+    }
+    // If the symbol isn't in the polled list, expand it so it shows up.
+    if (realtime && typeof realtime.setSymbols === "function") {
+      var cur = realtime.symbols();
+      if (cur.indexOf(sym) < 0) {
+        cur.push(sym);
+        try { realtime.setSymbols(cur); } catch (e) {}
+      }
+    }
+    if (opts.switchScreen) setScreen("overview");
+    ensureKlines(sym, state.tf);
+    applyHeroSnapshot();
+    renderCoinChips();
+    haptic("selection");
+  }
+
   // ---------- Events ----------
   function setText(sel, text) {
     var el = $(sel);
@@ -807,23 +959,19 @@
       var matrixCell = e.target.closest(".matrix-cell[data-symbol]");
       if (matrixCell) {
         var sym = matrixCell.getAttribute("data-symbol");
-        if (sym) {
-          state.selectedSymbol = sym;
-          setScreen("overview");
-          ensureKlines(sym, state.tf);
-          applyHeroSnapshot();
-        }
+        if (sym) selectSymbol(sym, { switchScreen: true });
+        return;
+      }
+      var chip = e.target.closest(".coin-chip[data-symbol]");
+      if (chip) {
+        var sym3 = chip.getAttribute("data-symbol");
+        if (sym3) selectSymbol(sym3, { switchScreen: true });
         return;
       }
       var overviewRow = e.target.closest("#overview-rows .row[data-symbol]");
       if (overviewRow) {
         var sym2 = overviewRow.getAttribute("data-symbol");
-        if (sym2) {
-          state.selectedSymbol = sym2;
-          ensureKlines(sym2, state.tf);
-          applyHeroSnapshot();
-          haptic("selection");
-        }
+        if (sym2) selectSymbol(sym2);
         return;
       }
       var togg = e.target.closest("[data-toggle]");
@@ -844,6 +992,15 @@
         return;
       }
     });
+
+    // Market screen search input
+    var marketSearch = $("#market-search");
+    if (marketSearch) {
+      marketSearch.addEventListener("input", function () {
+        state.marketQuery = marketSearch.value || "";
+        renderMarketScreen();
+      });
+    }
 
     // AI form
     var aiForm = $("#ai-form");
@@ -960,6 +1117,7 @@
     applyConnectionStatus();
   }
 
+
   function onRealtimeStatus(st) {
     state.status.transport = st.transport;
     state.status.wsReady = st.wsReady;
@@ -982,7 +1140,12 @@
     renderKPIs();
 
     // Spin up the realtime market store. Bybit V5 public, no secrets.
-    realtime = API.createRealtimeStore({ symbols: API.DEFAULT_SYMBOLS });
+    // Wide REST poll + narrow WS subscription = fast UI without flooding the
+    // Telegram WebView connection with 100+ subscription topics.
+    realtime = API.createRealtimeStore({
+      symbols: API.CURATED_SYMBOLS || API.DEFAULT_SYMBOLS,
+      wsSymbols: API.CORE_SYMBOLS
+    });
     realtime.onTickers(onRealtimeTickers);
     realtime.onStatus(onRealtimeStatus);
     realtime.start();

@@ -123,7 +123,11 @@
       rm5Title: "Settings & language",
       rm5Body: "Tailor the app: language, themes, notifications and analysis preferences.",
       rm6Title: "Signal push",
-      rm6Body: "A push notification is delivered the moment a high-confidence signal appears."
+      rm6Body: "A push notification is delivered the moment a high-confidence signal appears.",
+      searchPlaceholder: "Search coin or pair…",
+      searchNoMatch: "No matches — try BTC, ETH, SOL…",
+      chartLoading: "Loading chart…",
+      chartUnavailable: "Chart unavailable — try another pair or refresh."
     },
     ru: {
       brandTagline: "Сигналы, рынок, AI-анализ",
@@ -243,7 +247,11 @@
       rm5Title: "Настройки и язык",
       rm5Body: "Пользователь может настроить приложение под себя: язык, темы, уведомления и параметры анализа.",
       rm6Title: "Уведомление о сигнале",
-      rm6Body: "Пользователь получает push-уведомление о новом высоковероятном сигнале в реальном времени."
+      rm6Body: "Пользователь получает push-уведомление о новом высоковероятном сигнале в реальном времени.",
+      searchPlaceholder: "Поиск монеты или пары…",
+      searchNoMatch: "Совпадений нет — попробуйте BTC, ETH, SOL…",
+      chartLoading: "Загрузка графика…",
+      chartUnavailable: "График недоступен — выберите другую пару или обновите."
     },
     zh: {
       brandTagline: "信号、行情、AI 分析",
@@ -363,7 +371,11 @@
       rm5Title: "设置与语言",
       rm5Body: "自定义语言、主题、通知和分析偏好。",
       rm6Title: "信号推送",
-      rm6Body: "高置信信号一旦出现，第一时间通过推送通知送达。"
+      rm6Body: "高置信信号一旦出现，第一时间通过推送通知送达。",
+      searchPlaceholder: "搜索币种或交易对…",
+      searchNoMatch: "无匹配 — 试试 BTC、ETH、SOL…",
+      chartLoading: "正在加载图表…",
+      chartUnavailable: "图表不可用 — 请选择其他交易对或刷新。"
     }
   };
 

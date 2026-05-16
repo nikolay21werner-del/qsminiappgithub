@@ -85,6 +85,7 @@
           </div>
 
           <div class="chart-wrap" aria-hidden="true">
+            <div class="chart-status" id="hero-chart-status" hidden></div>
             <svg viewBox="0 0 320 140" preserveAspectRatio="none" id="hero-chart">
               <defs>
                 <linearGradient id="cFill" x1="0" y1="0" x2="0" y2="1">
@@ -188,6 +189,19 @@
           <h1 class="screen__title" data-i18n="sectionMatrix">Матрица рынка</h1>
           <button class="chip" type="button" data-action="refresh" data-i18n="refresh">Обновить</button>
         </div>
+        <div class="market-search">
+          <input
+            type="search"
+            id="market-search"
+            class="market-search__input"
+            data-testid="market-search"
+            autocomplete="off"
+            spellcheck="false"
+            data-i18n-placeholder="searchPlaceholder"
+            placeholder="Поиск монеты…" />
+          <span class="market-search__count" id="market-count" data-testid="market-count">—</span>
+        </div>
+        <div class="coin-chips" id="coin-chips" data-testid="coin-chips" aria-label="Быстрый выбор монеты"></div>
         <div class="tf-tabs tf-tabs--row" id="market-tabs" role="tablist" aria-label="Таймфрейм">
           <button type="button" data-mtf="1m">1м</button>
           <button type="button" data-mtf="5m" class="is-active">5м</button>
@@ -196,9 +210,12 @@
           <button type="button" data-mtf="4h">4ч</button>
           <button type="button" data-mtf="1d">1д</button>
         </div>
-        <div class="matrix" id="matrix">
+        <div class="matrix" id="matrix" data-testid="market-matrix">
           <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
         </div>
+        <p class="muted market-empty" id="market-empty" hidden data-i18n="searchNoMatch">
+          Совпадений не найдено
+        </p>
       </section>
 
       <!-- ========== AI ========== -->
