@@ -146,10 +146,9 @@
       sideLong: "LONG",
       sideShort: "SHORT",
       aiMood: "Market mood",
-      partnerLabel: "Sponsored",
       partnerTitle: "Antarctic Wallet",
       partnerChip: "USDT on TON",
-      partnerLede: "Pay with crypto via a ruble QR — no exchangers, no surprise fees.",
+      partnerLede: "Already in your wallet — hold and send USDT on the TON network.",
       partnerCta: "Open",
     },
     ru: {
@@ -293,10 +292,9 @@
       sideLong: "LONG",
       sideShort: "SHORT",
       aiMood: "Настроение рынка",
-      partnerLabel: "Партнёр",
       partnerTitle: "Antarctic Wallet",
       partnerChip: "USDT в сети TON",
-      partnerLede: "Плати криптой по рублёвому QR-коду — без обменников и скрытых комиссий.",
+      partnerLede: "Уже в кошельке — храните и отправляйте USDT в сети TON.",
       partnerCta: "Открыть",
     },
     zh: {
@@ -440,10 +438,9 @@
       sideLong: "LONG",
       sideShort: "SHORT",
       aiMood: "市场情绪",
-      partnerLabel: "合作伙伴",
       partnerTitle: "Antarctic Wallet",
       partnerChip: "TON 链上 USDT",
-      partnerLede: "用加密货币扫卢布二维码付款 — 无需兑换商，无隐藏费用。",
+      partnerLede: "已在钱包中 — 在 TON 网络上持有并发送 USDT。",
       partnerCta: "打开",
     }
   };

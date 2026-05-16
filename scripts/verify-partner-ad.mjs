@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 /* verify-partner-ad.mjs
  *
- * Locks in the sponsored Antarctic Wallet partner card: presence, copy,
- * referral link, Telegram open-link fallback, partner label, and the
- * surrounding shell (no game, top nav absent, bottom nav unchanged,
+ * Locks in the native Antarctic Wallet ad card. No "partner/sponsored"
+ * label is rendered. No ruble-QR / pay-with-crypto copy. Penguin SVG
+ * mark and Antarctic brand-blue colors are required. Surrounding shell
+ * is unchanged (no game, top nav absent, bottom nav unchanged,
  * market/AI still wired). Pure static checks — no browser required.
  */
 
@@ -31,7 +32,7 @@ const vercel = JSON.parse(read("vercel.json"));
 
 const REF_URL = "https://t.me/antarctic_wallet_bot/app?startapp=ref_7d913f8149";
 
-// ---- 1. HTML: partner card present and wired ---------------------------
+// ---- 1. HTML: card present and wired -----------------------------------
 must("partner card anchor present",
   /id="partner-antarctic"[\s\S]*data-testid="partner-antarctic"/.test(html));
 must("partner card uses anchor element with target=_blank",
@@ -43,8 +44,6 @@ must("partner card carries the exact referral URL",
   && html.includes('href="' + REF_URL + '"'));
 must("partner card has rel=noopener noreferrer",
   /class="partner-card"[\s\S]*rel="noopener noreferrer"/.test(html));
-must("partner card has sponsored/partner label hook",
-  /class="partner-card__label"[^>]*data-i18n="partnerLabel"/.test(html));
 must("partner card has title / chip / lede / cta i18n hooks",
   /data-i18n="partnerTitle"/.test(html)
   && /data-i18n="partnerChip"/.test(html)
@@ -60,8 +59,45 @@ must("partner card lives in Overview (between last-signal and KPIs)",
   "expected order: last-signal → partner-antarctic → kpis");
 must("partner card SVG mark is inline (no external image)",
   /class="partner-card__mark"[\s\S]*?<svg[\s\S]*?<\/svg>/.test(html));
-must("RU copy hints present (USDT в сети TON or рублёвому QR)",
-  /USDT в сети TON/.test(i18n) && /рублёвому QR/.test(i18n));
+
+// ---- 1a. Visible label / forbidden copy must be GONE -------------------
+must("no visible 'partner/sponsored' label class in card markup",
+  !/class="partner-card__label"/.test(html)
+  && !/data-i18n="partnerLabel"/.test(html));
+must("no 'Партнёр' / 'Sponsored' / '合作伙伴' literal in partner card block",
+  (() => {
+    const start = html.indexOf('id="partner-antarctic"');
+    const end = html.indexOf("</a>", start);
+    if (start < 0 || end < 0) return false;
+    const block = html.slice(start, end);
+    return !/Партн[еёe]р/i.test(block)
+      && !/Sponsored/i.test(block)
+      && !/合作伙伴/.test(block);
+  })());
+must("no 'Плати криптой' / 'рубл' / 'ruble QR' / 'Pay with crypto' / '卢布' in i18n",
+  !/Плати\s+криптой/i.test(i18n)
+  && !/рубл/i.test(i18n)
+  && !/ruble\s*QR/i.test(i18n)
+  && !/Pay\s+with\s+crypto/i.test(i18n)
+  && !/卢布/i.test(i18n));
+must("no partnerLabel key in i18n",
+  !/\bpartnerLabel\s*:/.test(i18n));
+
+// ---- 1b. New copy / brand mark present ---------------------------------
+must("RU copy: 'USDT в сети TON' present in i18n",
+  /USDT в сети TON/.test(i18n));
+must("RU copy: 'уже в кошельке' phrase present in i18n",
+  /[Уу]же в кошельке/.test(i18n));
+must("penguin SVG mark present (eyes + orange beak)",
+  (() => {
+    const start = html.indexOf("partner-card__mark");
+    const end = html.indexOf("</span>", start);
+    const block = html.slice(start, end);
+    const eyes = (block.match(/<circle[^>]*r="1\.35"/g) || []).length >= 2;
+    const beak = /fill="#ffb24a"/.test(block);
+    return eyes && beak;
+  })(),
+  "expected two eye circles and an orange beak (#ffb24a) in the mark SVG");
 
 // ---- 2. JS: action wired with safe Telegram fallback -------------------
 must("openPartnerLink helper exists in app.js",
@@ -82,14 +118,14 @@ must(".partner-card selector defined",
   /\.partner-card\s*\{/.test(css));
 must(".partner-card__cta has min-height >= 44px",
   /\.partner-card__cta[\s\S]*?min-height:\s*44px/.test(css));
-must("partner card has gradient blending with app palette",
-  /\.partner-card[\s\S]*?linear-gradient/.test(css));
+must("partner card uses Antarctic brand-blue gradient (#0a5bff present)",
+  /\.partner-card\s*\{[\s\S]*?linear-gradient[\s\S]*?#0a5bff/i.test(css));
 must("partner card honors prefers-reduced-motion",
   /@media\s+\(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.partner-card/.test(css));
 
-// ---- 4. i18n: ru/en/zh keys present ------------------------------------
+// ---- 4. i18n: ru/en/zh keys present (label removed) --------------------
 const REQUIRED_KEYS = [
-  "partnerLabel", "partnerTitle", "partnerChip", "partnerLede", "partnerCta"
+  "partnerTitle", "partnerChip", "partnerLede", "partnerCta"
 ];
 for (const k of REQUIRED_KEYS) {
   const count = (i18n.match(new RegExp("\\b" + k + ":\\s*\"", "g")) || []).length;
