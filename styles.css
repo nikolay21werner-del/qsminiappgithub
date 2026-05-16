@@ -1710,6 +1710,20 @@ body:not(.boot-done) .bg-stack {
   filter: drop-shadow(0 0 24px rgba(38, 230, 242, 0.35));
   animation: bootMarkFloat 4.5s ease-in-out infinite;
 }
+/* Exact user-provided QUANTSIGNAL AI label. Acts as the canonical brand
+   image on the boot splash; the Q-mark above stays as the animated
+   identity glyph. */
+.boot-splash__label {
+  display: block;
+  width: min(86vw, 420px);
+  height: auto;
+  max-height: 38vh;
+  margin: 8px auto 14px;
+  border-radius: 18px;
+  box-shadow: 0 18px 48px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.04);
+  object-fit: contain;
+  animation: bootMarkIn .8s cubic-bezier(.2,.7,.2,1);
+}
 .boot-splash__halo {
   position: absolute;
   inset: -10%;

@@ -30,7 +30,14 @@ const CHANNEL_URL = "https://t.me/QUANTSIGNAL_AI";
 const CHANNEL_USERNAME = "@QUANTSIGNAL_AI";
 const BOT_USERNAME = "@QUANTSIGNAL_AI_BOT";
 
-const WELCOME_BANNER_PATH = "/assets/telegram/welcome-banner.png";
+// Exact user-provided QUANTSIGNAL AI label image. Used as the canonical
+// banner everywhere a wide brand image is needed. The old asset path
+// "/assets/telegram/welcome-banner.png" is kept as an on-disk alias of
+// the same image so previously cached URLs keep resolving to the
+// correct label.
+const LABEL_BANNER_PATH = "/assets/telegram/quantsignal-label.jpeg";
+const LEGACY_WELCOME_BANNER_PATH = "/assets/telegram/welcome-banner.png";
+const WELCOME_BANNER_PATH = LABEL_BANNER_PATH;
 
 // ---------- HTTP helpers ----------
 function sendJson(res, status, body) {

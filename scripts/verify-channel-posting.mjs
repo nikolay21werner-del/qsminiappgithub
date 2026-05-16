@@ -142,6 +142,13 @@ must("old UTC/MAG timestamp line removed from caption",
   !/escapeHtml\(ts\.utc\)\s*\+\s*"\s*·\s*"\s*\+\s*escapeHtml\(ts\.mag\)/.test(endpoint));
 must("preview returns image base64",
   /image_svg_base64/.test(endpoint));
+must("endpoint sends the user-provided QUANTSIGNAL AI label via sendPhoto",
+  /LABEL_BANNER_RELPATH\s*=\s*"assets\/telegram\/quantsignal-label\.jpeg"/.test(endpoint) &&
+  /\/sendPhoto/.test(endpoint));
+must("endpoint loads the label image from disk (readLabelBuffer)",
+  /readLabelBuffer\s*\(/.test(endpoint) && /fs\.readFileSync/.test(endpoint));
+must("preview JSON also exposes the label image (image_base64 + image_path)",
+  /image_base64/.test(endpoint) && /image_path/.test(endpoint));
 must("authorization check via QSI_CRON_SECRET / CRON_SECRET",
   /QSI_CRON_SECRET/.test(endpoint) && /CRON_SECRET/.test(endpoint));
 

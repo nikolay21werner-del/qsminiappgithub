@@ -34,8 +34,28 @@
 
 "use strict";
 
+const fs = require("fs");
+const path = require("path");
+
 const UPSTREAM_TIMEOUT_MS = 7000;
 const TG_API = "https://api.telegram.org";
+
+// Exact user-provided QUANTSIGNAL AI label image. This is the canonical
+// brand banner used for every channel post — sent as the sendPhoto image
+// instead of a generated trading-card SVG. The SVG generator below is
+// preserved so the preview JSON keeps emitting `image_svg_base64` for
+// backwards compatibility with existing operator tooling.
+const LABEL_BANNER_RELPATH = "assets/telegram/quantsignal-label.jpeg";
+const LABEL_BANNER_CONTENT_TYPE = "image/jpeg";
+const LABEL_BANNER_FILENAME = "quantsignal-label.jpeg";
+
+function readLabelBuffer() {
+  try {
+    return fs.readFileSync(path.join(__dirname, "..", "..", LABEL_BANNER_RELPATH));
+  } catch (_) {
+    return null;
+  }
+}
 
 // Symbols we cover in the post. Order = on-card order.
 const SYMBOLS = ["BTC", "ETH", "SOL", "TON", "DOGE"];
@@ -732,13 +752,43 @@ function multipartBody(boundary, fields, photo) {
 }
 
 async function sendPhotoToChannel(botToken, chatId, caption, svg) {
+  // Primary path: send the exact QUANTSIGNAL AI label image as the
+  // sendPhoto photo. Telegram's sendPhoto requires a raster format
+  // (JPEG/PNG) — we pre-shipped the user-provided label JPEG as
+  // assets/telegram/quantsignal-label.jpeg, which is loaded at request
+  // time and uploaded via multipart/form-data.
+  const labelBuf = readLabelBuffer();
+  if (labelBuf && labelBuf.length > 0) {
+    const boundary = "----QSI" + Date.now().toString(16) + Math.random().toString(16).slice(2);
+    const url = TG_API + "/bot" + botToken + "/sendPhoto";
+    const fields = {
+      chat_id: chatId,
+      caption: caption,
+      parse_mode: "HTML",
+      disable_notification: "false"
+    };
+    const body = multipartBody(boundary, fields, {
+      filename: LABEL_BANNER_FILENAME,
+      contentType: LABEL_BANNER_CONTENT_TYPE,
+      buffer: labelBuf
+    });
+    const r = await fetchWithTimeout(url, {
+      method: "POST",
+      headers: { "Content-Type": "multipart/form-data; boundary=" + boundary },
+      body: body
+    }, 12000);
+    const text = await r.text();
+    let parsed = null;
+    try { parsed = JSON.parse(text); } catch (_) {}
+    if (r.ok && parsed && parsed.ok === true) {
+      return { ok: true, message_id: parsed.result && parsed.result.message_id };
+    }
+    // fall through to SVG-document fallback below
+  }
+
+  // Fallback: send the generated SVG as a document so operators still get
+  // a branded artifact if the label asset is unavailable in the runtime.
   const boundary = "----QSI" + Date.now().toString(16) + Math.random().toString(16).slice(2);
-  // Telegram accepts SVG as a document but sendPhoto requires raster. We
-  // therefore send the SVG as a document via sendDocument when SVG-only,
-  // OR — preferred — send a pre-rendered raster if available. Since we
-  // have no PNG renderer in the runtime, we fall back to sendDocument
-  // for image delivery with a caption. Operators can switch to a PNG
-  // renderer later without changing the endpoint contract.
   const url = TG_API + "/bot" + botToken + "/sendDocument";
   const fields = {
     chat_id: chatId,
@@ -817,6 +867,7 @@ module.exports = async function handler(req, res) {
   const svg = buildSvg(rows, mood, headline, ts);
 
   if (preview) {
+    const labelBuf = readLabelBuffer();
     sendJson(res, 200, {
       ok: true,
       mode: "preview",
@@ -829,6 +880,13 @@ module.exports = async function handler(req, res) {
       headline: headline,
       rows: rows,
       caption_html: caption,
+      // Canonical brand image for the post — the exact user-provided
+      // QUANTSIGNAL AI label JPEG.
+      image_path: "/" + LABEL_BANNER_RELPATH,
+      image_content_type: LABEL_BANNER_CONTENT_TYPE,
+      image_base64: labelBuf ? labelBuf.toString("base64") : null,
+      // Kept for backwards compatibility with existing operator tooling
+      // that decodes the trading-card SVG preview.
       image_svg_base64: Buffer.from(svg, "utf8").toString("base64")
     });
     return;

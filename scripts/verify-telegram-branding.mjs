@@ -115,6 +115,10 @@ must("welcome banner PNG asset exists (assets/telegram/welcome-banner.png)",
   existsSync(join(root, "assets/telegram/welcome-banner.png")));
 must("channel banner PNG asset exists (assets/telegram/channel-banner.png)",
   existsSync(join(root, "assets/telegram/channel-banner.png")));
+must("user-provided QUANTSIGNAL AI label JPEG exists (assets/telegram/quantsignal-label.jpeg)",
+  existsSync(join(root, "assets/telegram/quantsignal-label.jpeg")));
+must("brand-folder mirror of the label JPEG exists (assets/brand/quantsignal-label.jpeg)",
+  existsSync(join(root, "assets/brand/quantsignal-label.jpeg")));
 
 const avatar = read("assets/telegram/avatar.svg");
 const welcome = read("assets/telegram/welcome-banner.svg");
@@ -128,6 +132,12 @@ must("endpoint references the welcome banner PNG asset path",
   /\/assets\/telegram\/welcome-banner\.png/.test(endpoint));
 must("endpoint does NOT reference the SVG welcome banner for sendPhoto",
   !/WELCOME_BANNER_PATH\s*=\s*"\/assets\/telegram\/welcome-banner\.svg"/.test(endpoint));
+must("endpoint resolves WELCOME_BANNER_PATH to the user-provided label",
+  /LABEL_BANNER_PATH\s*=\s*"\/assets\/telegram\/quantsignal-label\.jpeg"/.test(endpoint) &&
+  /WELCOME_BANNER_PATH\s*=\s*LABEL_BANNER_PATH/.test(endpoint));
+must("index.html exposes the brand label image with data-testid",
+  /data-testid="brand-label"[\s\S]{0,200}quantsignal-label\.jpeg/.test(html) ||
+  /quantsignal-label\.jpeg[\s\S]{0,200}data-testid="brand-label"/.test(html));
 
 // ---- 4. Setup doc -------------------------------------------------------
 must("TELEGRAM_BRANDING_SETUP.md exists", setup.length > 0);

@@ -7,11 +7,19 @@
 Репозиторий уже содержит:
 
 - 📦 Эндпоинт вебхука бота: `api/telegram/bot-webhook.js`
-- 🖼 Брендовые ассеты (SVG-исходники): `assets/telegram/avatar.svg`,
+- 🏷 **Канонический лейбл** (предоставлен владельцем — источник истины):
+  `assets/telegram/quantsignal-label.jpeg` (и зеркало в
+  `assets/brand/quantsignal-label.jpeg`). Этот файл используется как
+  основной баннер во всех точках касания: приветствие бота, картинка
+  поста в канал, экран загрузки Mini App.
+- 🖼 Брендовые ассеты (SVG-исходники, исторические — пригодны как
+  fallback / для редактирования): `assets/telegram/avatar.svg`,
   `assets/telegram/welcome-banner.svg`, `assets/telegram/channel-banner.svg`
-- 🖼 Брендовые ассеты (готовые PNG для Telegram — Bot API не принимает
-  SVG в `sendPhoto`): `assets/telegram/avatar.png`,
-  `assets/telegram/welcome-banner.png`, `assets/telegram/channel-banner.png`
+- 🖼 Готовые PNG для Telegram (Bot API не принимает SVG в `sendPhoto`):
+  `assets/telegram/avatar.png` (512×512, квадратный кадр того же
+  лейбла), `assets/telegram/welcome-banner.png`,
+  `assets/telegram/channel-banner.png` (1280×720, лейбл вписан в
+  тёмный фон).
 - ✅ Верификатор: `npm run verify:telegram-branding`
 
 > ⚠️ Сами Telegram API-вызовы (установка webhook, аватарок и описаний)
@@ -122,8 +130,12 @@ BotFather: `/newapp` (или `/myapps` → `Edit`) → бот
 команды `/start`, `/app`, `/help`, `/menu`, `/open` (или первое
 сообщение в личке) отвечает:
 
-- 🖼 Фото-баннер `assets/telegram/welcome-banner.png` (PNG 1280×720 —
-  Telegram сам скачает фото с публичного URL Mini App)
+- 🖼 Фото-баннер — **точный лейбл оператора**
+  `assets/telegram/quantsignal-label.jpeg`. `WELCOME_BANNER_PATH` в
+  вебхуке резолвится в этот файл (через `LABEL_BANNER_PATH`). Алиас
+  `assets/telegram/welcome-banner.png` (1280×720) лежит рядом и
+  совпадает с лейблом — его можно использовать в BotFather/канале, где
+  нужен именно PNG нужного размера.
 - 📝 HTML-капшен с описанием возможностей
 - 🔘 Inline-клавиатура: `🚀 Открыть QUANTSIGNAL AI` (Mini App) +
   `📡 Канал QUANTSIGNAL AI`
