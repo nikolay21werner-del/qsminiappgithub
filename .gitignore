@@ -10,3 +10,4 @@ backend/__pycache__/
 *.pyc
 _qa_*.png
 
+.vercel
