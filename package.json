@@ -13,6 +13,7 @@
     "verify:splash": "node scripts/verify-splash.mjs",
     "verify:tap": "node scripts/verify-tap-stability.mjs",
     "verify:no-game": "node scripts/verify-no-game.mjs",
-    "verify:partner-ad": "node scripts/verify-partner-ad.mjs"
+    "verify:partner-ad": "node scripts/verify-partner-ad.mjs",
+    "verify:channel-posting": "node scripts/verify-channel-posting.mjs"
   }
 }

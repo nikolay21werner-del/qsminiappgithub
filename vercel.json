@@ -10,8 +10,18 @@
     "api/bybit/[endpoint].js": {
       "memory": 128,
       "maxDuration": 10
+    },
+    "api/channel/post.js": {
+      "memory": 256,
+      "maxDuration": 20
     }
   },
+  "crons": [
+    {
+      "path": "/api/channel/post",
+      "schedule": "0 22,4,10 * * *"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
