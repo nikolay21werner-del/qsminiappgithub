@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#04070d" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>QUANTSIGNAL AI — Content Studio</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+  <style>
+    :root {
+      --bg-0: #04070d;
+      --bg-1: #0a0f1c;
+      --bg-2: #101a2e;
+      --line: rgba(138, 155, 181, 0.22);
+      --text: #e9eef7;
+      --muted: #8a9bb5;
+      --accent: #3a8dff;
+      --accent-soft: #7ab4ff;
+      --up: #22d38a;
+      --down: #ff5c7a;
+      --warn: #ff8a3d;
+      --radius: 18px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--bg-0); color: var(--text);
+      font-family: "Manrope", "Inter", "Segoe UI", system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased; }
+    body { min-height: 100vh; padding: 24px 18px 80px; }
+    .wrap { max-width: 980px; margin: 0 auto; }
+    header { display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; margin-bottom: 22px; }
+    header .brand { display: flex; align-items: center; gap: 12px; }
+    header .brand img { width: 44px; height: 44px; border-radius: 12px; object-fit: cover;
+      box-shadow: 0 0 0 1px var(--line); }
+    header .brand h1 { font-size: 18px; margin: 0; letter-spacing: 1px; font-weight: 800; }
+    header .brand p { margin: 2px 0 0; font-size: 12px; color: var(--muted); letter-spacing: 2px; }
+    .pill { padding: 6px 12px; border-radius: 999px; font-size: 11px; letter-spacing: 2px;
+      text-transform: uppercase; font-weight: 700; color: var(--accent-soft);
+      background: rgba(58, 141, 255, 0.12); border: 1px solid rgba(58, 141, 255, 0.36); }
+
+    .card { background: linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 100%);
+      border: 1px solid var(--line); border-radius: var(--radius); padding: 18px;
+      margin-bottom: 18px; }
+    .card h2 { margin: 0 0 12px; font-size: 14px; font-weight: 800; letter-spacing: 2px;
+      color: var(--muted); text-transform: uppercase; }
+
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
+    .field label { display: block; font-size: 11px; letter-spacing: 2px; color: var(--muted);
+      text-transform: uppercase; margin-bottom: 6px; font-weight: 700; }
+    .field select, .field input { width: 100%; height: 44px; background: #0E1626;
+      color: var(--text); border: 1px solid var(--line); border-radius: 12px;
+      padding: 0 14px; font-size: 15px; font-family: inherit; outline: none; }
+    .field select:focus, .field input:focus { border-color: var(--accent); }
+
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+    button { height: 46px; padding: 0 18px; border-radius: 12px; border: 0;
+      font-family: inherit; font-weight: 700; letter-spacing: 1px; font-size: 14px;
+      cursor: pointer; transition: transform 0.06s, background 0.15s; }
+    button:active { transform: translateY(1px); }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: #2f7be0; }
+    .btn-ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
+    .btn-ghost:hover { border-color: var(--accent-soft); }
+
+    .preview-image { display: block; width: 100%; max-width: 100%; border-radius: 14px;
+      border: 1px solid var(--line); background: #000; aspect-ratio: 16/9; object-fit: contain; }
+    .preview-image-fallback { display: flex; align-items: center; justify-content: center;
+      height: 220px; color: var(--muted); border: 1px dashed var(--line); border-radius: 14px; }
+
+    .caption { white-space: pre-wrap; word-wrap: break-word; font-family: "JetBrains Mono",
+      ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; font-size: 13px;
+      line-height: 1.55; padding: 14px; background: #07101f; border: 1px solid var(--line);
+      border-radius: 12px; color: var(--text); }
+    .caption a { color: var(--accent-soft); }
+
+    .meta { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+      margin-top: 14px; }
+    @media (max-width: 560px) { .meta { grid-template-columns: 1fr 1fr; } }
+    .meta .chip { background: #0E1626; border: 1px solid var(--line);
+      border-radius: 12px; padding: 10px 12px; }
+    .meta .chip b { display: block; font-size: 11px; letter-spacing: 2px;
+      color: var(--muted); text-transform: uppercase; }
+    .meta .chip span { display: block; font-size: 16px; font-weight: 800; margin-top: 4px; }
+
+    .table { display: grid; grid-template-columns: 1fr; gap: 6px; }
+    .table-row { display: grid; grid-template-columns: 60px 1fr 1fr 1fr; gap: 8px;
+      padding: 8px 12px; border: 1px solid var(--line); border-radius: 10px;
+      background: #0E1626; align-items: center; font-size: 13px; }
+    .table-row b { color: var(--text); }
+    .table-row .pct.up { color: var(--up); }
+    .table-row .pct.down { color: var(--down); }
+    .table-row .src { color: var(--muted); font-size: 11px; text-align: right;
+      letter-spacing: 1px; text-transform: uppercase; }
+
+    .warn-box { padding: 12px 14px; background: rgba(255, 138, 61, 0.10);
+      border: 1px solid rgba(255, 138, 61, 0.36); color: #ffb37a;
+      border-radius: 12px; font-size: 13px; line-height: 1.45; }
+    .info-box { padding: 12px 14px; background: rgba(58, 141, 255, 0.08);
+      border: 1px solid rgba(58, 141, 255, 0.30); color: var(--accent-soft);
+      border-radius: 12px; font-size: 13px; line-height: 1.55; }
+    .info-box code { background: #0E1626; padding: 1px 6px; border-radius: 6px;
+      border: 1px solid var(--line); color: var(--text); }
+
+    .status { font-size: 12px; color: var(--muted); letter-spacing: 1px; }
+    .status.error { color: var(--down); }
+    .status.ok { color: var(--up); }
+
+    footer { margin-top: 28px; text-align: center; color: var(--muted); font-size: 11px;
+      letter-spacing: 2px; }
+    footer a { color: var(--accent-soft); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <img src="../assets/telegram/quantsignal-label.jpeg" alt="QUANTSIGNAL AI" />
+        <div>
+          <h1>QUANTSIGNAL AI · Content Studio</h1>
+          <p>PREVIEW &amp; PUBLISH</p>
+        </div>
+      </div>
+      <span class="pill" data-testid="studio-pill">ADMIN</span>
+    </header>
+
+    <section class="card" aria-labelledby="form-h">
+      <h2 id="form-h">Параметры поста</h2>
+      <div class="grid">
+        <div class="field">
+          <label for="type">Тип поста</label>
+          <select id="type" data-testid="field-type">
+            <option value="market_update">Сводка рынка (market_update)</option>
+            <option value="signal_idea">Сигнал-идея (signal_idea)</option>
+            <option value="coin_focus">Разбор актива (coin_focus)</option>
+            <option value="ai_radar">AI Радар (ai_radar)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="symbol">Символ</label>
+          <select id="symbol" data-testid="field-symbol">
+            <option value="">авто (по движению)</option>
+            <option value="BTC">BTC</option>
+            <option value="ETH">ETH</option>
+            <option value="SOL">SOL</option>
+            <option value="TON">TON</option>
+            <option value="DOGE">DOGE</option>
+          </select>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn-primary" id="btn-preview" data-testid="btn-preview">Сгенерировать превью</button>
+        <button class="btn-ghost" id="btn-copy" data-testid="btn-copy">Скопировать caption</button>
+      </div>
+      <p class="status" id="status" data-testid="status">Готово</p>
+    </section>
+
+    <section class="card" aria-labelledby="img-h">
+      <h2 id="img-h">Брендированное изображение</h2>
+      <div id="image-slot">
+        <div class="preview-image-fallback">Нажмите «Сгенерировать превью», чтобы построить картинку.</div>
+      </div>
+      <div class="meta" id="meta-slot"></div>
+    </section>
+
+    <section class="card" aria-labelledby="cap-h">
+      <h2 id="cap-h">Caption (HTML)</h2>
+      <div class="caption" id="caption" data-testid="caption">Здесь появится готовый caption для Telegram.</div>
+    </section>
+
+    <section class="card" aria-labelledby="snap-h">
+      <h2 id="snap-h">Снимок рынка</h2>
+      <div class="table" id="snapshot" data-testid="snapshot"></div>
+    </section>
+
+    <section class="card" aria-labelledby="warn-h" id="warn-card" style="display:none;">
+      <h2 id="warn-h">Предупреждения</h2>
+      <div class="warn-box" id="warn-box"></div>
+    </section>
+
+    <section class="card" aria-labelledby="pub-h">
+      <h2 id="pub-h">Публикация в канал</h2>
+      <div class="info-box" data-testid="publish-info">
+        Публикация в канал <b>@QUANTSIGNAL_AI</b> выполняется только через секретный эндпоинт
+        <code>/api/content/publish</code>. Этот UI <b>не отправляет</b> запросы публикации, чтобы
+        не светить секрет в браузере.
+        <br /><br />
+        Чтобы опубликовать с локальной машины оператора (когда включены
+        <code>QSI_CHANNEL_POSTING_ENABLED=1</code>, <code>TELEGRAM_BOT_TOKEN</code>,
+        <code>QSI_TELEGRAM_CHANNEL_ID</code> и задан <code>QSI_CRON_SECRET</code>):
+        <br /><br />
+        <code>curl -X POST "https://quantsignal-miniapp.vercel.app/api/content/publish?type=market_update" \<br />
+          &nbsp;&nbsp;-H "Authorization: Bearer $QSI_CRON_SECRET"</code>
+        <br /><br />
+        Сначала всегда проверяйте превью этой страницей или
+        <code>?dry_run=1</code> в запросе.
+      </div>
+    </section>
+
+    <footer>
+      QUANTSIGNAL AI · <a href="https://t.me/QUANTSIGNAL_AI_BOT">t.me/QUANTSIGNAL_AI_BOT</a>
+    </footer>
+  </div>
+
+  <script>
+    (function () {
+      "use strict";
+      var statusEl = document.getElementById("status");
+      var imageSlot = document.getElementById("image-slot");
+      var metaSlot = document.getElementById("meta-slot");
+      var captionEl = document.getElementById("caption");
+      var snapshotEl = document.getElementById("snapshot");
+      var warnCard = document.getElementById("warn-card");
+      var warnBox = document.getElementById("warn-box");
+      var btnPreview = document.getElementById("btn-preview");
+      var btnCopy = document.getElementById("btn-copy");
+      var typeSel = document.getElementById("type");
+      var symSel = document.getElementById("symbol");
+
+      function setStatus(text, kind) {
+        statusEl.textContent = text;
+        statusEl.className = "status" + (kind ? " " + kind : "");
+      }
+
+      function fmtPrice(n) {
+        if (n == null || !isFinite(n)) return "—";
+        if (n >= 1000) return n.toLocaleString("ru-RU", { maximumFractionDigits: 0 });
+        if (n >= 1) return n.toLocaleString("ru-RU", { maximumFractionDigits: 2 });
+        if (n >= 0.01) return n.toLocaleString("ru-RU", { maximumFractionDigits: 4 });
+        return n.toLocaleString("ru-RU", { maximumFractionDigits: 6 });
+      }
+      function fmtPct(n) {
+        if (n == null || !isFinite(n)) return "—";
+        return (n >= 0 ? "+" : "") + n.toFixed(2) + "%";
+      }
+
+      function renderSnapshot(rows) {
+        snapshotEl.innerHTML = "";
+        if (!Array.isArray(rows)) return;
+        rows.forEach(function (r) {
+          var div = document.createElement("div");
+          div.className = "table-row";
+          var pctCls = r.pct == null ? "" : (r.pct >= 0 ? "up" : "down");
+          div.innerHTML =
+            '<b>' + r.sym + '</b>' +
+            '<span>' + fmtPrice(r.last) + '</span>' +
+            '<span class="pct ' + pctCls + '">' + (r.pct == null ? "—" : (r.pct >= 0 ? "▲ " : "▼ ") + fmtPct(r.pct)) + '</span>' +
+            '<span class="src">' + (r.source || "—") + '</span>';
+          snapshotEl.appendChild(div);
+        });
+      }
+
+      function renderMeta(plan) {
+        metaSlot.innerHTML = "";
+        var items = [
+          ["Тип", plan.type || "—"],
+          ["Символ", plan.symbol || "—"],
+          ["Bias", (plan.hero && plan.hero.pct == null) ? "Нейтральный"
+                  : ((plan.hero && plan.hero.pct >= 0.6) ? "Бычий"
+                  : ((plan.hero && plan.hero.pct <= -0.6) ? "Медвежий" : "Нейтральный"))],
+          ["Уверенность", (plan.confidence && plan.confidence.label) || "—"],
+          ["Риск", (plan.risk && plan.risk.label) || "—"],
+          ["Настроение", (plan.mood && plan.mood.label) || "—"]
+        ];
+        items.forEach(function (it) {
+          var c = document.createElement("div");
+          c.className = "chip";
+          c.innerHTML = "<b>" + it[0] + "</b><span>" + it[1] + "</span>";
+          metaSlot.appendChild(c);
+        });
+      }
+
+      function renderImage(dataUrl) {
+        imageSlot.innerHTML = "";
+        if (!dataUrl) {
+          var f = document.createElement("div");
+          f.className = "preview-image-fallback";
+          f.textContent = "Изображение недоступно.";
+          imageSlot.appendChild(f);
+          return;
+        }
+        var img = document.createElement("img");
+        img.className = "preview-image";
+        img.alt = "QUANTSIGNAL AI preview";
+        img.setAttribute("data-testid", "preview-image");
+        img.src = dataUrl;
+        imageSlot.appendChild(img);
+      }
+
+      async function fetchPreview() {
+        setStatus("Загружаем рыночные данные…");
+        btnPreview.disabled = true;
+        try {
+          var url = "../api/content/preview?type=" + encodeURIComponent(typeSel.value);
+          if (symSel.value) url += "&symbol=" + encodeURIComponent(symSel.value);
+          var r = await fetch(url, { headers: { "Accept": "application/json" }, cache: "no-store" });
+          var j = await r.json();
+          if (!r.ok || !j.ok) {
+            setStatus("Ошибка: " + (j.error || ("HTTP " + r.status)), "error");
+            return;
+          }
+          renderImage(j.image_data_url);
+          renderMeta(j);
+          captionEl.innerHTML = j.caption_html || "";
+          renderSnapshot(j.snapshot || []);
+          if (Array.isArray(j.warnings) && j.warnings.length) {
+            warnCard.style.display = "";
+            warnBox.textContent = j.warnings.join(" · ");
+          } else {
+            warnCard.style.display = "none";
+          }
+          setStatus("Готово · " + (j.type || "") + (j.symbol ? " · " + j.symbol : ""), "ok");
+        } catch (e) {
+          setStatus("Сбой сети: " + (e && e.message ? e.message : String(e)), "error");
+        } finally {
+          btnPreview.disabled = false;
+        }
+      }
+
+      async function copyCaption() {
+        var text = captionEl.innerText || captionEl.textContent || "";
+        if (!text) { setStatus("Сначала сгенерируйте превью", "error"); return; }
+        try {
+          await navigator.clipboard.writeText(text);
+          setStatus("Caption скопирован в буфер", "ok");
+        } catch (e) {
+          setStatus("Не удалось скопировать: " + (e && e.message ? e.message : String(e)), "error");
+        }
+      }
+
+      btnPreview.addEventListener("click", fetchPreview);
+      btnCopy.addEventListener("click", copyCaption);
+    })();
+  </script>
+</body>
+</html>
