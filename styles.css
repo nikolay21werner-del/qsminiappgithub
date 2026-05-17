@@ -2451,6 +2451,165 @@ h1, h2, h3, .screen__title, .brand-title, .boot-splash__title {
     #04070d;
 }
 
+/* =====================================================================
+   STABILITY & PROFESSIONAL POLISH
+   -----------------------------------------------------------------
+   The mini app is rendered inside the Telegram WebView, where small
+   layout shifts feel disproportionately jarring (the user already
+   sees Telegram chrome shift on focus/scroll). The rules below stop
+   the most common "screen jump" patterns:
+     - taps that briefly relayout the page (active transforms,
+       hover shifts that promote on touchstart)
+     - tab switches that resize the visible area
+     - decorative animations that translate content on entry
+     - iOS double-tap zoom / tap highlight on interactive surfaces
+   They are intentionally scoped low in the cascade so they win over
+   the older rules above without surgery on the rest of the file.
+   ===================================================================== */
+
+/* Global: stop iOS tap highlight + bidirectional layout anchor on
+   long lists. `overflow-anchor: none` prevents the browser from
+   scroll-locking onto a tappable element that just had its border
+   colour change. */
+html, body, .app, .screens, .screen, .tabbar, .topbar {
+  -webkit-tap-highlight-color: transparent;
+  overflow-anchor: none;
+}
+
+/* Make every interactive surface advertise that double-tap zoom is
+   not wanted and that the user agent should not introduce gesture
+   latency. */
+button,
+a,
+.tab,
+.cta,
+.chip,
+.coin-chip,
+.matrix-cell,
+.signal-card,
+.partner-card,
+.topbar__btn,
+.topbar__brand,
+.toggle,
+[data-nav],
+[data-action],
+[data-tf],
+[data-mtf] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Replace layout-affecting :active/:hover transforms with opacity +
+   filter so the press feedback never shifts surrounding content.
+   These selectors deliberately mirror the older rules above and win
+   by being later in the cascade. */
+.cta:active,
+.partner-card:active,
+.matrix-cell:active,
+.signal-card:active,
+.coin-chip:active,
+.chip:active,
+.tab:active,
+.topbar__btn:active {
+  transform: none !important;
+  filter: brightness(0.96);
+}
+.signal-card:hover,
+.coin-chip:hover {
+  transform: none;
+}
+
+/* Stable screen container: keep the visible area sized to the
+   viewport between tab switches so the page doesn't shrink/grow as
+   different screens mount. Combined with the JS change in
+   setScreen() (no forced smooth-scroll-to-top) this is what removes
+   the "screen jumps when I tap a tab" feeling. */
+.screens {
+  /* Reserve space below the topbar + ticker for the bottom tabbar +
+     safe-area, so an "empty" screen still fills the viewport instead
+     of collapsing and shifting the topbar. */
+  min-height: calc(100dvh - var(--tab-h) - 140px);
+  min-height: calc(100vh - var(--tab-h) - 140px);
+}
+.screen {
+  /* Same min-height for each individual screen — guarantees that the
+     intrinsic height does not change between active screens, so the
+     bottom tabbar (position:fixed) never appears to move and the
+     content area does not jump. */
+  min-height: calc(100dvh - var(--tab-h) - 140px);
+  min-height: calc(100vh - var(--tab-h) - 140px);
+}
+
+/* Drop the entry translateY on screen switch — the slide is what
+   creates the "jump" feel. Keep a subtle opacity fade so the
+   transition still reads as intentional. */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.screen { animation: fadeIn .18s ease-out; }
+
+/* Topbar height + position are stable: pin a real height so the
+   topbar never resizes when its inner label image swaps between the
+   eager preload and the cached state. */
+.topbar {
+  min-height: 48px;
+  /* Reserve a stable label slot — prevents the topbar from briefly
+     resizing as the label image decodes. */
+}
+.topbar__label {
+  /* width/height are also set as HTML attributes, which the browser
+     uses for aspect-ratio CLS-prevention; we re-assert them here for
+     engines that ignore HTML hints when CSS height is set. */
+  aspect-ratio: 140 / 32;
+}
+
+/* Bottom tabbar — guarantee >=44px tap targets (Apple HIG) without
+   resizing the bar between active/inactive states. */
+.tabbar .tab {
+  min-height: 48px;
+  min-width: 48px;
+  /* Keep the icon container at a fixed size so its active glow does
+     not push the label and shift sibling tabs. */
+}
+.tab__ico {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+}
+
+/* Loading / empty / error states — reserve space so async fills do
+   not push the page down. The selectors below match the live render
+   sites referenced by app.js. */
+#matrix,
+#overview-rows,
+#coin-chips,
+#signals-list,
+.ai-thread {
+  min-height: 120px;
+}
+
+/* Focus rings are drawn as outline so they don't take part in
+   layout. This avoids the "press a button -> sibling shifts" pattern
+   the verifier guards against. */
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+
+/* Reduced motion: kill every decorative entrance/loop animation. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* Reduced motion safety net — disable decorative animations */
 
 /* Narrow phones */

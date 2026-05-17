@@ -190,3 +190,24 @@ CONTENT_ENGINE.md          # этот файл
 
 Не забывайте проверять `warnings[]` в ответе — если все символы пришли
 с `source: "unavailable"`, имеет смысл переотправить позже.
+
+## Интеграция с legacy `/api/channel/post`
+
+Существующий эндпоинт `api/channel/post.js` теперь тоже использует
+Content Engine для генерации подписи, оставаясь обратно совместимым с
+текущим внешним шедулером:
+
+- Подпись (HTML caption) собирается через `engine.planForType(...)`.
+- Тип поста выбирается детерминированно по UTC-часу (см. `pickTypeForNow`
+  в `api/channel/post.js`) либо переопределяется через `?type=...`.
+- Для отрисовки SVG-баннера используется `plan.snapshot` — один общий
+  запрос к рынку (Bybit → Coinbase → Kraken), без двойного fetch.
+- В JSON-превью добавлены поля `type`, `symbol`, `confidence`, `risk`,
+  `hero`, `engine`, `warnings` — старые поля (`caption_html`, `mood`,
+  `headline`, `rows`, `image_*`) сохранены без изменений.
+- При сбое Content Engine endpoint автоматически возвращается к
+  старому детерминированному «Сводка рынка», и в JSON отображается
+  `engine: "legacy_fallback"` плюс `engine_error`.
+
+Verifier `npm run verify:content-engine` + `npm run verify:channel-posting`
+покрывают и старый, и новый путь.

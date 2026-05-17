@@ -37,8 +37,21 @@
 const fs = require("fs");
 const path = require("path");
 
+// Content Engine integration: post.js delegates caption generation and
+// hero selection to the shared engine so all four post types
+// (market_update / signal_idea / coin_focus / ai_radar) are available
+// from this endpoint too, and so a single library decides what every
+// QUANTSIGNAL AI channel post should say. The legacy deterministic
+// caption builder below remains as a safety fallback if the engine
+// fails for any reason — the operator never gets an empty post.
+const engine = require("../_lib/content-engine");
+
 const UPSTREAM_TIMEOUT_MS = 7000;
 const TG_API = "https://api.telegram.org";
+
+// All four post types supported by the Content Engine. Exposed here so
+// the regex below stays explicit and discoverable.
+const POST_TYPES = ["market_update", "signal_idea", "coin_focus", "ai_radar"];
 
 // Exact user-provided QUANTSIGNAL AI label image. This is the canonical
 // brand banner used for every channel post — sent as the sendPhoto image
@@ -834,6 +847,39 @@ function wantsPreview(req) {
   } catch (_) { return false; }
 }
 
+// Parse content-engine knobs off the request URL.
+//   ?type=<market_update|signal_idea|coin_focus|ai_radar>
+//   ?symbol=<BTC|ETH|SOL|TON|DOGE>
+// When omitted, the type is chosen deterministically from the current
+// UTC hour so the three-per-day external scheduler produces a varied
+// stream of posts instead of the same market_update every run.
+function parseEngineQuery(req) {
+  try {
+    const u = new URL(req.url, "http://x");
+    const t = (u.searchParams.get("type") || "").toLowerCase();
+    const s = (u.searchParams.get("symbol") || "").toUpperCase();
+    return {
+      type: POST_TYPES.indexOf(t) >= 0 ? t : null,
+      symbol: s || null
+    };
+  } catch (_) {
+    return { type: null, symbol: null };
+  }
+}
+
+// Deterministic type rotation. Spreads four post types across the UTC
+// day so each scheduled run produces a different kind of post even when
+// the scheduler fires it at fixed times.
+function pickTypeForNow(d) {
+  const hour = (d || new Date()).getUTCHours();
+  // Buckets chosen so the typical 3/day window (e.g. 08/14/20 UTC) hits
+  // three different types; ai_radar still appears for off-hour callers.
+  if (hour < 6)  return "ai_radar";
+  if (hour < 12) return "market_update";
+  if (hour < 18) return "signal_idea";
+  return "coin_focus";
+}
+
 // ---------- Handler ----------
 module.exports = async function handler(req, res) {
   if (req.method !== "GET" && req.method !== "POST") {
@@ -852,18 +898,42 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  let rows;
+  // Content Engine pass — chooses post type/symbol and produces the
+  // caption + plan. We still keep the legacy deterministic caption as a
+  // last-resort fallback if the engine throws or returns nothing.
+  const engineQuery = parseEngineQuery(req);
+  const chosenType = engineQuery.type || pickTypeForNow(new Date());
+  let plan = null;
+  let engineError = null;
   try {
-    rows = await fetchAll();
+    plan = await engine.planForType(chosenType, { symbol: engineQuery.symbol });
   } catch (e) {
-    sendJson(res, 502, { error: "market_fetch_failed", detail: String(e && e.message || e) });
-    return;
+    engineError = String(e && e.message || e);
   }
 
-  const mood = moodFor(rows);
-  const headline = headlineFor(mood, rows);
+  // Rows for the SVG banner: prefer the snapshot the engine produced
+  // (single market fetch). Fall back to the legacy fetcher only if the
+  // engine failed.
+  let rows;
+  if (plan && Array.isArray(plan.snapshot) && plan.snapshot.length) {
+    rows = plan.snapshot;
+  } else {
+    try {
+      rows = await fetchAll();
+    } catch (e) {
+      sendJson(res, 502, { error: "market_fetch_failed", detail: String(e && e.message || e) });
+      return;
+    }
+  }
+
+  const mood = (plan && plan.mood) ? plan.mood : moodFor(rows);
+  const legacyHeadline = headlineFor(mood, rows);
+  const headline = (plan && plan.headline) ? plan.headline : legacyHeadline;
   const ts = nowParts();
-  const caption = buildCaption(rows, mood, headline, ts);
+  // Engine caption is the primary source; the legacy deterministic
+  // builder only runs if the engine produced nothing.
+  const legacyCaption = buildCaption(rows, mood, legacyHeadline, ts);
+  const caption = (plan && plan.caption_html) ? plan.caption_html : legacyCaption;
   const svg = buildSvg(rows, mood, headline, ts);
 
   if (preview) {
@@ -876,6 +946,17 @@ module.exports = async function handler(req, res) {
             : !chatId   ? "QSI_TELEGRAM_CHANNEL_ID missing"
             : "preview=1",
       ts: ts,
+      // New Content Engine fields
+      type: plan ? plan.type : chosenType,
+      symbol: plan ? plan.symbol : (engineQuery.symbol || null),
+      confidence: plan ? plan.confidence : null,
+      risk: plan ? plan.risk : null,
+      hero: plan ? plan.hero : null,
+      engine: plan ? "content-engine" : "legacy_fallback",
+      engine_error: engineError,
+      warnings: plan ? plan.warnings : [],
+      // Backwards-compatible fields (existing tests/operators rely on
+      // these — do not rename/remove without a verifier update).
       mood: mood,
       headline: headline,
       rows: rows,
@@ -902,7 +983,10 @@ module.exports = async function handler(req, res) {
     mode: "posted",
     message_id: send.message_id,
     ts: ts,
+    type: plan ? plan.type : chosenType,
+    symbol: plan ? plan.symbol : (engineQuery.symbol || null),
     mood: mood.key,
-    headline: headline
+    headline: headline,
+    engine: plan ? "content-engine" : "legacy_fallback"
   });
 };

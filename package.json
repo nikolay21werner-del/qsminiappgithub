@@ -16,6 +16,7 @@
     "verify:partner-ad": "node scripts/verify-partner-ad.mjs",
     "verify:channel-posting": "node scripts/verify-channel-posting.mjs",
     "verify:telegram-branding": "node scripts/verify-telegram-branding.mjs",
-    "verify:content-engine": "node scripts/verify-content-engine.mjs"
+    "verify:content-engine": "node scripts/verify-content-engine.mjs",
+    "verify:stability": "node scripts/verify-stability.mjs"
   }
 }

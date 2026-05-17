@@ -323,8 +323,23 @@
   var realtime = null;
 
   // ---------- Screen routing ----------
+  // Tab/screen switching is the most common source of perceived
+  // "screen jump" in the mini app, so the implementation is
+  // intentionally cautious:
+  //
+  //   1. We do NOT force-scroll-to-top on every tab tap. The previous
+  //      smooth-scroll animation was the main reason the page
+  //      appeared to lurch on touch. Instead we only reset the
+  //      scroll position when the user re-taps the screen they're
+  //      already on (a deliberate "scroll to top" gesture).
+  //   2. We toggle is-active in a single pass so the layout commits
+  //      once and the browser doesn't reflow twice.
+  //   3. Render functions for inactive screens are still called so
+  //      data is fresh when the user lands — but never before the
+  //      class toggles, so the diff renders into the now-visible DOM.
   function setScreen(name) {
     if (!name) return;
+    var same = state.screen === name;
     state.screen = name;
     $$(".screen").forEach(function (s) {
       s.classList.toggle("is-active", s.getAttribute("data-screen") === name);
@@ -332,7 +347,10 @@
     $$(".tab").forEach(function (b) {
       b.classList.toggle("is-active", b.getAttribute("data-nav") === name);
     });
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (same) {
+      // Deliberate re-tap on the active tab → "scroll to top" gesture.
+      try { window.scrollTo({ top: 0, behavior: "smooth" }); } catch (_) {}
+    }
     if (name === "signals") renderSignalsScreen();
     if (name === "market") { renderCoinChips(); renderMarketScreen(); }
     if (name === "ai") renderAIInitial();
