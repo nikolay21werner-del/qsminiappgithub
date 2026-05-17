@@ -2687,6 +2687,42 @@ a:focus-visible {
 
 /* Reduced motion safety net — disable decorative animations */
 
+/* =====================================================================
+   KEYBOARD-OPEN MODE — set by app.js when an editable element is
+   focused AND visualViewport has shrunk by ≥120px.
+   -----------------------------------------------------------------
+   Goals (from the on-device screenshot bug):
+     - Bottom tabbar must NOT sit between composer and keyboard.
+     - AI composer must remain visible above the keyboard.
+     - Content scrolls internally, not the whole shell.
+     - No layout drift of the topbar/brand.
+   ===================================================================== */
+body.keyboard-open .tabbar {
+  /* Hide the bottom navigation while typing. It re-appears on blur.
+     `pointer-events:none` is belt-and-braces in case the fade fails. */
+  transform: translate(-50%, 120%);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform .15s ease, opacity .15s ease;
+}
+body.keyboard-open .app {
+  /* The keyboard takes the bottom; we no longer need to reserve room
+     for the tabbar below the content. Keep safe-area + a small gap. */
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+}
+body.keyboard-open .ai-compose {
+  /* Stick the composer to the very bottom of the visible (shrunken)
+     viewport. Without this it would float at the old tabbar offset and
+     end up below the keyboard. */
+  bottom: calc(8px + env(safe-area-inset-bottom));
+  z-index: 11; /* above the (now-hidden) tabbar layer */
+}
+body.keyboard-open .screen--ai {
+  /* Reserve enough scroll-padding so the focused composer stays in
+     view when the on-screen keyboard appears. */
+  scroll-padding-bottom: 88px;
+}
+
 /* Narrow phones */
 
 /* Slightly wider phones — more breathing room */

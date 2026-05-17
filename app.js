@@ -10,32 +10,84 @@
   var I18N = window.QSI18N;
   var API = window.QSI_API;
 
-  // ---------- Viewport height pin ----------
+  // ---------- Viewport height pin (keyboard-aware) ----------
   // Telegram's WebView can change its visible height mid-session
   // (URL bar collapse on iOS, soft keyboard on Android, bottom bar).
   // We mirror the live viewport height into a CSS custom property
   // --app-height so the shell can size against the actually-visible
   // area instead of 100vh, which on iOS includes hidden chrome and
-  // pushes the bottom tabbar off-screen. No storage of any kind.
-  function readViewportHeight() {
-    var h = 0;
-    if (tg) {
-      if (typeof tg.viewportStableHeight === "number" && tg.viewportStableHeight > 0) {
-        h = tg.viewportStableHeight;
-      } else if (typeof tg.viewportHeight === "number" && tg.viewportHeight > 0) {
-        h = tg.viewportHeight;
-      }
+  // pushes the bottom tabbar off-screen.
+  //
+  // Two viewport modes:
+  //   - keyboard closed: prefer Telegram viewportStableHeight (no jump
+  //     on URL-bar collapse, no flicker on focus).
+  //   - keyboard open  : prefer the smaller of visualViewport.height
+  //     and tg.viewportHeight, so the composer/tabbar can be repositioned
+  //     above the keyboard instead of being covered by it.
+  //
+  // No storage of any kind.
+  function isEditableTarget(el) {
+    if (!el || !el.tagName) return false;
+    var t = el.tagName.toUpperCase();
+    if (t === "INPUT" || t === "TEXTAREA") return true;
+    if (el.isContentEditable) return true;
+    return false;
+  }
+  function readStableHeight() {
+    if (tg && typeof tg.viewportStableHeight === "number" && tg.viewportStableHeight > 0) {
+      return tg.viewportStableHeight;
     }
-    if (!h && window.visualViewport && window.visualViewport.height) {
-      h = window.visualViewport.height;
+    if (tg && typeof tg.viewportHeight === "number" && tg.viewportHeight > 0) {
+      return tg.viewportHeight;
     }
-    if (!h) h = window.innerHeight || document.documentElement.clientHeight || 0;
-    return h;
+    if (window.visualViewport && window.visualViewport.height) {
+      return window.visualViewport.height;
+    }
+    return window.innerHeight || document.documentElement.clientHeight || 0;
+  }
+  function readLiveHeight() {
+    // The actually-visible area right now — includes keyboard.
+    var vv = window.visualViewport && window.visualViewport.height;
+    var tgh = (tg && typeof tg.viewportHeight === "number" && tg.viewportHeight > 0)
+      ? tg.viewportHeight : 0;
+    var fallback = window.innerHeight || document.documentElement.clientHeight || 0;
+    var candidates = [vv, tgh, fallback].filter(function (n) { return typeof n === "number" && n > 0; });
+    if (!candidates.length) return 0;
+    return Math.min.apply(Math, candidates);
+  }
+  function detectKeyboardOpen() {
+    // Two signals:
+    //   1. focused element is editable (input/textarea/contenteditable)
+    //   2. live viewport is meaningfully smaller than stable viewport
+    //      (≥120px delta is the conventional keyboard-open threshold).
+    var stable = readStableHeight();
+    var live = readLiveHeight();
+    var delta = stable - live;
+    var focused = isEditableTarget(document.activeElement);
+    return focused && delta > 120;
   }
   function applyAppHeight() {
-    var h = readViewportHeight();
+    var kb = detectKeyboardOpen();
+    var h = kb ? readLiveHeight() : readStableHeight();
     if (!h || h < 200) return; // ignore obviously bad readings
     document.documentElement.style.setProperty("--app-height", h + "px");
+    var root = document.body;
+    if (root) {
+      if (kb) root.classList.add("keyboard-open");
+      else root.classList.remove("keyboard-open");
+    }
+  }
+  function ensureComposerVisible() {
+    // When focus lands on an editable element, the browser may scroll
+    // it under the Telegram header. Nudge the composer into view inside
+    // the internal content area — no smooth animation, no scroll-to-top.
+    var el = document.activeElement;
+    if (!isEditableTarget(el)) return;
+    try {
+      if (typeof el.scrollIntoView === "function") {
+        el.scrollIntoView({ block: "center", inline: "nearest" });
+      }
+    } catch (_) {}
   }
   function bindViewportListeners() {
     // Telegram's own viewport event — fires on expand, keyboard, etc.
@@ -51,6 +103,16 @@
     }
     window.addEventListener("resize", applyAppHeight, { passive: true });
     window.addEventListener("orientationchange", applyAppHeight, { passive: true });
+    // Focus/blur on editable elements drives keyboard-open detection.
+    document.addEventListener("focusin", function (ev) {
+      if (isEditableTarget(ev.target)) {
+        // Defer one frame so visualViewport has time to settle.
+        setTimeout(function () { applyAppHeight(); ensureComposerVisible(); }, 60);
+      }
+    }, true);
+    document.addEventListener("focusout", function () {
+      setTimeout(applyAppHeight, 60);
+    }, true);
   }
 
   // ---------- Telegram WebApp SDK ----------

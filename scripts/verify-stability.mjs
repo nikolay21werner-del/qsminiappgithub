@@ -135,6 +135,44 @@ must("app.js binds viewport listeners (resize/orientationchange/visualViewport)"
 must("app.js subscribes to Telegram viewportChanged",
   /tg\.onEvent[\s\S]{0,80}["']viewportChanged["']|onEvent\(\s*["']viewportChanged["']/.test(app));
 
+// ---- 1c. Keyboard-aware viewport mode -----------------------------------
+// When an editable element is focused and the visualViewport shrinks
+// (soft keyboard up), the app must:
+//   - toggle a `keyboard-open` class on body (so CSS can react),
+//   - prefer the smaller LIVE viewport over stableHeight,
+//   - hide / reposition the bottom tabbar so it doesn't overlap the
+//     keyboard or trap nav icons between composer and keyboard,
+//   - keep the AI composer visible above the keyboard,
+//   - nudge the focused composer into view (no smooth scroll-to-top).
+must("app.js detects keyboard-open state via focus + viewport delta",
+  /detectKeyboardOpen[\s\S]{0,800}delta\s*>\s*1[0-9][0-9]/.test(app));
+must("app.js toggles `keyboard-open` class on body",
+  /classList\.add\(\s*["']keyboard-open["']\s*\)/.test(app) &&
+  /classList\.remove\(\s*["']keyboard-open["']\s*\)/.test(app));
+must("app.js prefers LIVE (smaller) height when keyboard is open",
+  /readLiveHeight\s*\([\s\S]*?\)/.test(app) &&
+  /kb\s*\?\s*readLiveHeight\(\)\s*:\s*readStableHeight\(\)/.test(app));
+must("app.js identifies editable focus targets (input/textarea/contenteditable)",
+  /isEditableTarget[\s\S]{0,400}INPUT[\s\S]{0,200}TEXTAREA[\s\S]{0,200}isContentEditable/.test(app));
+must("app.js listens to focusin/focusout to re-apply --app-height",
+  /addEventListener\(\s*["']focusin["']/.test(app) &&
+  /addEventListener\(\s*["']focusout["']/.test(app));
+must("app.js does NOT unconditionally scroll to top on focus",
+  !/focusin[\s\S]{0,200}window\.scrollTo\(\s*0\s*,\s*0\s*\)/.test(app) &&
+  !/focusin[\s\S]{0,200}scrollTo\(\{\s*top:\s*0/.test(app));
+
+// CSS — keyboard-open state contract
+must("CSS scopes a body.keyboard-open variant",
+  /body\.keyboard-open\b/.test(css));
+must("CSS hides the bottom tabbar while keyboard is open",
+  /body\.keyboard-open\s+\.tabbar\s*\{[\s\S]*?(opacity:\s*0|display:\s*none|transform:\s*translate)/.test(css));
+must("CSS repositions the AI composer above the keyboard while typing",
+  /body\.keyboard-open\s+\.ai-compose\s*\{[\s\S]*?bottom:/.test(css));
+must("CSS sets scroll-padding-bottom on AI screen when keyboard open",
+  /body\.keyboard-open\s+\.screen--ai\s*\{[\s\S]*?scroll-padding-bottom:/.test(css));
+must("CSS reduces .app bottom padding when keyboard is open",
+  /body\.keyboard-open\s+\.app\s*\{[\s\S]*?padding-bottom:/.test(css));
+
 // ---- 2. App.js behavior --------------------------------------------------
 must("setScreen does NOT unconditionally smooth-scroll to top",
   !/setScreen[\s\S]{0,400}window\.scrollTo\(\{\s*top:\s*0,\s*behavior:\s*["']smooth["']\s*\}\)\s*;\s*if/m.test(app) ||
