@@ -10,6 +10,49 @@
   var I18N = window.QSI18N;
   var API = window.QSI_API;
 
+  // ---------- Viewport height pin ----------
+  // Telegram's WebView can change its visible height mid-session
+  // (URL bar collapse on iOS, soft keyboard on Android, bottom bar).
+  // We mirror the live viewport height into a CSS custom property
+  // --app-height so the shell can size against the actually-visible
+  // area instead of 100vh, which on iOS includes hidden chrome and
+  // pushes the bottom tabbar off-screen. No storage of any kind.
+  function readViewportHeight() {
+    var h = 0;
+    if (tg) {
+      if (typeof tg.viewportStableHeight === "number" && tg.viewportStableHeight > 0) {
+        h = tg.viewportStableHeight;
+      } else if (typeof tg.viewportHeight === "number" && tg.viewportHeight > 0) {
+        h = tg.viewportHeight;
+      }
+    }
+    if (!h && window.visualViewport && window.visualViewport.height) {
+      h = window.visualViewport.height;
+    }
+    if (!h) h = window.innerHeight || document.documentElement.clientHeight || 0;
+    return h;
+  }
+  function applyAppHeight() {
+    var h = readViewportHeight();
+    if (!h || h < 200) return; // ignore obviously bad readings
+    document.documentElement.style.setProperty("--app-height", h + "px");
+  }
+  function bindViewportListeners() {
+    // Telegram's own viewport event — fires on expand, keyboard, etc.
+    if (tg && typeof tg.onEvent === "function") {
+      try { tg.onEvent("viewportChanged", applyAppHeight); } catch (e) {}
+    }
+    // visualViewport on iOS/Android tracks URL bar collapse + keyboard.
+    if (window.visualViewport) {
+      try {
+        window.visualViewport.addEventListener("resize", applyAppHeight, { passive: true });
+        window.visualViewport.addEventListener("scroll", applyAppHeight, { passive: true });
+      } catch (e) {}
+    }
+    window.addEventListener("resize", applyAppHeight, { passive: true });
+    window.addEventListener("orientationchange", applyAppHeight, { passive: true });
+  }
+
   // ---------- Telegram WebApp SDK ----------
   function initTelegram() {
     if (!tg) return;
@@ -1617,6 +1660,11 @@
   function boot() {
     splash.start();
     initTelegram();
+    // Set --app-height to the visible Telegram viewport, then keep it
+    // synced with viewportChanged / visualViewport / resize so the
+    // shell never drifts off-screen on iOS Safari or Android keyboards.
+    applyAppHeight();
+    bindViewportListeners();
     I18N.init();
     applyI18N();
     I18N.on(function () { applyI18N(); });

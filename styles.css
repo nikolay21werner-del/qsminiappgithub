@@ -28,6 +28,10 @@
   --radius-md: 12px;
   --radius-sm: 8px;
   --tab-h: 64px;
+  /* --app-height is set by app.js from Telegram.WebApp.viewportStableHeight /
+     visualViewport.height. It falls back to 100dvh / 100vh below so the page
+     still sizes correctly before JS runs. */
+  --app-height: 100vh;
 }
 
 * { box-sizing: border-box; }
@@ -40,8 +44,15 @@ html, body {
   font-family: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  /* Constrain html/body to the visible viewport so the Telegram WebView
+     cannot push the shell off-screen on iOS/Android. width:100% blocks
+     horizontal overflow from any descendant; min-height keeps the page
+     filling the visible area even before JS sets --app-height. */
+  width: 100%;
+  max-width: 100%;
   min-height: 100%;
   overflow-x: hidden;
+  overscroll-behavior-y: contain;
 }
 
 body {
@@ -52,6 +63,7 @@ body {
     var(--bg-0);
   min-height: 100vh;
   min-height: 100dvh;
+  min-height: var(--app-height, 100dvh);
 }
 
 button { font: inherit; cursor: pointer; }
@@ -101,12 +113,23 @@ button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
 .app {
   position: relative;
   z-index: 1;
-  max-width: 460px;
+  /* min(460px, 100%) keeps the shell narrower than the viewport on every
+     device; combined with html/body `overflow-x: hidden` this guarantees
+     the app cannot drift horizontally off-screen inside Telegram. */
+  width: 100%;
+  max-width: min(460px, 100%);
   margin: 0 auto;
   padding: 14px 14px calc(var(--tab-h) + 28px + env(safe-area-inset-bottom)) 14px;
   padding-top: calc(14px + env(safe-area-inset-top));
+  /* Vertical sizing: prefer the JS-measured --app-height (Telegram's
+     viewportStableHeight or visualViewport.height) so we always fit
+     inside the visible Telegram viewport. Fall back to dvh, then vh. */
   min-height: 100vh;
   min-height: 100dvh;
+  min-height: var(--app-height, 100dvh);
+  /* Block horizontal overflow from any descendant — cards, matrices, the
+     ticker, the topbar label — so nothing pushes the shell sideways. */
+  overflow-x: hidden;
 }
 
 /* ===== Top bar ===== */
@@ -1449,7 +1472,7 @@ button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
   bottom: 0; left: 50%;
   transform: translateX(-50%);
   width: 100%;
-  max-width: 460px;
+  max-width: min(460px, 100%);
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 2px;
@@ -2312,6 +2335,9 @@ h1, h2, h3, .screen__title, .brand-title, .boot-splash__title {
   position: relative;
   display: block;
   margin: 10px 14px 0;
+  /* Hard cap so the card cannot exceed its parent column on any screen;
+     prevents the sponsored banner from pushing the app off-screen. */
+  max-width: calc(100% - 28px);
   padding: 14px 14px 14px 14px;
   border-radius: 18px;
   text-decoration: none;
@@ -2476,6 +2502,52 @@ html, body, .app, .screens, .screen, .tabbar, .topbar {
   overflow-anchor: none;
 }
 
+/* =====================================================================
+   VIEWPORT FIT — keep the Mini App inside Telegram's visible area
+   -----------------------------------------------------------------
+   Telegram's WebView reports a viewport that can shrink (keyboard,
+   bottom bar) and the on-screen URL bar on iOS can change the visible
+   height mid-session. Without these rules, content can scroll the
+   whole shell (topbar + tabbar included) off-screen.
+   ===================================================================== */
+html, body {
+  /* Block any descendant from creating horizontal overflow that would
+     drag the shell sideways inside the Telegram WebView. */
+  overflow-x: hidden;
+}
+.app, .screens, .screen {
+  /* min-width: 0 is required on flex/grid descendants so that long
+     inline content (matrix prices, partner titles, ticker text) can
+     shrink instead of forcing the parent wider than the viewport. */
+  max-width: 100%;
+  min-width: 0;
+}
+/* Internal scroll containment: when content scrolls inside the app
+   area, do not propagate the scroll to Telegram's parent surface
+   (which is what makes the whole Mini App feel like it "leaves" the
+   screen on iOS rubber-band). */
+.app, .screens {
+  overscroll-behavior: contain;
+}
+/* Defensive min-width: 0 on the matrix grid + partner card text so
+   their inner content can shrink inside narrow Telegram WebViews
+   (e.g. small Androids in split-screen). */
+.matrix,
+.matrix-cell,
+.partner-card,
+.partner-card__body,
+.partner-card__text,
+.hero-card,
+.card {
+  min-width: 0;
+  max-width: 100%;
+}
+/* The topbar label is the most common source of horizontal overflow
+   because it's a raster image with an intrinsic width. Cap it firmly. */
+.topbar__label {
+  max-width: min(58vw, 220px);
+}
+
 /* Make every interactive surface advertise that double-tap zoom is
    not wanted and that the user agent should not introduce gesture
    latency. */
@@ -2529,17 +2601,20 @@ a,
 .screens {
   /* Reserve space below the topbar + ticker for the bottom tabbar +
      safe-area, so an "empty" screen still fills the viewport instead
-     of collapsing and shifting the topbar. */
-  min-height: calc(100dvh - var(--tab-h) - 140px);
+     of collapsing and shifting the topbar. Use --app-height when JS
+     has measured the Telegram viewport, otherwise fall back to dvh/vh. */
   min-height: calc(100vh - var(--tab-h) - 140px);
+  min-height: calc(100dvh - var(--tab-h) - 140px);
+  min-height: calc(var(--app-height, 100dvh) - var(--tab-h) - 140px);
 }
 .screen {
   /* Same min-height for each individual screen — guarantees that the
      intrinsic height does not change between active screens, so the
      bottom tabbar (position:fixed) never appears to move and the
      content area does not jump. */
-  min-height: calc(100dvh - var(--tab-h) - 140px);
   min-height: calc(100vh - var(--tab-h) - 140px);
+  min-height: calc(100dvh - var(--tab-h) - 140px);
+  min-height: calc(var(--app-height, 100dvh) - var(--tab-h) - 140px);
 }
 
 /* Drop the entry translateY on screen switch — the slide is what

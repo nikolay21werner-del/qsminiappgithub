@@ -89,6 +89,52 @@ must("live render containers reserve min-height",
   /#matrix[\s\S]{0,200}min-height/.test(css) ||
   /#overview-rows[\s\S]{0,200}min-height/.test(css));
 
+// ---- 1b. Viewport fit — Mini App must not drift off-screen ---------------
+// html/body must block horizontal overflow so the shell can't be pushed
+// sideways by an oversize descendant.
+must("html, body have overflow-x: hidden",
+  /html,\s*body\s*\{[\s\S]*?overflow-x:\s*hidden/.test(css));
+// --app-height custom property is declared as a fallback at :root.
+must("--app-height custom property is declared",
+  /--app-height:/.test(css));
+// .app must consult --app-height (with 100dvh/100vh fallbacks) for height.
+must(".app min-height uses var(--app-height)",
+  /\.app\s*\{[\s\S]*?min-height:[^;]*var\(--app-height/.test(css));
+// .app width is capped to the viewport so it can never exceed the screen.
+must(".app max-width is capped to viewport (min(460px, 100%))",
+  /\.app\s*\{[\s\S]*?max-width:\s*min\(\s*460px,\s*100%\s*\)/.test(css));
+// .app blocks horizontal overflow internally.
+must(".app declares overflow-x: hidden",
+  /\.app\s*\{[\s\S]*?overflow-x:\s*hidden/.test(css));
+// Tabbar is capped at the viewport too.
+must(".tabbar max-width is capped to viewport",
+  /\.tabbar\s*\{[\s\S]*?max-width:\s*min\(\s*460px,\s*100%\s*\)/.test(css));
+// Internal scroll containment so rubber-band scrolling cannot push the
+// whole Mini App off-screen.
+must("app/screens declare overscroll-behavior: contain",
+  /\.app,\s*\.screens\s*\{[\s\S]*?overscroll-behavior:\s*contain/.test(css));
+// Defensive min-width: 0 on matrix/partner/card so long inline content
+// (prices, titles) can shrink instead of widening the parent.
+must("matrix/partner/card declare min-width: 0",
+  /\.matrix,[\s\S]*?\.matrix-cell,[\s\S]*?\.partner-card,[\s\S]*?min-width:\s*0/.test(css));
+// Topbar label stays inside its 58vw / 220px cap (already enforced;
+// re-asserted so a future edit cannot remove it).
+must("topbar label max-width is clamped to 58vw / 220px",
+  /\.topbar__label\s*\{[\s\S]*?max-width:\s*min\(\s*58vw,\s*220px\s*\)/.test(css));
+
+// JS must set --app-height from Telegram.WebApp + visualViewport.
+must("app.js reads Telegram viewportStableHeight",
+  /viewportStableHeight/.test(app));
+must("app.js falls back to visualViewport.height",
+  /visualViewport\s*&&\s*window\.visualViewport\.height|window\.visualViewport\.height/.test(app));
+must("app.js writes --app-height onto documentElement",
+  /setProperty\(\s*["']--app-height["']/.test(app));
+must("app.js binds viewport listeners (resize/orientationchange/visualViewport)",
+  /addEventListener\(\s*["']resize["'][\s\S]*?applyAppHeight/.test(app) &&
+  /addEventListener\(\s*["']orientationchange["']/.test(app));
+must("app.js subscribes to Telegram viewportChanged",
+  /tg\.onEvent[\s\S]{0,80}["']viewportChanged["']|onEvent\(\s*["']viewportChanged["']/.test(app));
+
 // ---- 2. App.js behavior --------------------------------------------------
 must("setScreen does NOT unconditionally smooth-scroll to top",
   !/setScreen[\s\S]{0,400}window\.scrollTo\(\{\s*top:\s*0,\s*behavior:\s*["']smooth["']\s*\}\)\s*;\s*if/m.test(app) ||
