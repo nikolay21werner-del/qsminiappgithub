@@ -2770,8 +2770,7 @@ body.keyboard-open .screen--ai {
 body {
   background:
     radial-gradient(1100px 720px at 80% -8%, rgba(38, 230, 242, .12), transparent 62%),
-    radial-gradient(900px 700px at -10% 28%, rgba(123, 108, 255, .08), transparent 62%),
-    radial-gradient(800px 600px at 50% 110%, rgba(255, 138, 43, .07), transparent 62%),
+    radial-gradient(900px 700px at -10% 28%, rgba(38, 230, 242, .06), transparent 62%),
     var(--qsi-graphite-0);
 }
 .bg-grid {
@@ -3152,17 +3151,16 @@ body.keyboard-open .app {
   --qsi-star: #7df2ff;
   --qsi-shadow-badge:
     0 30px 80px rgba(0, 0, 0, .65),
-    0 0 0 1px rgba(38, 230, 242, .25),
-    0 0 60px rgba(38, 230, 242, .30),
-    0 0 120px rgba(38, 230, 242, .14);
+    0 0 0 1px rgba(38, 230, 242, .28),
+    0 0 60px rgba(38, 230, 242, .34),
+    0 0 120px rgba(38, 230, 242, .18);
 }
 
-/* Deeper black canvas — keep cinematic but readable */
+/* Deeper black canvas — pure black with subtle cyan glow only */
 body {
   background:
     radial-gradient(900px 600px at 50% -10%, rgba(38, 230, 242, .14), transparent 65%),
-    radial-gradient(700px 600px at 100% 40%, rgba(255, 138, 43, .07), transparent 65%),
-    radial-gradient(700px 600px at 0% 80%, rgba(123, 108, 255, .07), transparent 65%),
+    radial-gradient(700px 600px at 0% 80%, rgba(38, 230, 242, .05), transparent 65%),
     var(--qsi-ink-black);
 }
 
@@ -3188,22 +3186,20 @@ body {
   50%      { transform: scale(1.15); opacity: 1; }
 }
 
-/* ---- Promo hero (Overview) ------------------------------------------ */
+/* ---- Promo hero (Overview) — reference composition ------------------ */
+/* Flat hero (no card border) — top brand, centered round badge, three
+   tilted phone-style chips below. Mirrors the reference layout: bold
+   QUANTSIGNAL AI heading up top, big glowy round badge as the visual
+   anchor, and three angled device cards across the lower half. */
 .promo-hero {
   position: relative;
-  margin: 6px 0 14px;
-  padding: 22px 14px 18px;
-  border-radius: 24px;
-  background:
-    radial-gradient(120% 100% at 50% 0%, rgba(38, 230, 242, .12), transparent 60%),
-    radial-gradient(80% 60% at 50% 100%, rgba(255, 138, 43, .07), transparent 70%),
-    linear-gradient(180deg, #03060c 0%, #05080f 100%);
-  border: 1px solid var(--qsi-line-2);
-  box-shadow:
-    0 24px 60px rgba(0, 0, 0, .55),
-    inset 0 1px 0 rgba(255, 255, 255, .05),
-    inset 0 0 0 1px rgba(38, 230, 242, .10);
-  overflow: hidden;
+  margin: 4px 0 18px;
+  padding: 14px 4px 26px;
+  border-radius: 26px;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  overflow: visible;
   isolation: isolate;
 }
 .promo-hero__inner {
@@ -3213,9 +3209,10 @@ body {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 14px;
+  gap: 10px;
 }
 .promo-hero__eyebrow {
+  margin: 0;
   font-size: 10.5px;
   letter-spacing: 0.22em;
   text-transform: uppercase;
@@ -3224,60 +3221,28 @@ body {
 }
 .promo-hero__title {
   margin: 0;
-  font-size: 22px;
-  line-height: 1.15;
-  font-weight: 800;
+  font-size: clamp(26px, 8.4vw, 34px);
+  line-height: 1.05;
+  font-weight: 900;
   letter-spacing: -0.01em;
   color: #f6fbff;
-  text-shadow: 0 0 22px rgba(38, 230, 242, .22);
+  text-shadow: 0 0 28px rgba(38, 230, 242, .28);
 }
-.promo-hero__title b { color: var(--qsi-cyan-2); }
+.promo-hero__title b { color: var(--qsi-cyan-2); font-weight: 900; }
 .promo-hero__sub {
-  margin: -4px 0 0;
-  font-size: 12px;
-  color: var(--ink-2);
-}
-.promo-hero__actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 4px;
-}
-.promo-hero__chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 30px;
-  padding: 0 12px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  margin: 0 0 4px;
+  font-size: 12.5px;
   color: var(--ink-1);
-  background: rgba(10, 16, 24, .6);
-  border: 1px solid var(--qsi-line-2);
-  cursor: pointer;
-  transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
-}
-.promo-hero__chip:hover {
-  transform: translateY(-1px);
-  background: rgba(38, 230, 242, .08);
-  box-shadow: 0 6px 14px rgba(38, 230, 242, .18);
-}
-.promo-hero__chip--accent {
-  color: #1a0e02;
-  background: linear-gradient(135deg, var(--qsi-orange) 0%, #ff6a14 100%);
-  border-color: rgba(255, 138, 43, .45);
-  box-shadow: 0 10px 22px rgba(255, 138, 43, .28);
+  opacity: .85;
+  max-width: 320px;
 }
 
-/* ---- Circular QUANTSIGNAL AI brand badge ---------------------------- */
+/* ---- Circular QUANTSIGNAL AI brand badge — hero anchor -------------- */
 .qsi-badge {
   position: relative;
-  width: 168px;
-  height: 168px;
+  width: clamp(150px, 44vw, 188px);
+  height: clamp(150px, 44vw, 188px);
+  margin: 6px 0 6px;
   border-radius: 50%;
   display: inline-block;
   box-shadow: var(--qsi-shadow-badge);
@@ -3288,26 +3253,26 @@ body {
   /* outer halo glow */
   content: "";
   position: absolute;
-  inset: -18px;
+  inset: -22px;
   border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(38, 230, 242, .35), transparent 70%);
+  background: radial-gradient(closest-side, rgba(38, 230, 242, .42), transparent 70%);
   z-index: -1;
-  filter: blur(8px);
+  filter: blur(10px);
   pointer-events: none;
 }
 .qsi-badge::after {
-  /* outer ring accent */
+  /* outer ring accent — mostly cyan, faint orange spark near top-right */
   content: "";
   position: absolute;
   inset: 0;
   border-radius: 50%;
   pointer-events: none;
   background:
-    conic-gradient(from 220deg,
+    conic-gradient(from 210deg,
       rgba(38, 230, 242, .55) 0deg,
-      transparent 90deg,
-      transparent 240deg,
-      rgba(255, 138, 43, .55) 320deg,
+      rgba(38, 230, 242, .15) 110deg,
+      rgba(38, 230, 242, .55) 220deg,
+      rgba(255, 155, 46, .45) 285deg,
       rgba(38, 230, 242, .55) 360deg);
   -webkit-mask: radial-gradient(closest-side, transparent 64%, #000 66%);
           mask: radial-gradient(closest-side, transparent 64%, #000 66%);
@@ -3325,40 +3290,85 @@ body {
 .qsi-badge--sm { width: 92px; height: 92px; }
 .qsi-badge--lg { width: 200px; height: 200px; }
 
-/* ---- Layered phone-card mockups ------------------------------------- */
+/* ---- Phone-style device cards (Market / Signals / AI) --------------- */
 .promo-cards {
   position: relative;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin-top: 12px;
+  gap: 10px;
+  width: 100%;
+  max-width: 360px;
+  margin: 14px auto 0;
   padding: 0 2px;
+  perspective: 720px;
 }
 .promo-cards__item {
   position: relative;
-  border-radius: 18px;
-  padding: 10px 10px 12px;
+  appearance: none;
+  -webkit-appearance: none;
+  border-radius: 22px;
+  padding: 14px 8px 10px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, .04), rgba(255, 255, 255, .01)),
-    linear-gradient(180deg, #06090f 0%, #0a0f18 100%);
+    radial-gradient(120% 100% at 50% 0%, rgba(38, 230, 242, .12), transparent 65%),
+    linear-gradient(180deg, #060a12 0%, #0a121d 100%);
   border: 1px solid var(--qsi-line-2);
   box-shadow:
-    0 14px 28px rgba(0, 0, 0, .55),
-    inset 0 1px 0 rgba(255, 255, 255, .04);
-  min-height: 96px;
+    0 18px 36px rgba(0, 0, 0, .60),
+    inset 0 1px 0 rgba(255, 255, 255, .05),
+    inset 0 0 0 1px rgba(38, 230, 242, .08);
+  min-height: 116px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  text-align: left;
+  color: var(--ink-0);
+  cursor: pointer;
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
 }
-.promo-cards__item:nth-child(1) { transform: rotate(-3.5deg) translateY(4px); }
-.promo-cards__item:nth-child(2) { transform: rotate(0deg)    translateY(-4px); z-index: 2; }
-.promo-cards__item:nth-child(3) { transform: rotate(3.5deg)  translateY(4px); }
+.promo-cards__item:focus-visible {
+  outline: 2px solid var(--qsi-cyan);
+  outline-offset: 2px;
+}
+.promo-cards__item:hover {
+  border-color: rgba(38, 230, 242, .35);
+  box-shadow:
+    0 22px 44px rgba(0, 0, 0, .60),
+    0 0 0 1px rgba(38, 230, 242, .25) inset,
+    0 0 24px rgba(38, 230, 242, .15);
+}
+.promo-cards__item:nth-child(1) { transform: rotate(-5deg)  translateY(8px); }
+.promo-cards__item:nth-child(2) { transform: rotate(0deg)   translateY(-6px); z-index: 2; }
+.promo-cards__item:nth-child(3) { transform: rotate(5deg)   translateY(8px); }
+.promo-cards__item:nth-child(2) {
+  box-shadow:
+    0 24px 50px rgba(0, 0, 0, .68),
+    inset 0 1px 0 rgba(255, 255, 255, .07),
+    inset 0 0 0 1px rgba(38, 230, 242, .18);
+}
+/* Phone-style top notch */
+.promo-cards__notch {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 28px;
+  height: 4px;
+  border-radius: 99px;
+  background: rgba(38, 230, 242, .35);
+  box-shadow: 0 0 8px rgba(38, 230, 242, .35);
+}
+.promo-cards__item-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+  flex: 1;
+}
 .promo-cards__item-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 9.5px;
-  letter-spacing: 0.12em;
+  font-size: 9px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ink-2);
 }
@@ -3369,25 +3379,48 @@ body {
   box-shadow: 0 0 6px var(--qsi-cyan);
 }
 .promo-cards__item-val {
-  font-size: 14px;
+  font-size: clamp(13px, 3.6vw, 16px);
   font-weight: 800;
   color: #f4faff;
+  line-height: 1.1;
+}
+.promo-cards__item-sub {
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  opacity: .8;
 }
 .promo-cards__item-spark {
   margin-top: auto;
   height: 22px;
   border-radius: 6px;
   background:
-    linear-gradient(180deg, rgba(38, 230, 242, .14), rgba(38, 230, 242, 0)),
+    linear-gradient(180deg, rgba(38, 230, 242, .16), rgba(38, 230, 242, 0)),
     repeating-linear-gradient(90deg,
       rgba(38, 230, 242, .35) 0 2px, transparent 2px 6px);
-  opacity: .7;
+  opacity: .8;
+}
+.promo-cards__item--accent {
+  background:
+    radial-gradient(120% 100% at 50% 0%, rgba(38, 230, 242, .22), transparent 65%),
+    linear-gradient(180deg, #07111c 0%, #0c1828 100%);
+  border-color: rgba(38, 230, 242, .35);
+}
+.promo-cards__item--accent .promo-cards__notch {
+  background: var(--qsi-cyan);
+  box-shadow: 0 0 12px var(--qsi-cyan);
+}
+.promo-cards__item--accent .promo-cards__item-val {
+  color: #f6fcff;
+  text-shadow: 0 0 18px rgba(38, 230, 242, .35);
 }
 .promo-cards__item--accent .promo-cards__item-spark {
   background:
-    linear-gradient(180deg, rgba(255, 138, 43, .14), rgba(255, 138, 43, 0)),
+    linear-gradient(180deg, rgba(38, 230, 242, .28), rgba(38, 230, 242, 0)),
     repeating-linear-gradient(90deg,
-      rgba(255, 138, 43, .40) 0 2px, transparent 2px 6px);
+      rgba(38, 230, 242, .55) 0 2px, transparent 2px 6px);
+  opacity: 1;
 }
 
 /* ---- Section: brand-accented panel headers in promo style ----------- */
@@ -3432,12 +3465,14 @@ body.keyboard-open .app {
   padding-bottom: calc(12px + env(safe-area-inset-bottom));
 }
 
-/* ---- Narrow phones: keep promo badge readable ----------------------- */
+/* ---- Narrow phones: keep promo badge + cards readable --------------- */
 @media (max-width: 360px) {
-  .qsi-badge { width: 138px; height: 138px; }
-  .promo-hero__title { font-size: 19px; }
-  .promo-cards__item { min-height: 84px; padding: 8px; }
+  .qsi-badge { width: 140px; height: 140px; }
+  .promo-hero__title { font-size: 24px; }
+  .promo-cards { gap: 6px; }
+  .promo-cards__item { min-height: 104px; padding: 12px 6px 8px; border-radius: 18px; }
   .promo-cards__item-val { font-size: 12.5px; }
+  .promo-cards__item-head, .promo-cards__item-sub { font-size: 8.5px; }
 }
 
 /* ---- Reduced motion: stop star twinkle ------------------------------ */

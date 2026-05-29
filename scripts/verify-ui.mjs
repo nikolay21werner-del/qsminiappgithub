@@ -133,32 +133,75 @@ must("v3 keyboard-open .app override is present (smaller padding when typing)",
 must("CSS hides the bottom tabbar while keyboard is open",
   /body\.keyboard-open\s+\.tabbar\s*\{[\s\S]*?(opacity:\s*0|display:\s*none|transform:\s*translate)/.test(css));
 
-// ---- 11. Promo-wallet (v4) layer --------------------------------------
+// ---- 11. Promo-wallet (v4) layer — reference composition -------------
+// The Overview screen should mirror the reference: bold QUANTSIGNAL AI
+// heading up top, a prominent circular badge as the hero anchor, and a
+// row of three tilted phone-style cards (Market / Signals / AI) below.
 must("v4 design layer header present",
   /DESIGN SYSTEM v4[\s\S]{0,200}Promo Wallet/.test(css));
 must("v4 deeper-black canvas token defined",
   /--qsi-ink-black:\s*#02050b/.test(css));
 must("v4 star sparkle styles present",
   /\.qsi-star\b[\s\S]{0,200}qsi-star-twinkle/.test(css));
-must("v4 promo-hero block styled",
-  /\.promo-hero\s*\{[\s\S]{0,400}border-radius:\s*2[2-9]px/.test(css));
-must("v4 circular qsi-badge styled (round)",
-  /\.qsi-badge\s*\{[\s\S]{0,400}border-radius:\s*50%/.test(css));
-must("v4 promo card mockups exist with tilt",
-  /\.promo-cards__item:nth-child\(1\)[\s\S]{0,200}rotate\(/.test(css));
+must("v4 promo-hero block is flat (no card border, transparent bg)",
+  /\.promo-hero\s*\{[\s\S]{0,500}background:\s*transparent/.test(css) &&
+  /\.promo-hero\s*\{[\s\S]{0,500}border:\s*0/.test(css));
+must("v4 promo-hero title is bold and large (>=26px clamp floor)",
+  /\.promo-hero__title\s*\{[\s\S]{0,300}font-size:\s*clamp\(\s*2[6-9]px/.test(css) &&
+  /\.promo-hero__title\s*\{[\s\S]{0,300}font-weight:\s*900/.test(css));
+must("v4 circular qsi-badge uses clamp sizing (responsive hero anchor)",
+  /\.qsi-badge\s*\{[\s\S]{0,400}border-radius:\s*50%/.test(css) &&
+  /\.qsi-badge\s*\{[\s\S]{0,400}width:\s*clamp\(/.test(css));
+must("v4 promo card mockups exist with tilt (3 items, ±rotate)",
+  /\.promo-cards__item:nth-child\(1\)[\s\S]{0,200}rotate\(-[0-9.]+deg\)/.test(css) &&
+  /\.promo-cards__item:nth-child\(3\)[\s\S]{0,200}rotate\([0-9.]+deg\)/.test(css));
+must("v4 promo cards use phone-style notch header",
+  /\.promo-cards__notch\s*\{/.test(css));
+must("v4 promo cards width-capped (no horizontal overflow on 390px)",
+  /\.promo-cards\s*\{[\s\S]{0,400}max-width:\s*3[0-9]{2}px/.test(css));
 
 must("promo-hero markup present on overview",
   /class="promo-hero"[\s\S]{0,200}data-testid="promo-hero"/.test(html));
+must("promo-hero title says QUANTSIGNAL AI (brand heading)",
+  /class="promo-hero__title"[\s\S]{0,200}QUANTSIGNAL\s*<b>AI<\/b>/.test(html));
 must("circular qsi-badge markup uses optimized asset",
   /class="qsi-badge"[\s\S]{0,400}assets\/telegram\/quantsignal-badge\.jpeg/.test(html));
 must("qsi-badge image declares width + height attributes",
   /class="qsi-badge__img"[\s\S]{0,300}width="\d+"\s+height="\d+"/.test(html));
 must("promo-hero has star sparkles",
   /class="qsi-stars"[\s\S]{0,200}class="qsi-star/.test(html));
-must("promo-hero has 3 layered phone-style cards",
+must("promo-hero has at least 3 phone-style device cards",
   (html.match(/class="promo-cards__item/g) || []).length >= 3);
-must("promo-hero exposes Signals / Market / AI chips",
-  /data-action="open-signals"[\s\S]{0,4000}data-action="open-market"[\s\S]{0,4000}data-action="open-ai"/.test(html));
+must("promo cards are actionable (Market / Signals / AI)",
+  /data-action="open-market"/.test(html) &&
+  /data-action="open-signals"/.test(html) &&
+  /data-action="open-ai"/.test(html));
+must("promo cards expose testids for each section",
+  /data-testid="promo-card-market"/.test(html) &&
+  /data-testid="promo-card-signals"/.test(html) &&
+  /data-testid="promo-card-ai"/.test(html));
+must("promo cards bind live values (balance / signals / ai-score)",
+  /id="promo-balance"/.test(html) &&
+  /id="promo-signals"/.test(html) &&
+  /id="promo-ai-score"/.test(html));
+
+// ---- 11c. Reference palette — black + cyan, no orange in canvas ------
+{
+  // The final body { ... } block (v4 layer) is the effective canvas style.
+  // It must reference --qsi-ink-black and must NOT pull in orange/violet
+  // wash so the page tone matches the reference (black + cyan only).
+  const lastBodyIdx = css.lastIndexOf("\nbody {");
+  const lastBody = lastBodyIdx >= 0 ? css.slice(lastBodyIdx, lastBodyIdx + 600) : "";
+  must("final body background uses --qsi-ink-black",
+    /var\(--qsi-ink-black\)/.test(lastBody));
+  must("final body background has no orange tint",
+    !/rgba\(255,\s*138,\s*43/.test(lastBody) &&
+    !/rgba\(255,\s*155,\s*46/.test(lastBody));
+  must("final body background has no violet tint",
+    !/rgba\(123,\s*108,\s*255/.test(lastBody));
+}
+must("--qsi-cyan brand cyan still present (reference teal)",
+  /--qsi-cyan:\s*#26e6f2/.test(css));
 
 // ---- 11a. No "THANK YOU" or promo trade-dress leak --------------------
 must("no THANK YOU / FOR WATCHING text in HTML",
