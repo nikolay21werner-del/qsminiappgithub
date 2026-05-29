@@ -133,11 +133,57 @@ must("v3 keyboard-open .app override is present (smaller padding when typing)",
 must("CSS hides the bottom tabbar while keyboard is open",
   /body\.keyboard-open\s+\.tabbar\s*\{[\s\S]*?(opacity:\s*0|display:\s*none|transform:\s*translate)/.test(css));
 
-// ---- 11. package.json verify script entry -----------------------------
+// ---- 11. Promo-wallet (v4) layer --------------------------------------
+must("v4 design layer header present",
+  /DESIGN SYSTEM v4[\s\S]{0,200}Promo Wallet/.test(css));
+must("v4 deeper-black canvas token defined",
+  /--qsi-ink-black:\s*#02050b/.test(css));
+must("v4 star sparkle styles present",
+  /\.qsi-star\b[\s\S]{0,200}qsi-star-twinkle/.test(css));
+must("v4 promo-hero block styled",
+  /\.promo-hero\s*\{[\s\S]{0,400}border-radius:\s*2[2-9]px/.test(css));
+must("v4 circular qsi-badge styled (round)",
+  /\.qsi-badge\s*\{[\s\S]{0,400}border-radius:\s*50%/.test(css));
+must("v4 promo card mockups exist with tilt",
+  /\.promo-cards__item:nth-child\(1\)[\s\S]{0,200}rotate\(/.test(css));
+
+must("promo-hero markup present on overview",
+  /class="promo-hero"[\s\S]{0,200}data-testid="promo-hero"/.test(html));
+must("circular qsi-badge markup uses optimized asset",
+  /class="qsi-badge"[\s\S]{0,400}assets\/telegram\/quantsignal-badge\.jpeg/.test(html));
+must("qsi-badge image declares width + height attributes",
+  /class="qsi-badge__img"[\s\S]{0,300}width="\d+"\s+height="\d+"/.test(html));
+must("promo-hero has star sparkles",
+  /class="qsi-stars"[\s\S]{0,200}class="qsi-star/.test(html));
+must("promo-hero has 3 layered phone-style cards",
+  (html.match(/class="promo-cards__item/g) || []).length >= 3);
+must("promo-hero exposes Signals / Market / AI chips",
+  /data-action="open-signals"[\s\S]{0,4000}data-action="open-market"[\s\S]{0,4000}data-action="open-ai"/.test(html));
+
+// ---- 11a. No "THANK YOU" or promo trade-dress leak --------------------
+must("no THANK YOU / FOR WATCHING text in HTML",
+  !/THANK\s*YOU|FOR\s*WATCHING/i.test(html));
+must("no THANK YOU / FOR WATCHING text in CSS",
+  !/THANK\s*YOU|FOR\s*WATCHING/i.test(css));
+
+// ---- 11b. Asset budget — circular badge must be reasonably small -----
+{
+  const badgePath = join(root, "assets/telegram/quantsignal-badge.jpeg");
+  if (existsSync(badgePath)) {
+    const size = readFileSync(badgePath).byteLength;
+    must("optimized badge asset is <=250KB", size <= 250 * 1024,
+      "size=" + size + "B");
+  } else {
+    must("optimized badge asset exists", false,
+      "missing assets/telegram/quantsignal-badge.jpeg");
+  }
+}
+
+// ---- 12. package.json verify script entry -----------------------------
 must("npm run verify:ui is registered",
   pkg.scripts && pkg.scripts["verify:ui"] === "node scripts/verify-ui.mjs");
 
-// ---- 12. JS parse check (sanity) --------------------------------------
+// ---- 13. JS parse check (sanity) --------------------------------------
 const toCheck = [
   "app.js", "i18n.js", "api.js",
   "api/ai/chat.js", "api/bybit/[endpoint].js",

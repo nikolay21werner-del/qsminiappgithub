@@ -737,6 +737,15 @@
     animateCounter($('[data-counter="signals"]'), signals.length);
     animateCounter($('[data-counter="coins"]'), watched);
     animateCounter($('[data-counter="accuracy"]'), accuracy);
+    // Promo-hero mini stats — wired to live data.
+    var pb = $("#promo-balance");
+    if (pb) {
+      var btc = (tickers || []).find(function (t) { return /BTC/i.test(t.symbol || ""); });
+      if (btc && btc.last_price != null) pb.textContent = "$" + Math.round(btc.last_price).toLocaleString("en-US");
+      else pb.textContent = "—";
+    }
+    setText("#promo-signals", String(signals.length || 0));
+    setText("#promo-ai-score", accuracy + "%");
   }
 
   // ---------- Overview rows ----------

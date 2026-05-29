@@ -3135,3 +3135,313 @@ body.keyboard-open .app {
 /* (No selectors needed — verifier asserts absence; this comment is a
    pointer for future maintainers.) */
 
+/* =====================================================================
+   DESIGN SYSTEM v4 — Promo Wallet / Brand Badge
+   ---------------------------------------------------------------------
+   Builds on v3. Pushes the look closer to a premium crypto-wallet promo:
+   deeper near-black canvas, cyan star sparkles, a prominent circular
+   QUANTSIGNAL AI brand badge on the Overview hero, and slightly tilted
+   layered "phone-card" surfaces under the badge.
+
+   Additive only — no DOM hooks renamed; new optional blocks have unique
+   classes. New tokens: --qsi-ink-black, --qsi-star, --qsi-shadow-badge.
+   ===================================================================== */
+
+:root {
+  --qsi-ink-black: #02050b;
+  --qsi-star: #7df2ff;
+  --qsi-shadow-badge:
+    0 30px 80px rgba(0, 0, 0, .65),
+    0 0 0 1px rgba(38, 230, 242, .25),
+    0 0 60px rgba(38, 230, 242, .30),
+    0 0 120px rgba(38, 230, 242, .14);
+}
+
+/* Deeper black canvas — keep cinematic but readable */
+body {
+  background:
+    radial-gradient(900px 600px at 50% -10%, rgba(38, 230, 242, .14), transparent 65%),
+    radial-gradient(700px 600px at 100% 40%, rgba(255, 138, 43, .07), transparent 65%),
+    radial-gradient(700px 600px at 0% 80%, rgba(123, 108, 255, .07), transparent 65%),
+    var(--qsi-ink-black);
+}
+
+/* ---- Cyan star sparkles (decorative) -------------------------------- */
+.qsi-stars {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.qsi-star {
+  position: absolute;
+  width: 10px; height: 10px;
+  color: var(--qsi-star);
+  opacity: .85;
+  filter: drop-shadow(0 0 6px rgba(125, 242, 255, .75));
+  animation: qsi-star-twinkle 3.4s ease-in-out infinite;
+}
+.qsi-star--sm { width: 7px;  height: 7px;  opacity: .65; animation-duration: 2.6s; }
+.qsi-star--lg { width: 14px; height: 14px; opacity: .95; animation-duration: 4.2s; }
+@keyframes qsi-star-twinkle {
+  0%, 100% { transform: scale(.85); opacity: .55; }
+  50%      { transform: scale(1.15); opacity: 1; }
+}
+
+/* ---- Promo hero (Overview) ------------------------------------------ */
+.promo-hero {
+  position: relative;
+  margin: 6px 0 14px;
+  padding: 22px 14px 18px;
+  border-radius: 24px;
+  background:
+    radial-gradient(120% 100% at 50% 0%, rgba(38, 230, 242, .12), transparent 60%),
+    radial-gradient(80% 60% at 50% 100%, rgba(255, 138, 43, .07), transparent 70%),
+    linear-gradient(180deg, #03060c 0%, #05080f 100%);
+  border: 1px solid var(--qsi-line-2);
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, .55),
+    inset 0 1px 0 rgba(255, 255, 255, .05),
+    inset 0 0 0 1px rgba(38, 230, 242, .10);
+  overflow: hidden;
+  isolation: isolate;
+}
+.promo-hero__inner {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 14px;
+}
+.promo-hero__eyebrow {
+  font-size: 10.5px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--qsi-cyan-2);
+  opacity: .9;
+}
+.promo-hero__title {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.15;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: #f6fbff;
+  text-shadow: 0 0 22px rgba(38, 230, 242, .22);
+}
+.promo-hero__title b { color: var(--qsi-cyan-2); }
+.promo-hero__sub {
+  margin: -4px 0 0;
+  font-size: 12px;
+  color: var(--ink-2);
+}
+.promo-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+.promo-hero__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-1);
+  background: rgba(10, 16, 24, .6);
+  border: 1px solid var(--qsi-line-2);
+  cursor: pointer;
+  transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.promo-hero__chip:hover {
+  transform: translateY(-1px);
+  background: rgba(38, 230, 242, .08);
+  box-shadow: 0 6px 14px rgba(38, 230, 242, .18);
+}
+.promo-hero__chip--accent {
+  color: #1a0e02;
+  background: linear-gradient(135deg, var(--qsi-orange) 0%, #ff6a14 100%);
+  border-color: rgba(255, 138, 43, .45);
+  box-shadow: 0 10px 22px rgba(255, 138, 43, .28);
+}
+
+/* ---- Circular QUANTSIGNAL AI brand badge ---------------------------- */
+.qsi-badge {
+  position: relative;
+  width: 168px;
+  height: 168px;
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: var(--qsi-shadow-badge);
+  isolation: isolate;
+  flex: 0 0 auto;
+}
+.qsi-badge::before {
+  /* outer halo glow */
+  content: "";
+  position: absolute;
+  inset: -18px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(38, 230, 242, .35), transparent 70%);
+  z-index: -1;
+  filter: blur(8px);
+  pointer-events: none;
+}
+.qsi-badge::after {
+  /* outer ring accent */
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  pointer-events: none;
+  background:
+    conic-gradient(from 220deg,
+      rgba(38, 230, 242, .55) 0deg,
+      transparent 90deg,
+      transparent 240deg,
+      rgba(255, 138, 43, .55) 320deg,
+      rgba(38, 230, 242, .55) 360deg);
+  -webkit-mask: radial-gradient(closest-side, transparent 64%, #000 66%);
+          mask: radial-gradient(closest-side, transparent 64%, #000 66%);
+  opacity: .9;
+}
+.qsi-badge__img {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+.qsi-badge--sm { width: 92px; height: 92px; }
+.qsi-badge--lg { width: 200px; height: 200px; }
+
+/* ---- Layered phone-card mockups ------------------------------------- */
+.promo-cards {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+  padding: 0 2px;
+}
+.promo-cards__item {
+  position: relative;
+  border-radius: 18px;
+  padding: 10px 10px 12px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .04), rgba(255, 255, 255, .01)),
+    linear-gradient(180deg, #06090f 0%, #0a0f18 100%);
+  border: 1px solid var(--qsi-line-2);
+  box-shadow:
+    0 14px 28px rgba(0, 0, 0, .55),
+    inset 0 1px 0 rgba(255, 255, 255, .04);
+  min-height: 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.promo-cards__item:nth-child(1) { transform: rotate(-3.5deg) translateY(4px); }
+.promo-cards__item:nth-child(2) { transform: rotate(0deg)    translateY(-4px); z-index: 2; }
+.promo-cards__item:nth-child(3) { transform: rotate(3.5deg)  translateY(4px); }
+.promo-cards__item-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.promo-cards__item-head i {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--qsi-cyan);
+  box-shadow: 0 0 6px var(--qsi-cyan);
+}
+.promo-cards__item-val {
+  font-size: 14px;
+  font-weight: 800;
+  color: #f4faff;
+}
+.promo-cards__item-spark {
+  margin-top: auto;
+  height: 22px;
+  border-radius: 6px;
+  background:
+    linear-gradient(180deg, rgba(38, 230, 242, .14), rgba(38, 230, 242, 0)),
+    repeating-linear-gradient(90deg,
+      rgba(38, 230, 242, .35) 0 2px, transparent 2px 6px);
+  opacity: .7;
+}
+.promo-cards__item--accent .promo-cards__item-spark {
+  background:
+    linear-gradient(180deg, rgba(255, 138, 43, .14), rgba(255, 138, 43, 0)),
+    repeating-linear-gradient(90deg,
+      rgba(255, 138, 43, .40) 0 2px, transparent 2px 6px);
+}
+
+/* ---- Section: brand-accented panel headers in promo style ----------- */
+.card.card--promo {
+  background:
+    radial-gradient(120% 100% at 0% 0%, rgba(38, 230, 242, .08), transparent 60%),
+    var(--qsi-glass);
+  border-radius: 20px;
+  border: 1px solid var(--qsi-line-2);
+}
+
+/* Hero card glow upgrade: wallet promo style accent */
+.hero-card {
+  box-shadow:
+    0 28px 70px rgba(0, 0, 0, .60),
+    0 0 0 1px rgba(38, 230, 242, .12) inset,
+    0 1px 0 rgba(255, 255, 255, .05) inset;
+}
+
+/* ---- Tabbar tweak: small dock pad indicator for premium feel -------- */
+.tabbar::before {
+  content: "";
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 44px;
+  height: 3px;
+  border-radius: 99px;
+  background: linear-gradient(90deg, transparent, rgba(38, 230, 242, .45), transparent);
+  opacity: .7;
+  pointer-events: none;
+}
+
+/* ---- Re-assert keyboard-open contract (must stay last) -------------- */
+body.keyboard-open .tabbar {
+  transform: translate(-50%, 120%);
+  opacity: 0;
+  pointer-events: none;
+}
+body.keyboard-open .app {
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+}
+
+/* ---- Narrow phones: keep promo badge readable ----------------------- */
+@media (max-width: 360px) {
+  .qsi-badge { width: 138px; height: 138px; }
+  .promo-hero__title { font-size: 19px; }
+  .promo-cards__item { min-height: 84px; padding: 8px; }
+  .promo-cards__item-val { font-size: 12.5px; }
+}
+
+/* ---- Reduced motion: stop star twinkle ------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  .qsi-star { animation: none; }
+}
+
