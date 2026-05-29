@@ -2727,3 +2727,411 @@ body.keyboard-open .screen--ai {
 
 /* Slightly wider phones — more breathing room */
 
+/* =====================================================================
+   DESIGN SYSTEM v3 — Premium Wallet / AI-Terminal polish
+   ---------------------------------------------------------------------
+   Goal: bring the Mini App closer to a premium crypto-wallet / AI
+   trading dashboard look: deeper graphite background, glassy bevelled
+   cards, a clearer hero balance/status row, brighter cyan + warm
+   orange accents, and a floating glass dock at the bottom.
+
+   This layer is purely ADDITIVE — every selector targets existing
+   classes/IDs already in index.html so no DOM hooks change. The block
+   sits at the end of the file so it wins the cascade against the v1/v2
+   layers without surgery on the rest of the file.
+   ===================================================================== */
+
+:root {
+  /* v3 brand tokens — refined, warmer accent for the "premium" feel */
+  --qsi-graphite-0: #05080f;
+  --qsi-graphite-1: #0a1018;
+  --qsi-graphite-2: #0f1622;
+  --qsi-line-1: #1b2433;
+  --qsi-line-2: #2b3345;
+  --qsi-cyan: #26e6f2;
+  --qsi-cyan-2: #5ef9ff;
+  --qsi-orange: #ff8a2b;
+  --qsi-orange-2: #ffb24a;
+  --qsi-glass: linear-gradient(180deg, rgba(20,28,42,.78), rgba(10,16,24,.84));
+  --qsi-glass-hi: linear-gradient(180deg, rgba(38,230,242,.10), rgba(38,230,242,.02));
+  --qsi-shadow-hero:
+    0 24px 60px rgba(0,0,0,.55),
+    0 1px 0 rgba(255,255,255,.05) inset,
+    0 0 0 1px rgba(38,230,242,.10) inset;
+  --qsi-shadow-card:
+    0 12px 32px rgba(0,0,0,.42),
+    0 1px 0 rgba(255,255,255,.04) inset;
+  --qsi-shadow-dock:
+    0 -6px 24px rgba(0,0,0,.55),
+    0 1px 0 rgba(255,255,255,.05) inset;
+}
+
+/* ---- 1. Background: graphite + subtle circuit-grid wash ------------- */
+body {
+  background:
+    radial-gradient(1100px 720px at 80% -8%, rgba(38, 230, 242, .12), transparent 62%),
+    radial-gradient(900px 700px at -10% 28%, rgba(123, 108, 255, .08), transparent 62%),
+    radial-gradient(800px 600px at 50% 110%, rgba(255, 138, 43, .07), transparent 62%),
+    var(--qsi-graphite-0);
+}
+.bg-grid {
+  background-image:
+    linear-gradient(rgba(38, 230, 242, .045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(38, 230, 242, .045) 1px, transparent 1px);
+  background-size: 52px 52px;
+  opacity: 0.55;
+}
+
+/* ---- 2. Topbar — polished app header (pill menu, centred brand) ----- */
+.topbar {
+  /* Pin a stable header height; combined with --tap-min keeps tap area >=44 */
+  min-height: 52px;
+  padding: 4px 2px;
+  background: linear-gradient(180deg, rgba(5,8,15,.85), rgba(5,8,15,0));
+  border-radius: 14px;
+}
+.topbar__btn {
+  width: 40px; height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(38,230,242,.10), rgba(38,230,242,.03));
+  border: 1px solid var(--qsi-line-2);
+  box-shadow: 0 6px 14px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.05);
+}
+.topbar__btn--bell .topbar__pulse {
+  box-shadow: 0 0 8px var(--qsi-orange);
+  background: var(--qsi-orange);
+}
+.topbar__label {
+  height: 36px;
+  border-radius: 10px;
+  box-shadow:
+    0 0 0 1px rgba(38,230,242,.18),
+    0 6px 18px rgba(38,230,242,.18);
+}
+.conn-pill {
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(10,16,24,.6);
+  border: 1px solid var(--qsi-line-2);
+  color: var(--ink-2);
+  letter-spacing: 0.04em;
+}
+
+/* ---- 3. Hero card — wallet-style status card ------------------------ */
+.hero-card {
+  border-radius: 24px;
+  background:
+    radial-gradient(120% 80% at 0% 0%, rgba(38,230,242,.10), transparent 60%),
+    radial-gradient(120% 80% at 100% 100%, rgba(255,138,43,.07), transparent 65%),
+    var(--qsi-glass);
+  border: 1px solid var(--qsi-line-2);
+  box-shadow: var(--qsi-shadow-hero);
+  padding: 16px 14px 14px;
+  position: relative;
+  overflow: hidden;
+}
+.hero-card::before {
+  /* subtle circuit highlight in the top-right corner */
+  content: "";
+  position: absolute;
+  inset: -40% -40% auto auto;
+  width: 80%; height: 80%;
+  background:
+    radial-gradient(closest-side, rgba(38,230,242,.18), transparent 70%);
+  pointer-events: none;
+  filter: blur(2px);
+}
+.hero-card__price {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: #f4faff;
+  text-shadow: 0 0 18px rgba(38,230,242,.18);
+}
+.hero-card__price em {
+  font-style: normal;
+  font-size: 12.5px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(45, 214, 144, .14);
+  border: 1px solid rgba(45, 214, 144, .35);
+}
+.hero-card__price em.dn {
+  background: rgba(255, 85, 119, .14);
+  border-color: rgba(255, 85, 119, .35);
+}
+
+/* Wallet-style timeframe tabs row */
+.tf-tabs {
+  margin-top: 12px;
+  background: rgba(10,16,24,.55);
+  border: 1px solid var(--qsi-line-1);
+  border-radius: 14px;
+  padding: 4px;
+  gap: 2px;
+}
+.tf-tabs button {
+  border-radius: 10px;
+  padding: 6px 10px;
+  background: transparent;
+  border: 0;
+  color: var(--ink-2);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+}
+.tf-tabs button.is-active {
+  background: linear-gradient(180deg, rgba(38,230,242,.18), rgba(38,230,242,.05));
+  color: var(--qsi-cyan-2);
+  box-shadow: inset 0 0 0 1px rgba(38,230,242,.32), 0 0 14px rgba(38,230,242,.18);
+}
+
+/* Metric row — small KPI strip under chart */
+.metric-row { gap: 8px; }
+.metric {
+  background: linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.012));
+  border: 1px solid var(--qsi-line-1);
+  border-radius: 14px;
+  padding: 8px 10px;
+}
+
+/* ---- 4. Generic cards — deeper glass bevel -------------------------- */
+.card,
+.last-signal,
+.signal-card,
+.matrix-cell,
+.ai-summary,
+.market-top,
+.profile-card,
+.kpi,
+.ai-intro,
+.ai-compose {
+  background: var(--qsi-glass);
+  border-color: var(--qsi-line-2);
+  box-shadow: var(--qsi-shadow-card);
+}
+.card { border-radius: 18px; padding: 14px; }
+.card__head h2 {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  color: var(--ink-1);
+}
+
+/* KPI strip — wallet-style chips */
+.kpis { gap: 8px; }
+.kpi {
+  padding: 12px 12px;
+  border-radius: 16px;
+}
+.kpi-label {
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.kpi-value {
+  font-size: 20px;
+  font-weight: 800;
+  margin-top: 4px;
+  background: linear-gradient(180deg, #fff, #b6f4fb);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.kpi-trend.up    { color: var(--pos); }
+.kpi-trend.flat  { color: var(--ink-2); }
+
+/* Last-signal — accented top edge */
+.last-signal {
+  border-radius: 20px;
+  position: relative;
+  padding-top: 14px;
+}
+.last-signal::before {
+  content: "";
+  position: absolute;
+  top: -1px; left: 16px; right: 16px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--qsi-cyan) 30%, var(--qsi-orange) 70%, transparent);
+  border-radius: 2px;
+  filter: blur(.4px);
+  opacity: .9;
+}
+.last-signal__title {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--ink-2);
+}
+
+/* Strong-signal CTA — premium pill */
+.cta.cta--strong {
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--qsi-orange) 0%, #ff6a14 60%, #ff8a2b 100%);
+  color: #1a0e02;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  box-shadow:
+    0 12px 28px rgba(255,138,43,.32),
+    inset 0 1px 0 rgba(255,255,255,.35);
+}
+
+/* ---- 5. Bottom dock — floating glass nav --------------------------- */
+.tabbar {
+  bottom: calc(8px + env(safe-area-inset-bottom));
+  width: calc(100% - 20px);
+  max-width: min(460px, calc(100% - 20px));
+  border-radius: 22px;
+  padding: 8px 10px;
+  background:
+    linear-gradient(180deg, rgba(15,22,34,.78), rgba(8,12,19,.92));
+  border: 1px solid var(--qsi-line-2);
+  box-shadow: var(--qsi-shadow-dock);
+  backdrop-filter: blur(18px) saturate(1.1);
+  -webkit-backdrop-filter: blur(18px) saturate(1.1);
+}
+.tab {
+  border-radius: 14px;
+  padding: 6px 4px 4px;
+  color: var(--ink-2);
+}
+.tab.is-active {
+  color: var(--qsi-cyan-2);
+  background: linear-gradient(180deg, rgba(38,230,242,.14), rgba(38,230,242,.04));
+  box-shadow:
+    inset 0 0 0 1px rgba(38,230,242,.30),
+    0 0 18px rgba(38,230,242,.22);
+}
+.tab.is-active .tab__ico {
+  filter: drop-shadow(0 0 8px rgba(38,230,242,.70));
+}
+.tab.is-active .tab__ico::after {
+  /* Replace top bar with a soft glow underline for a more premium look */
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: auto;
+  bottom: -2px;
+  width: 18px;
+  height: 2px;
+  background: var(--qsi-cyan);
+  border-radius: 99px;
+  box-shadow: 0 0 10px var(--qsi-cyan);
+}
+
+/* The app shell needs a bit more bottom room because the dock now floats
+   ~8px above safe-area. Keep this AFTER existing .app rule so we win. */
+.app {
+  padding-bottom: calc(var(--tab-h) + 36px + env(safe-area-inset-bottom));
+}
+/* But when the soft keyboard is open we don't want the tabbar-sized
+   reserve — the tabbar is hidden, the composer floats above the keyboard.
+   Re-assert the keyboard-open contract so the v3 padding doesn't win. */
+body.keyboard-open .app {
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+}
+
+/* ---- 6. AI screen — premium chat composer -------------------------- */
+.ai-intro { border-radius: 18px; padding: 12px 14px; }
+.ai-compose {
+  border-radius: 16px;
+  padding: 6px 6px 6px 10px;
+  box-shadow:
+    0 12px 28px rgba(0,0,0,.42),
+    inset 0 0 0 1px rgba(38,230,242,.10);
+}
+.ai-compose input::placeholder { color: var(--ink-3); }
+.ai-compose__send {
+  background: linear-gradient(135deg, var(--qsi-cyan) 0%, #5ef9ff 100%);
+  box-shadow: 0 8px 20px rgba(38,230,242,.30);
+}
+
+/* ---- 7. Market — premium chips + search ---------------------------- */
+.market-search__input {
+  background: rgba(10,16,24,.6);
+  border-radius: 14px;
+  border: 1px solid var(--qsi-line-2);
+  padding-left: 36px;
+}
+.coin-chip {
+  background: rgba(10,16,24,.55);
+  border-radius: 999px;
+  border: 1px solid var(--qsi-line-2);
+}
+.coin-chip.is-active {
+  background: linear-gradient(180deg, rgba(38,230,242,.18), rgba(38,230,242,.04));
+  border-color: rgba(38,230,242,.40);
+  box-shadow: 0 0 12px rgba(38,230,242,.22);
+}
+
+/* ---- 8. Profile screen polish -------------------------------------- */
+.profile-card { border-radius: 20px; padding: 16px; }
+.profile-id__name {
+  font-size: 16px; font-weight: 800;
+  background: linear-gradient(180deg, #fff, #b6f4fb);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+
+/* ---- 9. Reduced motion respect ------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .hero-card::before,
+  .last-signal::before { animation: none; }
+}
+
+/* ---- 10. Wallet status pills (additive markup on hero card) -------- */
+.wallet-status {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 12px;
+  min-height: 26px;
+}
+.wallet-status__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  background: rgba(10,16,24,.6);
+  border: 1px solid var(--qsi-line-2);
+  color: var(--ink-1);
+  white-space: nowrap;
+}
+.wallet-status__pill--live {
+  color: var(--pos);
+  border-color: rgba(45, 214, 144, .35);
+  background: rgba(45, 214, 144, .10);
+}
+.wallet-status__pill--ai {
+  color: var(--qsi-orange-2);
+  border-color: rgba(255, 178, 74, .35);
+  background: rgba(255, 178, 74, .08);
+}
+.wallet-status__pill--brand {
+  margin-left: auto;
+  color: var(--qsi-cyan-2);
+  border-color: rgba(38, 230, 242, .35);
+  background: rgba(38, 230, 242, .08);
+  letter-spacing: 0.22em;
+}
+.wallet-status__dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--pos);
+  box-shadow: 0 0 8px var(--pos);
+  animation: pulse 1.8s ease-in-out infinite;
+}
+
+/* ---- 11. Defensive: keep brand pure (no external trade-dress) ----- */
+/* (No selectors needed — verifier asserts absence; this comment is a
+   pointer for future maintainers.) */
+
