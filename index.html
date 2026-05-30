@@ -102,71 +102,57 @@
       <!-- ========== OVERVIEW ========== -->
       <section class="screen is-active" data-screen="overview" aria-label="Обзор">
 
-        <!-- ===== Promo wallet hero: top brand → circular badge → 3 device cards ===== -->
-        <section class="promo-hero" id="promo-hero" data-testid="promo-hero" aria-label="QUANTSIGNAL AI">
-          <div class="qsi-stars" aria-hidden="true">
-            <svg class="qsi-star qsi-star--lg" style="top:6%;  left:14%" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 13.6 9 21 10.4 15.5 15.3 17 22 12 18.3 7 22 8.5 15.3 3 10.4 10.4 9Z"/></svg>
-            <svg class="qsi-star qsi-star--sm" style="top:10%; right:18%" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 13.6 9 21 10.4 15.5 15.3 17 22 12 18.3 7 22 8.5 15.3 3 10.4 10.4 9Z"/></svg>
-            <svg class="qsi-star"             style="top:44%; left:4%"  viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 13.6 9 21 10.4 15.5 15.3 17 22 12 18.3 7 22 8.5 15.3 3 10.4 10.4 9Z"/></svg>
-            <svg class="qsi-star qsi-star--sm" style="top:48%; right:6%" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 13.6 9 21 10.4 15.5 15.3 17 22 12 18.3 7 22 8.5 15.3 3 10.4 10.4 9Z"/></svg>
-          </div>
-          <div class="promo-hero__inner">
-            <p class="promo-hero__eyebrow" data-i18n="promoEyebrow">Telegram Mini App · AI Trading Terminal</p>
-            <h2 class="promo-hero__title" data-i18n="promoTitle">QUANTSIGNAL <b>AI</b></h2>
-            <p class="promo-hero__sub" data-i18n="promoSub">Сигналы, рынок, ИИ-анализ — в одном терминале.</p>
-
-            <span class="qsi-badge" data-testid="qsi-badge" aria-hidden="true">
+        <!-- ===== Brand strip: compact app header + live KPI chips ===== -->
+        <section class="brand-strip" id="promo-hero" data-testid="promo-hero" aria-label="QUANTSIGNAL AI">
+          <div class="brand-strip__head">
+            <span class="brand-strip__mark" aria-hidden="true">
               <img
-                class="qsi-badge__img"
+                class="brand-strip__mark-img"
                 data-testid="qsi-badge-img"
                 src="./assets/telegram/quantsignal-badge.jpeg"
-                alt="QUANTSIGNAL AI"
-                width="180" height="180"
+                alt=""
+                width="40" height="40"
                 loading="eager"
                 decoding="async" />
             </span>
-
-            <div class="promo-cards" role="group" aria-label="Быстрые разделы">
-              <button type="button"
-                      class="promo-cards__item"
-                      data-action="open-market"
-                      data-testid="promo-card-market"
-                      aria-label="Рынок">
-                <span class="promo-cards__notch" aria-hidden="true"></span>
-                <div class="promo-cards__item-screen">
-                  <div class="promo-cards__item-head"><span data-i18n="promoMarket">Рынок</span><i></i></div>
-                  <div class="promo-cards__item-val" id="promo-balance">—</div>
-                  <div class="promo-cards__item-sub" data-i18n="promoBalance">Объём 24ч</div>
-                  <div class="promo-cards__item-spark"></div>
-                </div>
-              </button>
-              <button type="button"
-                      class="promo-cards__item promo-cards__item--accent"
-                      data-action="open-signals"
-                      data-testid="promo-card-signals"
-                      aria-label="Сигналы">
-                <span class="promo-cards__notch" aria-hidden="true"></span>
-                <div class="promo-cards__item-screen">
-                  <div class="promo-cards__item-head"><span data-i18n="promoSignalsLabel">Signals</span><i></i></div>
-                  <div class="promo-cards__item-val" id="promo-signals">—</div>
-                  <div class="promo-cards__item-sub" data-i18n="kpiSignals">Активных сигналов</div>
-                  <div class="promo-cards__item-spark"></div>
-                </div>
-              </button>
-              <button type="button"
-                      class="promo-cards__item"
-                      data-action="open-ai"
-                      data-testid="promo-card-ai"
-                      aria-label="AI-анализ">
-                <span class="promo-cards__notch" aria-hidden="true"></span>
-                <div class="promo-cards__item-screen">
-                  <div class="promo-cards__item-head"><span data-i18n="promoAILabel">AI Score</span><i></i></div>
-                  <div class="promo-cards__item-val" id="promo-ai-score">78%</div>
-                  <div class="promo-cards__item-sub" data-i18n="promoAI">AI-анализ</div>
-                  <div class="promo-cards__item-spark"></div>
-                </div>
-              </button>
+            <div class="brand-strip__title">
+              <h2 class="brand-strip__name">QUANTSIGNAL <b>AI</b></h2>
+              <p class="brand-strip__eyebrow" data-i18n="promoEyebrow">AI Trading Terminal · Live</p>
             </div>
+            <span class="brand-strip__status" data-testid="brand-strip-status">
+              <i class="brand-strip__dot" aria-hidden="true"></i>
+              <span>LIVE</span>
+            </span>
+          </div>
+
+          <div class="kpi-strip" role="group" aria-label="Ключевые показатели">
+            <button type="button"
+                    class="kpi-chip"
+                    data-action="open-market"
+                    data-testid="promo-card-market"
+                    aria-label="Рынок">
+              <span class="kpi-chip__head"><span data-i18n="promoMarket">Рынок</span><i></i></span>
+              <span class="kpi-chip__val" id="promo-balance">—</span>
+              <span class="kpi-chip__sub" data-i18n="promoBalance">BTC</span>
+            </button>
+            <button type="button"
+                    class="kpi-chip kpi-chip--accent"
+                    data-action="open-signals"
+                    data-testid="promo-card-signals"
+                    aria-label="Сигналы">
+              <span class="kpi-chip__head"><span data-i18n="promoSignalsLabel">Signals</span><i></i></span>
+              <span class="kpi-chip__val" id="promo-signals">—</span>
+              <span class="kpi-chip__sub" data-i18n="kpiSignals">Активных</span>
+            </button>
+            <button type="button"
+                    class="kpi-chip"
+                    data-action="open-ai"
+                    data-testid="promo-card-ai"
+                    aria-label="AI-анализ">
+              <span class="kpi-chip__head"><span data-i18n="promoAILabel">AI Score</span><i></i></span>
+              <span class="kpi-chip__val" id="promo-ai-score">78%</span>
+              <span class="kpi-chip__sub" data-i18n="promoAI">AI-анализ</span>
+            </button>
           </div>
         </section>
 

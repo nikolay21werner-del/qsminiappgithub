@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 /* verify-ui.mjs
  *
- * Locks in the QUANTSIGNAL AI Mini App premium "wallet / AI-terminal"
- * design system v3. Goal: prevent silent regressions on the visual
- * polish layer added after the wallet-style redesign.
+ * Locks in the QUANTSIGNAL AI Mini App premium dark "AI-terminal"
+ * design system. Goal: prevent silent regressions on the visual polish
+ * layer AND guard against the rejected promo-poster composition
+ * (tilted device mockups, oversized hero badge, star sparkles) creeping
+ * back onto the Overview screen.
  *
  * Checks fall into buckets:
  *   1. The v3 design layer is present and uses the QSI brand tokens.
@@ -133,63 +135,73 @@ must("v3 keyboard-open .app override is present (smaller padding when typing)",
 must("CSS hides the bottom tabbar while keyboard is open",
   /body\.keyboard-open\s+\.tabbar\s*\{[\s\S]*?(opacity:\s*0|display:\s*none|transform:\s*translate)/.test(css));
 
-// ---- 11. Promo-wallet (v4) layer — reference composition -------------
-// The Overview screen should mirror the reference: bold QUANTSIGNAL AI
-// heading up top, a prominent circular badge as the hero anchor, and a
-// row of three tilted phone-style cards (Market / Signals / AI) below.
+// ---- 11. App-dashboard (v4) layer — compact brand + KPI strip --------
+// The Overview screen must read as a professional Mini App dashboard, NOT
+// a promo poster: a compact brand strip (small QSI mark + QUANTSIGNAL AI
+// label + LIVE status) above an inline row of live KPI chips. No tilted
+// device mockups, no oversized hero badge, no decorative star sparkles.
 must("v4 design layer header present",
-  /DESIGN SYSTEM v4[\s\S]{0,200}Promo Wallet/.test(css));
-must("v4 deeper-black canvas token defined",
+  /DESIGN SYSTEM v4[\s\S]{0,200}App Dashboard/.test(css));
+must("v4 deep-black canvas token defined",
   /--qsi-ink-black:\s*#02050b/.test(css));
-must("v4 star sparkle styles present",
-  /\.qsi-star\b[\s\S]{0,200}qsi-star-twinkle/.test(css));
-must("v4 promo-hero block is flat (no card border, transparent bg)",
-  /\.promo-hero\s*\{[\s\S]{0,500}background:\s*transparent/.test(css) &&
-  /\.promo-hero\s*\{[\s\S]{0,500}border:\s*0/.test(css));
-must("v4 promo-hero title is bold and large (>=26px clamp floor)",
-  /\.promo-hero__title\s*\{[\s\S]{0,300}font-size:\s*clamp\(\s*2[6-9]px/.test(css) &&
-  /\.promo-hero__title\s*\{[\s\S]{0,300}font-weight:\s*900/.test(css));
-must("v4 circular qsi-badge uses clamp sizing (responsive hero anchor)",
-  /\.qsi-badge\s*\{[\s\S]{0,400}border-radius:\s*50%/.test(css) &&
-  /\.qsi-badge\s*\{[\s\S]{0,400}width:\s*clamp\(/.test(css));
-must("v4 promo card mockups exist with tilt (3 items, ±rotate)",
-  /\.promo-cards__item:nth-child\(1\)[\s\S]{0,200}rotate\(-[0-9.]+deg\)/.test(css) &&
-  /\.promo-cards__item:nth-child\(3\)[\s\S]{0,200}rotate\([0-9.]+deg\)/.test(css));
-must("v4 promo cards use phone-style notch header",
-  /\.promo-cards__notch\s*\{/.test(css));
-must("v4 promo cards width-capped (no horizontal overflow on 390px)",
-  /\.promo-cards\s*\{[\s\S]{0,400}max-width:\s*3[0-9]{2}px/.test(css));
 
-must("promo-hero markup present on overview",
-  /class="promo-hero"[\s\S]{0,200}data-testid="promo-hero"/.test(html));
-must("promo-hero title says QUANTSIGNAL AI (brand heading)",
-  /class="promo-hero__title"[\s\S]{0,200}QUANTSIGNAL\s*<b>AI<\/b>/.test(html));
-must("circular qsi-badge markup uses optimized asset",
-  /class="qsi-badge"[\s\S]{0,400}assets\/telegram\/quantsignal-badge\.jpeg/.test(html));
-must("qsi-badge image declares width + height attributes",
-  /class="qsi-badge__img"[\s\S]{0,300}width="\d+"\s+height="\d+"/.test(html));
-must("promo-hero has star sparkles",
-  /class="qsi-stars"[\s\S]{0,200}class="qsi-star/.test(html));
-must("promo-hero has at least 3 phone-style device cards",
-  (html.match(/class="promo-cards__item/g) || []).length >= 3);
-must("promo cards are actionable (Market / Signals / AI)",
+// Anti-poster guards: the rejected reference composition must be gone.
+must("no tilted promo device-card mockups in CSS",
+  !/\.promo-cards__item/.test(css));
+must("no oversized circular hero badge (.qsi-badge) in CSS",
+  !/\.qsi-badge\s*[{,]/.test(css));
+must("no decorative star-sparkle styles in CSS",
+  !/qsi-star-twinkle/.test(css) && !/\.qsi-star\b/.test(css));
+must("no tilted device mockups / star markup in HTML",
+  !/class="promo-cards/.test(html) &&
+  !/class="qsi-stars"/.test(html) &&
+  !/class="qsi-star\b/.test(html));
+must("no oversized circular badge markup in HTML",
+  !/class="qsi-badge"/.test(html));
+
+// Compact brand strip composition.
+must("brand-strip block is flat (transparent, no card border)",
+  /\.brand-strip\s*\{[\s\S]{0,400}background:\s*transparent/.test(css) &&
+  /\.brand-strip\s*\{[\s\S]{0,400}border:\s*0/.test(css));
+must("brand-strip name is app-scale, not poster-scale (<=20px clamp ceil)",
+  /\.brand-strip__name\s*\{[\s\S]{0,300}font-size:\s*clamp\([^)]*?1[5-9]px,[^)]*?(1[5-9]|20)px\)/.test(css));
+must("brand-strip mark is small (compact 40px square, not hero anchor)",
+  /\.brand-strip__mark\s*\{[\s\S]{0,300}width:\s*40px/.test(css));
+must("brand-strip LIVE status dot pulses",
+  /\.brand-strip__dot[\s\S]{0,200}animation:\s*pulse/.test(css));
+
+// KPI strip — inline live chips, width-capped to the column (no overflow).
+must("kpi-strip is a 3-column grid (inline, full-width)",
+  /\.kpi-strip\s*\{[\s\S]{0,300}grid-template-columns:\s*repeat\(3,\s*1fr\)/.test(css));
+must("kpi-chip uses interactive transform on :active (no layout shift)",
+  /\.kpi-chip:active\s*\{[\s\S]{0,80}transform:\s*scale/.test(css));
+
+must("brand-strip markup present on overview",
+  /class="brand-strip"[\s\S]{0,200}data-testid="promo-hero"/.test(html));
+must("brand-strip shows QUANTSIGNAL AI label",
+  /class="brand-strip__name"[\s\S]{0,120}QUANTSIGNAL\s*<b>AI<\/b>/.test(html));
+must("brand-strip carries a LIVE status pill",
+  /class="brand-strip__status"[\s\S]{0,200}LIVE/.test(html));
+must("kpi chips are actionable (Market / Signals / AI)",
   /data-action="open-market"/.test(html) &&
   /data-action="open-signals"/.test(html) &&
   /data-action="open-ai"/.test(html));
-must("promo cards expose testids for each section",
+must("kpi chips expose testids for each section",
   /data-testid="promo-card-market"/.test(html) &&
   /data-testid="promo-card-signals"/.test(html) &&
   /data-testid="promo-card-ai"/.test(html));
-must("promo cards bind live values (balance / signals / ai-score)",
+must("kpi chips bind live values (balance / signals / ai-score)",
   /id="promo-balance"/.test(html) &&
   /id="promo-signals"/.test(html) &&
   /id="promo-ai-score"/.test(html));
+must("exactly 3 KPI chips on overview",
+  (html.match(/class="kpi-chip\b/g) || []).length >= 3);
 
-// ---- 11c. Reference palette — black + cyan, no orange in canvas ------
+// ---- 11c. Palette — deep black + cyan, no orange/violet wash --------
 {
   // The final body { ... } block (v4 layer) is the effective canvas style.
   // It must reference --qsi-ink-black and must NOT pull in orange/violet
-  // wash so the page tone matches the reference (black + cyan only).
+  // wash so the page tone stays the premium dark QSI look (black + cyan).
   const lastBodyIdx = css.lastIndexOf("\nbody {");
   const lastBody = lastBodyIdx >= 0 ? css.slice(lastBodyIdx, lastBodyIdx + 600) : "";
   must("final body background uses --qsi-ink-black",
@@ -200,7 +212,7 @@ must("promo cards bind live values (balance / signals / ai-score)",
   must("final body background has no violet tint",
     !/rgba\(123,\s*108,\s*255/.test(lastBody));
 }
-must("--qsi-cyan brand cyan still present (reference teal)",
+must("--qsi-cyan brand cyan still present (signature teal)",
   /--qsi-cyan:\s*#26e6f2/.test(css));
 
 // ---- 11a. No "THANK YOU" or promo trade-dress leak --------------------

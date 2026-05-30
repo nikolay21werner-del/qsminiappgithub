@@ -3134,296 +3134,197 @@ body.keyboard-open .app {
 /* (No selectors needed — verifier asserts absence; this comment is a
    pointer for future maintainers.) */
 
-/* =====================================================================
-   DESIGN SYSTEM v4 — Promo Wallet / Brand Badge
-   ---------------------------------------------------------------------
-   Builds on v3. Pushes the look closer to a premium crypto-wallet promo:
-   deeper near-black canvas, cyan star sparkles, a prominent circular
-   QUANTSIGNAL AI brand badge on the Overview hero, and slightly tilted
-   layered "phone-card" surfaces under the badge.
 
-   Additive only — no DOM hooks renamed; new optional blocks have unique
-   classes. New tokens: --qsi-ink-black, --qsi-star, --qsi-shadow-badge.
+/* =====================================================================
+   DESIGN SYSTEM v4 — Promo Wallet → App Dashboard
+   ---------------------------------------------------------------------
+   Reframes the Overview away from a poster/promo composition toward a
+   compact, professional Telegram Mini App dashboard:
+   deep near-black canvas with a subtle cyan glow, a compact brand strip
+   (small QSI mark + QUANTSIGNAL AI label + LIVE status), and an inline
+   row of live KPI chips (Market / Signals / AI Score). No tilted device
+   mockups, no oversized hero badge, no decorative star sparkles.
+
+   Additive only — DOM hooks (#promo-balance / #promo-signals /
+   #promo-ai-score, data-action=open-market/open-signals/open-ai,
+   data-testid=promo-card-*) are preserved so JS + verifiers keep working.
+   New tokens: --qsi-ink-black.
    ===================================================================== */
 
 :root {
   --qsi-ink-black: #02050b;
-  --qsi-star: #7df2ff;
-  --qsi-shadow-badge:
-    0 30px 80px rgba(0, 0, 0, .65),
-    0 0 0 1px rgba(38, 230, 242, .28),
-    0 0 60px rgba(38, 230, 242, .34),
-    0 0 120px rgba(38, 230, 242, .18);
 }
 
-/* Deeper black canvas — pure black with subtle cyan glow only */
+/* Deep black canvas — pure black with a subtle cyan glow only (no
+   orange/violet wash, no poster gradients). App-like, not promo. */
 body {
   background:
-    radial-gradient(900px 600px at 50% -10%, rgba(38, 230, 242, .14), transparent 65%),
-    radial-gradient(700px 600px at 0% 80%, rgba(38, 230, 242, .05), transparent 65%),
+    radial-gradient(820px 520px at 50% -12%, rgba(38, 230, 242, .10), transparent 64%),
+    radial-gradient(640px 560px at 0% 88%, rgba(38, 230, 242, .04), transparent 66%),
     var(--qsi-ink-black);
 }
 
-/* ---- Cyan star sparkles (decorative) -------------------------------- */
-.qsi-stars {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-}
-.qsi-star {
-  position: absolute;
-  width: 10px; height: 10px;
-  color: var(--qsi-star);
-  opacity: .85;
-  filter: drop-shadow(0 0 6px rgba(125, 242, 255, .75));
-  animation: qsi-star-twinkle 3.4s ease-in-out infinite;
-}
-.qsi-star--sm { width: 7px;  height: 7px;  opacity: .65; animation-duration: 2.6s; }
-.qsi-star--lg { width: 14px; height: 14px; opacity: .95; animation-duration: 4.2s; }
-@keyframes qsi-star-twinkle {
-  0%, 100% { transform: scale(.85); opacity: .55; }
-  50%      { transform: scale(1.15); opacity: 1; }
-}
-
-/* ---- Promo hero (Overview) — reference composition ------------------ */
-/* Flat hero (no card border) — top brand, centered round badge, three
-   tilted phone-style chips below. Mirrors the reference layout: bold
-   QUANTSIGNAL AI heading up top, big glowy round badge as the visual
-   anchor, and three angled device cards across the lower half. */
-.promo-hero {
+/* ---- Brand strip (Overview header) — compact app composition -------- */
+.brand-strip {
   position: relative;
-  margin: 4px 0 18px;
-  padding: 14px 4px 26px;
-  border-radius: 26px;
+  margin: 2px 0 14px;
+  padding: 0;
   background: transparent;
   border: 0;
   box-shadow: none;
-  overflow: visible;
-  isolation: isolate;
 }
-.promo-hero__inner {
-  position: relative;
-  z-index: 2;
+.brand-strip__head {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  text-align: center;
   gap: 10px;
+  padding: 2px 2px 12px;
 }
-.promo-hero__eyebrow {
-  margin: 0;
-  font-size: 10.5px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--qsi-cyan-2);
-  opacity: .9;
-}
-.promo-hero__title {
-  margin: 0;
-  font-size: clamp(26px, 8.4vw, 34px);
-  line-height: 1.05;
-  font-weight: 900;
-  letter-spacing: -0.01em;
-  color: #f6fbff;
-  text-shadow: 0 0 28px rgba(38, 230, 242, .28);
-}
-.promo-hero__title b { color: var(--qsi-cyan-2); font-weight: 900; }
-.promo-hero__sub {
-  margin: 0 0 4px;
-  font-size: 12.5px;
-  color: var(--ink-1);
-  opacity: .85;
-  max-width: 320px;
-}
-
-/* ---- Circular QUANTSIGNAL AI brand badge — hero anchor -------------- */
-.qsi-badge {
-  position: relative;
-  width: clamp(150px, 44vw, 188px);
-  height: clamp(150px, 44vw, 188px);
-  margin: 6px 0 6px;
-  border-radius: 50%;
-  display: inline-block;
-  box-shadow: var(--qsi-shadow-badge);
-  isolation: isolate;
+.brand-strip__mark {
   flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1px rgba(38, 230, 242, .28),
+    0 0 18px rgba(38, 230, 242, .22);
 }
-.qsi-badge::before {
-  /* outer halo glow */
-  content: "";
-  position: absolute;
-  inset: -22px;
-  border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(38, 230, 242, .42), transparent 70%);
-  z-index: -1;
-  filter: blur(10px);
-  pointer-events: none;
-}
-.qsi-badge::after {
-  /* outer ring accent — mostly cyan, faint orange spark near top-right */
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  pointer-events: none;
-  background:
-    conic-gradient(from 210deg,
-      rgba(38, 230, 242, .55) 0deg,
-      rgba(38, 230, 242, .15) 110deg,
-      rgba(38, 230, 242, .55) 220deg,
-      rgba(255, 155, 46, .45) 285deg,
-      rgba(38, 230, 242, .55) 360deg);
-  -webkit-mask: radial-gradient(closest-side, transparent 64%, #000 66%);
-          mask: radial-gradient(closest-side, transparent 64%, #000 66%);
-  opacity: .9;
-}
-.qsi-badge__img {
-  position: relative;
-  z-index: 1;
+.brand-strip__mark-img {
   width: 100%;
   height: 100%;
-  border-radius: 50%;
   object-fit: cover;
   display: block;
+  border-radius: 12px;
 }
-.qsi-badge--sm { width: 92px; height: 92px; }
-.qsi-badge--lg { width: 200px; height: 200px; }
+.brand-strip__title {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.brand-strip__name {
+  margin: 0;
+  font-size: clamp(15px, 4.6vw, 18px);
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: -0.005em;
+  color: #f4faff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.brand-strip__name b { color: var(--qsi-cyan-2); font-weight: 800; }
+.brand-strip__eyebrow {
+  margin: 0;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.brand-strip__status {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--qsi-cyan-2);
+  background: rgba(38, 230, 242, .08);
+  border: 1px solid rgba(38, 230, 242, .26);
+}
+.brand-strip__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--qsi-cyan);
+  box-shadow: 0 0 8px var(--qsi-cyan);
+  animation: pulse 1.8s ease-in-out infinite;
+}
 
-/* ---- Phone-style device cards (Market / Signals / AI) --------------- */
-.promo-cards {
-  position: relative;
+/* ---- KPI strip — inline live chips (Market / Signals / AI) ---------- */
+.kpi-strip {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  gap: 8px;
   width: 100%;
-  max-width: 360px;
-  margin: 14px auto 0;
-  padding: 0 2px;
-  perspective: 720px;
 }
-.promo-cards__item {
+.kpi-chip {
   position: relative;
   appearance: none;
   -webkit-appearance: none;
-  border-radius: 22px;
-  padding: 14px 8px 10px;
-  background:
-    radial-gradient(120% 100% at 50% 0%, rgba(38, 230, 242, .12), transparent 65%),
-    linear-gradient(180deg, #060a12 0%, #0a121d 100%);
-  border: 1px solid var(--qsi-line-2);
-  box-shadow:
-    0 18px 36px rgba(0, 0, 0, .60),
-    inset 0 1px 0 rgba(255, 255, 255, .05),
-    inset 0 0 0 1px rgba(38, 230, 242, .08);
-  min-height: 116px;
+  min-width: 0;
   display: flex;
   flex-direction: column;
+  gap: 3px;
   text-align: left;
+  padding: 11px 12px;
+  border-radius: 16px;
   color: var(--ink-0);
+  background:
+    radial-gradient(140% 100% at 0% 0%, rgba(38, 230, 242, .07), transparent 60%),
+    var(--qsi-glass);
+  border: 1px solid var(--qsi-line-2);
+  box-shadow:
+    0 10px 22px rgba(0, 0, 0, .42),
+    inset 0 1px 0 rgba(255, 255, 255, .04);
   cursor: pointer;
-  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+  transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease;
 }
-.promo-cards__item:focus-visible {
+.kpi-chip:focus-visible {
   outline: 2px solid var(--qsi-cyan);
   outline-offset: 2px;
 }
-.promo-cards__item:hover {
-  border-color: rgba(38, 230, 242, .35);
-  box-shadow:
-    0 22px 44px rgba(0, 0, 0, .60),
-    0 0 0 1px rgba(38, 230, 242, .25) inset,
-    0 0 24px rgba(38, 230, 242, .15);
-}
-.promo-cards__item:nth-child(1) { transform: rotate(-5deg)  translateY(8px); }
-.promo-cards__item:nth-child(2) { transform: rotate(0deg)   translateY(-6px); z-index: 2; }
-.promo-cards__item:nth-child(3) { transform: rotate(5deg)   translateY(8px); }
-.promo-cards__item:nth-child(2) {
-  box-shadow:
-    0 24px 50px rgba(0, 0, 0, .68),
-    inset 0 1px 0 rgba(255, 255, 255, .07),
-    inset 0 0 0 1px rgba(38, 230, 242, .18);
-}
-/* Phone-style top notch */
-.promo-cards__notch {
-  position: absolute;
-  top: 6px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 28px;
-  height: 4px;
-  border-radius: 99px;
-  background: rgba(38, 230, 242, .35);
-  box-shadow: 0 0 8px rgba(38, 230, 242, .35);
-}
-.promo-cards__item-screen {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-top: 6px;
-  flex: 1;
-}
-.promo-cards__item-head {
+.kpi-chip:active { transform: scale(.97); }
+.kpi-chip__head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   font-size: 9px;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--ink-2);
 }
-.promo-cards__item-head i {
+.kpi-chip__head i {
   width: 6px; height: 6px;
   border-radius: 50%;
   background: var(--qsi-cyan);
   box-shadow: 0 0 6px var(--qsi-cyan);
 }
-.promo-cards__item-val {
-  font-size: clamp(13px, 3.6vw, 16px);
+.kpi-chip__val {
+  font-size: clamp(14px, 4vw, 17px);
   font-weight: 800;
   color: #f4faff;
   line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.promo-cards__item-sub {
+.kpi-chip__sub {
   font-size: 9px;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--ink-2);
-  opacity: .8;
+  opacity: .85;
 }
-.promo-cards__item-spark {
-  margin-top: auto;
-  height: 22px;
-  border-radius: 6px;
+.kpi-chip--accent {
   background:
-    linear-gradient(180deg, rgba(38, 230, 242, .16), rgba(38, 230, 242, 0)),
-    repeating-linear-gradient(90deg,
-      rgba(38, 230, 242, .35) 0 2px, transparent 2px 6px);
-  opacity: .8;
+    radial-gradient(140% 100% at 0% 0%, rgba(38, 230, 242, .14), transparent 60%),
+    var(--qsi-glass);
+  border-color: rgba(38, 230, 242, .30);
 }
-.promo-cards__item--accent {
-  background:
-    radial-gradient(120% 100% at 50% 0%, rgba(38, 230, 242, .22), transparent 65%),
-    linear-gradient(180deg, #07111c 0%, #0c1828 100%);
-  border-color: rgba(38, 230, 242, .35);
-}
-.promo-cards__item--accent .promo-cards__notch {
-  background: var(--qsi-cyan);
-  box-shadow: 0 0 12px var(--qsi-cyan);
-}
-.promo-cards__item--accent .promo-cards__item-val {
+.kpi-chip--accent .kpi-chip__val {
   color: #f6fcff;
-  text-shadow: 0 0 18px rgba(38, 230, 242, .35);
-}
-.promo-cards__item--accent .promo-cards__item-spark {
-  background:
-    linear-gradient(180deg, rgba(38, 230, 242, .28), rgba(38, 230, 242, 0)),
-    repeating-linear-gradient(90deg,
-      rgba(38, 230, 242, .55) 0 2px, transparent 2px 6px);
-  opacity: 1;
+  text-shadow: 0 0 16px rgba(38, 230, 242, .30);
 }
 
-/* ---- Section: brand-accented panel headers in promo style ----------- */
+/* ---- Section: brand-accented panel headers in app style ------------- */
 .card.card--promo {
   background:
     radial-gradient(120% 100% at 0% 0%, rgba(38, 230, 242, .08), transparent 60%),
@@ -3432,7 +3333,7 @@ body {
   border: 1px solid var(--qsi-line-2);
 }
 
-/* Hero card glow upgrade: wallet promo style accent */
+/* Hero card glow upgrade: wallet/terminal style accent */
 .hero-card {
   box-shadow:
     0 28px 70px rgba(0, 0, 0, .60),
@@ -3465,18 +3366,11 @@ body.keyboard-open .app {
   padding-bottom: calc(12px + env(safe-area-inset-bottom));
 }
 
-/* ---- Narrow phones: keep promo badge + cards readable --------------- */
+/* ---- Narrow phones: keep brand strip + KPI chips readable ----------- */
 @media (max-width: 360px) {
-  .qsi-badge { width: 140px; height: 140px; }
-  .promo-hero__title { font-size: 24px; }
-  .promo-cards { gap: 6px; }
-  .promo-cards__item { min-height: 104px; padding: 12px 6px 8px; border-radius: 18px; }
-  .promo-cards__item-val { font-size: 12.5px; }
-  .promo-cards__item-head, .promo-cards__item-sub { font-size: 8.5px; }
+  .brand-strip__name { font-size: 15px; }
+  .kpi-strip { gap: 6px; }
+  .kpi-chip { padding: 10px 9px; border-radius: 14px; }
+  .kpi-chip__val { font-size: 13.5px; }
+  .kpi-chip__head, .kpi-chip__sub { font-size: 8.5px; }
 }
-
-/* ---- Reduced motion: stop star twinkle ------------------------------ */
-@media (prefers-reduced-motion: reduce) {
-  .qsi-star { animation: none; }
-}
-
