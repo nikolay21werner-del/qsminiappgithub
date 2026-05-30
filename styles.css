@@ -3374,3 +3374,246 @@ body.keyboard-open .app {
   .kpi-chip__val { font-size: 13.5px; }
   .kpi-chip__head, .kpi-chip__sub { font-size: 8.5px; }
 }
+
+/* =====================================================================
+   DESIGN SYSTEM v5 — Cryptex-style Finance Dashboard
+   ---------------------------------------------------------------------
+   Aligns the Overview with the Dribbble "AI-Powered Crypto Finance
+   Investment App" reference while keeping the QUANTSIGNAL AI brand and
+   all live-data hooks intact. Two new structural blocks:
+     1. Total Balance hero (Total Balance / big amount / BTC equiv / LIVE)
+     2. Action bar (4 round icon buttons: Market / Signals / AI / More)
+   Palette is pulled toward the brief: near-black #0A0A0F canvas,
+   #111520 / #141926 cards, #1E2535 borders, cyan/teal #00E5D8 accent
+   used softly. The existing --qsi-cyan (#26e6f2) signature teal is kept
+   as the named token so the design stays coherent.
+   Additive only — no DOM hook is renamed.
+   ===================================================================== */
+
+:root {
+  --qsi-canvas: #0a0a0f;
+  --qsi-canvas-2: #080b12;
+  --qsi-card: #111520;
+  --qsi-card-2: #141926;
+  --qsi-border: #1e2535;
+  --qsi-teal: #00e5d8;
+  --qsi-teal-soft: rgba(0, 229, 216, .14);
+}
+
+/* Canvas — absolute dark, soft cyan/teal glow + faint grid overlay,
+   no orange/violet wash. */
+body {
+  background:
+    radial-gradient(780px 480px at 50% -14%, rgba(0, 229, 216, .10), transparent 62%),
+    radial-gradient(620px 540px at 100% 92%, rgba(0, 229, 216, .04), transparent 66%),
+    var(--qsi-canvas);
+}
+.bg-grid {
+  background-image:
+    linear-gradient(rgba(0, 229, 216, .05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 229, 216, .05) 1px, transparent 1px);
+}
+
+/* ---- Total Balance hero -------------------------------------------- */
+.balance-hero {
+  position: relative;
+  margin: 0 0 12px;
+  padding: 16px;
+  border-radius: 20px;
+  background:
+    radial-gradient(150% 120% at 0% 0%, rgba(0, 229, 216, .10), transparent 58%),
+    linear-gradient(180deg, var(--qsi-card-2), var(--qsi-card));
+  border: 1px solid var(--qsi-border);
+  box-shadow:
+    0 20px 48px rgba(0, 0, 0, .50),
+    inset 0 1px 0 rgba(255, 255, 255, .04);
+  overflow: hidden;
+  min-width: 0;
+}
+.balance-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0, 229, 216, .05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 229, 216, .05) 1px, transparent 1px);
+  background-size: 26px 26px;
+  opacity: .5;
+  pointer-events: none;
+}
+.balance-hero__top {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.balance-hero__label {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  font-weight: 600;
+}
+.balance-hero__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--qsi-teal);
+  background: var(--qsi-teal-soft);
+  border: 1px solid rgba(0, 229, 216, .26);
+}
+.balance-hero__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--qsi-teal);
+  box-shadow: 0 0 8px var(--qsi-teal);
+  animation: pulse 1.8s ease-in-out infinite;
+}
+.balance-hero__value {
+  position: relative;
+  z-index: 1;
+  margin: 8px 0 6px;
+  font-size: clamp(30px, 9vw, 36px);
+  line-height: 1.05;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #f6fdff;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.balance-hero__meta {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+.balance-hero__btc {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--ink-1);
+  overflow: hidden;
+}
+.balance-hero__btc b {
+  font-weight: 700;
+  color: #eaf3ff;
+  font-variant-numeric: tabular-nums;
+}
+.balance-hero__btc em {
+  font-style: normal;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.balance-hero__btc-glyph {
+  color: var(--qsi-orange-2);
+  font-weight: 700;
+}
+.balance-hero__delta {
+  flex: 0 0 auto;
+  padding: 4px 9px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.balance-hero__delta--up {
+  color: #38f3c7;
+  background: rgba(56, 243, 199, .12);
+}
+.balance-hero__delta--dn {
+  color: #ff6b81;
+  background: rgba(255, 107, 129, .12);
+}
+
+/* ---- Action bar — 4 round icon buttons ----------------------------- */
+.action-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 0;
+}
+.action-btn {
+  appearance: none;
+  -webkit-appearance: none;
+  background: none;
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  padding: 2px 0;
+  cursor: pointer;
+  color: var(--ink-1);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+}
+.action-btn__ico {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  color: var(--qsi-teal);
+  background:
+    radial-gradient(120% 120% at 30% 20%, rgba(0, 229, 216, .14), transparent 60%),
+    linear-gradient(180deg, var(--qsi-card-2), var(--qsi-card));
+  border: 1px solid var(--qsi-border);
+  box-shadow:
+    0 8px 18px rgba(0, 0, 0, .40),
+    inset 0 1px 0 rgba(255, 255, 255, .05);
+  transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+}
+.action-btn:active .action-btn__ico {
+  transform: scale(.93);
+  border-color: rgba(0, 229, 216, .40);
+  box-shadow: 0 0 16px rgba(0, 229, 216, .22);
+}
+.action-btn:focus-visible { outline: none; }
+.action-btn:focus-visible .action-btn__ico {
+  outline: 2px solid var(--qsi-teal);
+  outline-offset: 2px;
+}
+.action-btn__label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+@media (max-width: 360px) {
+  .balance-hero__value { font-size: 30px; }
+  .action-btn__ico { width: 44px; height: 44px; }
+  .action-btn__label { font-size: 10px; }
+}
+
+/* ---- Re-assert keyboard-open contract (must stay last) -------------- */
+body.keyboard-open .tabbar {
+  transform: translate(-50%, 120%);
+  opacity: 0;
+  pointer-events: none;
+}
+body.keyboard-open .app {
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+}

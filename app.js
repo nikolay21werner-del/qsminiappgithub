@@ -738,14 +738,43 @@
     animateCounter($('[data-counter="coins"]'), watched);
     animateCounter($('[data-counter="accuracy"]'), accuracy);
     // Promo-hero mini stats — wired to live data.
+    var btc = (tickers || []).find(function (t) { return /BTC/i.test(t.symbol || ""); });
     var pb = $("#promo-balance");
     if (pb) {
-      var btc = (tickers || []).find(function (t) { return /BTC/i.test(t.symbol || ""); });
       if (btc && btc.last_price != null) pb.textContent = "$" + Math.round(btc.last_price).toLocaleString("en-US");
       else pb.textContent = "—";
     }
     setText("#promo-signals", String(signals.length || 0));
     setText("#promo-ai-score", accuracy + "%");
+
+    // Total Balance hero — a live aggregate read of the watched market
+    // (sum of last prices across watched tickers, scaled), plus a BTC
+    // equivalent and a 24h delta. Illustrative portfolio view derived from
+    // live data, not a custodial balance.
+    var totalEl = $("#total-balance");
+    if (totalEl) {
+      if (btc && btc.last_price != null) {
+        var total = 0, wAbs = 0;
+        (tickers || []).forEach(function (t) {
+          if (t.last_price != null) total += t.last_price;
+          wAbs += t.change_pct_24h || 0;
+        });
+        if (!total) total = btc.last_price;
+        totalEl.textContent = "$" + Math.round(total).toLocaleString("en-US");
+        var btcEq = (total / btc.last_price);
+        setText("#balance-btc", btcEq.toFixed(btcEq >= 10 ? 2 : 4));
+        var avgDelta = tickers.length ? (wAbs / tickers.length) : 0;
+        var dEl = $("#balance-delta");
+        if (dEl) {
+          var pos = avgDelta >= 0;
+          dEl.className = "balance-hero__delta " + (pos ? "balance-hero__delta--up" : "balance-hero__delta--dn");
+          dEl.textContent = (pos ? "+" : "") + avgDelta.toFixed(2) + "% 24h";
+        }
+      } else {
+        totalEl.textContent = "—";
+        setText("#balance-btc", "—");
+      }
+    }
   }
 
   // ---------- Overview rows ----------

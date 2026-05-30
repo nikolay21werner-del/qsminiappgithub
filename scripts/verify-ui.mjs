@@ -199,18 +199,21 @@ must("exactly 3 KPI chips on overview",
 
 // ---- 11c. Palette — deep black + cyan, no orange/violet wash --------
 {
-  // The final body { ... } block (v4 layer) is the effective canvas style.
-  // It must reference --qsi-ink-black and must NOT pull in orange/violet
-  // wash so the page tone stays the premium dark QSI look (black + cyan).
-  const lastBodyIdx = css.lastIndexOf("\nbody {");
-  const lastBody = lastBodyIdx >= 0 ? css.slice(lastBodyIdx, lastBodyIdx + 600) : "";
-  must("final body background uses --qsi-ink-black",
-    /var\(--qsi-ink-black\)/.test(lastBody));
-  must("final body background has no orange tint",
-    !/rgba\(255,\s*138,\s*43/.test(lastBody) &&
-    !/rgba\(255,\s*155,\s*46/.test(lastBody));
-  must("final body background has no violet tint",
-    !/rgba\(123,\s*108,\s*255/.test(lastBody));
+  // The v4 canvas declaration (preserved) must still reference
+  // --qsi-ink-black and must NOT pull in orange/violet wash so the page
+  // tone stays the premium dark QSI look (black + cyan). The effective
+  // canvas is the later v5 body block (asserted in 11d); this guards the
+  // v4 declaration against an orange/violet regression.
+  const v4Idx = css.indexOf("--qsi-ink-black:");
+  const v4BodyIdx = v4Idx >= 0 ? css.indexOf("\nbody {", v4Idx) : -1;
+  const v4Body = v4BodyIdx >= 0 ? css.slice(v4BodyIdx, v4BodyIdx + 600) : "";
+  must("v4 body background uses --qsi-ink-black",
+    /var\(--qsi-ink-black\)/.test(v4Body));
+  must("v4 body background has no orange tint",
+    !/rgba\(255,\s*138,\s*43/.test(v4Body) &&
+    !/rgba\(255,\s*155,\s*46/.test(v4Body));
+  must("v4 body background has no violet tint",
+    !/rgba\(123,\s*108,\s*255/.test(v4Body));
 }
 must("--qsi-cyan brand cyan still present (signature teal)",
   /--qsi-cyan:\s*#26e6f2/.test(css));
@@ -232,6 +235,84 @@ must("no THANK YOU / FOR WATCHING text in CSS",
     must("optimized badge asset exists", false,
       "missing assets/telegram/quantsignal-badge.jpeg");
   }
+}
+
+// ---- 11d. Cryptex-style finance dashboard (v5) ------------------------
+// The Overview must read as a real crypto finance app (Dribbble ref):
+// a Total Balance hero (label / big amount / BTC equivalent / LIVE badge)
+// and an action bar of 4 round icon buttons (Market / Signals / AI / More).
+// These reuse existing data-actions so live navigation keeps working.
+must("v5 design layer header present",
+  /DESIGN SYSTEM v5[\s\S]{0,200}Finance Dashboard/.test(css));
+must("v5 canvas token defined (#0a0a0f near-black)",
+  /--qsi-canvas:\s*#0a0a0f/.test(css));
+must("v5 card tokens defined (#111520 / #141926)",
+  /--qsi-card:\s*#111520/.test(css) && /--qsi-card-2:\s*#141926/.test(css));
+must("v5 border token defined (#1e2535)",
+  /--qsi-border:\s*#1e2535/.test(css));
+must("v5 teal accent token defined (#00e5d8)",
+  /--qsi-teal:\s*#00e5d8/.test(css));
+
+// Total Balance hero — markup + hooks.
+must("balance hero markup present on overview",
+  /class="balance-hero"[\s\S]{0,120}data-testid="balance-hero"/.test(html));
+must("balance hero shows a Total Balance label",
+  /class="balance-hero__label"[\s\S]{0,80}data-i18n="totalBalance"/.test(html));
+must("balance hero carries a LIVE badge",
+  /class="balance-hero__badge"[\s\S]{0,200}data-i18n="liveBadge"/.test(html));
+must("balance hero binds a live total value (#total-balance)",
+  /id="total-balance"[\s\S]{0,60}data-testid="total-balance"/.test(html));
+must("balance hero shows a BTC equivalent (#balance-btc)",
+  /id="balance-btc"/.test(html) && /data-i18n="btcEquivalent"/.test(html));
+must("balance hero shows a 24h delta (#balance-delta)",
+  /id="balance-delta"/.test(html));
+must("app.js wires #total-balance to live data",
+  /#total-balance/.test(app) && /balance-btc/.test(app) && /balance-delta/.test(app));
+
+// Balance hero CSS — big tabular display number (30-36px), rounded card.
+must("balance-hero value uses large display size (30-36px clamp)",
+  /\.balance-hero__value\s*\{[\s\S]{0,260}font-size:\s*clamp\([^)]*?3[0-6]px\)/.test(css));
+must("balance-hero card uses app card radius (16-20px) + border token",
+  /\.balance-hero\s*\{[\s\S]{0,400}border-radius:\s*(1[6-9]|20)px/.test(css) &&
+  /\.balance-hero\s*\{[\s\S]{0,400}border:\s*1px solid var\(--qsi-border\)/.test(css));
+must("balance-hero LIVE dot pulses",
+  /\.balance-hero__dot[\s\S]{0,160}animation:\s*pulse/.test(css));
+
+// Action bar — 4 round icon buttons reusing live navigation actions.
+must("action bar markup present on overview",
+  /class="action-bar"[\s\S]{0,120}data-testid="action-bar"/.test(html));
+must("action bar exposes 4 round buttons",
+  (html.match(/class="action-btn"/g) || []).length >= 4);
+must("action buttons reuse live nav actions (market/signals/ai/profile)",
+  /class="action-btn"\s+data-action="open-market"/.test(html) &&
+  /class="action-btn"\s+data-action="open-signals"/.test(html) &&
+  /class="action-btn"\s+data-action="open-ai"/.test(html) &&
+  /class="action-btn"\s+data-action="open-profile"/.test(html));
+must("action buttons expose testids",
+  /data-testid="action-market"/.test(html) &&
+  /data-testid="action-signals"/.test(html) &&
+  /data-testid="action-ai"/.test(html) &&
+  /data-testid="action-more"/.test(html));
+must("action-btn icon circle is 48px (44px on narrow)",
+  /\.action-btn__ico\s*\{[\s\S]{0,200}width:\s*48px[\s\S]{0,40}height:\s*48px/.test(css));
+must("action-btn presses via transform only (no layout shift)",
+  /\.action-btn:active\s+\.action-btn__ico\s*\{[\s\S]{0,120}transform:\s*scale/.test(css));
+must("action bar is a 4-column grid",
+  /\.action-bar\s*\{[\s\S]{0,160}grid-template-columns:\s*repeat\(4,\s*1fr\)/.test(css));
+
+// Palette guard — the v5 canvas must stay deep dark with cyan/teal only.
+{
+  const lastBodyIdx = css.lastIndexOf("\nbody {");
+  const lastBody = lastBodyIdx >= 0 ? css.slice(lastBodyIdx, lastBodyIdx + 600) : "";
+  must("v5 body background uses --qsi-canvas (near-black)",
+    /var\(--qsi-canvas\)/.test(lastBody));
+  must("v5 body background uses a cyan/teal glow",
+    /rgba\(0,\s*229,\s*216/.test(lastBody));
+  must("v5 body background has no orange tint",
+    !/rgba\(255,\s*138,\s*43/.test(lastBody) &&
+    !/rgba\(247,\s*147,\s*26/.test(lastBody));
+  must("v5 body background has no violet tint",
+    !/rgba\(123,\s*108,\s*255/.test(lastBody));
 }
 
 // ---- 12. package.json verify script entry -----------------------------
