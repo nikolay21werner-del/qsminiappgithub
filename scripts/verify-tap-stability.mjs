@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /* Verify mobile-tap stability for currency rows / chips / cells.
-   Live realtime updates were re-rendering #matrix, #coin-chips and
-   #overview-rows by replacing innerHTML, which detached tappable nodes
-   mid-tap (Playwright "DOGE chip" flake). This script asserts that:
+   Live realtime updates were re-rendering #matrix and #coin-chips by
+   replacing innerHTML, which detached tappable nodes mid-tap (Playwright
+   "DOGE chip" flake). This script asserts that:
      - app.js parses
      - the three live render sites use diff-update (insertBefore + reused
        nodes), NOT a blanket el.innerHTML = ... of fresh markup
@@ -73,8 +73,7 @@ must("click handling is delegated on document",
   "expected a single delegated document click listener");
 for (const sel of [
   '.matrix-cell[data-symbol]',
-  '.coin-chip[data-symbol]',
-  '#overview-rows .row[data-symbol]'
+  '.coin-chip[data-symbol]'
 ]) {
   must(`closest("${sel}") used in click delegation`,
     app.includes(`closest("${sel}")`) || app.includes(`closest('${sel}')`),
@@ -103,7 +102,7 @@ function extractFn(src, name) {
   return src.slice(m.index, i);
 }
 
-for (const fn of ["renderMarketScreen", "renderCoinChips", "renderOverviewRows"]) {
+for (const fn of ["renderMarketScreen", "renderCoinChips"]) {
   const body = extractFn(app, fn);
   must(`${fn} found`, !!body, `could not extract ${fn} body`);
   // Forbid innerHTML assignments that emit the actual row/cell/chip markup
@@ -129,8 +128,5 @@ for (const fn of ["renderMarketScreen", "renderCoinChips", "renderOverviewRows"]
 must("onRealtimeTickers re-renders market matrix",
   /onRealtimeTickers[\s\S]{0,400}renderMarketScreen\(\)/.test(app),
   "live tickers must keep updating the market matrix");
-must("onRealtimeTickers re-renders overview rows",
-  /onRealtimeTickers[\s\S]{0,400}renderOverviewRows\(\)/.test(app),
-  "live tickers must keep updating overview rows");
 
 console.log("verify-tap-stability OK");

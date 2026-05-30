@@ -92,10 +92,6 @@
       </button>
     </header>
 
-    <section class="ticker" aria-label="Рыночный тикер">
-      <div class="ticker-track" id="ticker-track"></div>
-    </section>
-
     <!-- ===== Screens (only the active one is visible) ===== -->
     <div class="screens" id="screens">
 
@@ -155,50 +151,6 @@
             </button>
           </div>
         </section>
-
-        <!-- ===== Total Balance hero (Cryptex-style finance dashboard) ===== -->
-        <section class="balance-hero" id="balance-hero" data-testid="balance-hero" aria-label="Баланс портфеля">
-          <div class="balance-hero__top">
-            <span class="balance-hero__label" data-i18n="totalBalance">Total Balance</span>
-            <span class="balance-hero__badge" data-testid="balance-hero-badge">
-              <i class="balance-hero__dot" aria-hidden="true"></i>
-              <span data-i18n="liveBadge">LIVE</span>
-            </span>
-          </div>
-          <div class="balance-hero__value" id="total-balance" data-testid="total-balance">—</div>
-          <div class="balance-hero__meta">
-            <span class="balance-hero__btc"><span class="balance-hero__btc-glyph" aria-hidden="true">₿</span><b id="balance-btc">—</b><em data-i18n="btcEquivalent">BTC equiv.</em></span>
-            <span class="balance-hero__delta balance-hero__delta--up" id="balance-delta">—</span>
-          </div>
-        </section>
-
-        <!-- ===== Action bar — 4 round icon buttons (Market / Signals / AI / More) ===== -->
-        <nav class="action-bar" id="action-bar" data-testid="action-bar" aria-label="Быстрые действия">
-          <button type="button" class="action-btn" data-action="open-market" data-testid="action-market">
-            <span class="action-btn__ico" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="M4 18 L9 12 L13 15 L20 6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 6 L20 6 L20 11" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </span>
-            <span class="action-btn__label" data-i18n="actionMarket">Market</span>
-          </button>
-          <button type="button" class="action-btn" data-action="open-signals" data-testid="action-signals">
-            <span class="action-btn__ico" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
-            </span>
-            <span class="action-btn__label" data-i18n="actionSignals">Signals</span>
-          </button>
-          <button type="button" class="action-btn" data-action="open-ai" data-testid="action-ai">
-            <span class="action-btn__ico" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none"><rect x="4" y="7" width="16" height="12" rx="3" stroke="currentColor" stroke-width="1.7"/><circle cx="9.5" cy="13" r="1.2" fill="currentColor"/><circle cx="14.5" cy="13" r="1.2" fill="currentColor"/><path d="M12 3v4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
-            </span>
-            <span class="action-btn__label" data-i18n="actionAI">AI</span>
-          </button>
-          <button type="button" class="action-btn" data-action="open-profile" data-testid="action-more">
-            <span class="action-btn__ico" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none"><circle cx="5" cy="12" r="1.7" fill="currentColor"/><circle cx="12" cy="12" r="1.7" fill="currentColor"/><circle cx="19" cy="12" r="1.7" fill="currentColor"/></svg>
-            </span>
-            <span class="action-btn__label" data-i18n="actionMore">More</span>
-          </button>
-        </nav>
 
         <div class="hero-card" id="hero-card" data-coin="BTC">
           <div class="hero-card__banner" id="hero-banner" aria-hidden="true">
@@ -417,13 +369,6 @@
           </div>
         </section>
 
-        <section class="card market-top" aria-label="Рынок">
-          <div class="card__head">
-            <h2 data-i18n="topCoins">Топ монет</h2>
-            <button class="chip" type="button" data-action="open-market"><span data-i18n="seeAll">Смотреть все</span> ›</button>
-          </div>
-          <div class="rows" id="overview-rows"></div>
-        </section>
       </section>
 
       <!-- ========== SIGNALS ========== -->

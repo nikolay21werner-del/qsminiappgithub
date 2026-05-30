@@ -462,29 +462,6 @@
     if (name === "profile") renderProfileScreen();
   }
 
-  // ---------- Tickers ----------
-  function renderTicker() {
-    var track = $("#ticker-track");
-    if (!track) return;
-    var rows = state.tickers && state.tickers.length ? state.tickers : null;
-    if (!rows) {
-      track.innerHTML = '<span class="ticker-item"><span class="sym">…</span></span>';
-      return;
-    }
-    var seq = rows.concat(rows);
-    var html = "";
-    for (var i = 0; i < seq.length; i++) {
-      var t = seq[i];
-      var dir = t.change_pct_24h >= 0 ? "up" : "dn";
-      html += '<span class="ticker-item">' +
-                '<span class="sym">' + escapeHtml(shortSym(t.symbol)) + '</span>' +
-                '<span>$' + fmtPrice(t.last_price) + '</span>' +
-                '<span class="' + dir + '">' + fmtPct(t.change_pct_24h) + '</span>' +
-              '</span>';
-    }
-    track.innerHTML = html;
-  }
-
   function applyHeroSnapshot() {
     if (!state.tickers || !state.tickers.length) return;
     var sym = state.selectedSymbol || "BTCUSDT";
@@ -746,119 +723,6 @@
     }
     setText("#promo-signals", String(signals.length || 0));
     setText("#promo-ai-score", accuracy + "%");
-
-    // Total Balance hero — a live aggregate read of the watched market
-    // (sum of last prices across watched tickers, scaled), plus a BTC
-    // equivalent and a 24h delta. Illustrative portfolio view derived from
-    // live data, not a custodial balance.
-    var totalEl = $("#total-balance");
-    if (totalEl) {
-      if (btc && btc.last_price != null) {
-        var total = 0, wAbs = 0;
-        (tickers || []).forEach(function (t) {
-          if (t.last_price != null) total += t.last_price;
-          wAbs += t.change_pct_24h || 0;
-        });
-        if (!total) total = btc.last_price;
-        totalEl.textContent = "$" + Math.round(total).toLocaleString("en-US");
-        var btcEq = (total / btc.last_price);
-        setText("#balance-btc", btcEq.toFixed(btcEq >= 10 ? 2 : 4));
-        var avgDelta = tickers.length ? (wAbs / tickers.length) : 0;
-        var dEl = $("#balance-delta");
-        if (dEl) {
-          var pos = avgDelta >= 0;
-          dEl.className = "balance-hero__delta " + (pos ? "balance-hero__delta--up" : "balance-hero__delta--dn");
-          dEl.textContent = (pos ? "+" : "") + avgDelta.toFixed(2) + "% 24h";
-        }
-      } else {
-        totalEl.textContent = "—";
-        setText("#balance-btc", "—");
-      }
-    }
-  }
-
-  // ---------- Overview rows ----------
-  function buildOverviewRow(t) {
-    var cKey = coinKey(t.symbol);
-    var row = document.createElement("div");
-    row.className = "row";
-    row.setAttribute("data-symbol", t.symbol);
-    row.innerHTML =
-      '<span class="row-coin" data-coin="' + cKey + '">' + coinLogoSVG(t.symbol) + '</span>' +
-      '<span><b>' + escapeHtml(shortSym(t.symbol)) + '</b><br>' +
-        '<span class="row-price" style="color:var(--ink-2);font-size:11px;"></span></span>' +
-      '<span class="row-delta"></span>' +
-      '<span class="row-vol" style="color:var(--ink-3);font-family:JetBrains Mono,monospace;font-size:10px;"></span>';
-    return row;
-  }
-
-  function updateOverviewRow(row, t) {
-    var pos = t.change_pct_24h >= 0;
-    var priceEl = row.querySelector(".row-price");
-    var priceText = "$" + fmtPrice(t.last_price);
-    if (priceEl && priceEl.textContent !== priceText) priceEl.textContent = priceText;
-    var deltaEl = row.querySelector(".row-delta");
-    var deltaText = fmtPct(t.change_pct_24h);
-    var deltaCls = pos ? "row-delta up" : "row-delta dn";
-    if (deltaEl) {
-      if (deltaEl.className !== deltaCls) deltaEl.className = deltaCls;
-      if (deltaEl.textContent !== deltaText) deltaEl.textContent = deltaText;
-    }
-    var volEl = row.querySelector(".row-vol");
-    var volText = "vol " + fmtCompact(t.volume_24h);
-    if (volEl && volEl.textContent !== volText) volEl.textContent = volText;
-  }
-
-  // Diff-update overview rows so taps on a "top coin" row stay stable
-  // across live ticks (rows are reused by symbol).
-  function renderOverviewRows() {
-    var el = $("#overview-rows");
-    if (!el) return;
-    var rows = (state.tickers || []).slice(0, 5);
-    if (!rows.length) {
-      if (el.getAttribute("data-state") !== "loading") {
-        el.setAttribute("data-state", "loading");
-        el.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div>';
-      }
-      return;
-    }
-    if (el.getAttribute("data-state") !== "ready") {
-      el.setAttribute("data-state", "ready");
-      var stale = [];
-      for (var s = 0; s < el.children.length; s++) {
-        var sc = el.children[s];
-        if (!sc.getAttribute || !sc.getAttribute("data-symbol")) stale.push(sc);
-      }
-      stale.forEach(function (n) { el.removeChild(n); });
-    }
-
-    var existing = {};
-    var kids = el.children;
-    for (var i = 0; i < kids.length; i++) {
-      var node = kids[i];
-      var sym = node.getAttribute && node.getAttribute("data-symbol");
-      if (sym) existing[sym] = node;
-    }
-
-    var prevSibling = null;
-    var wanted = {};
-    rows.forEach(function (t) {
-      wanted[t.symbol] = true;
-      var row = existing[t.symbol];
-      if (!row) row = buildOverviewRow(t);
-      updateOverviewRow(row, t);
-      var target = prevSibling ? prevSibling.nextSibling : el.firstChild;
-      if (target !== row) el.insertBefore(row, target);
-      prevSibling = row;
-    });
-
-    var remove = [];
-    for (var j = 0; j < kids.length; j++) {
-      var c = kids[j];
-      var ss = c.getAttribute && c.getAttribute("data-symbol");
-      if (!ss || !wanted[ss]) remove.push(c);
-    }
-    remove.forEach(function (n) { el.removeChild(n); });
   }
 
   // ---------- Signals (realtime engine) ----------
@@ -1487,12 +1351,6 @@
         if (sym3) selectSymbol(sym3, { switchScreen: true });
         return;
       }
-      var overviewRow = e.target.closest("#overview-rows .row[data-symbol]");
-      if (overviewRow) {
-        var sym2 = overviewRow.getAttribute("data-symbol");
-        if (sym2) selectSymbol(sym2);
-        return;
-      }
       var togg = e.target.closest("[data-toggle]");
       if (togg) {
         togg.classList.toggle("is-on");
@@ -1659,8 +1517,6 @@
     state.tickerMap = {};
     list.forEach(function (t) { state.tickerMap[t.symbol] = t; });
     state.status.lastUpdateTs = Date.now();
-    renderTicker();
-    renderOverviewRows();
     applyHeroSnapshot();
     if (state.screen === "market") renderMarketScreen();
     if (state.screen === "signals") renderSignalsScreen();
@@ -1770,8 +1626,6 @@
     I18N.on(function () { applyI18N(); });
     wireEvents();
     applyCoinBranding(state.selectedSymbol);
-    renderTicker();
-    renderOverviewRows();
     renderAIInitial();
     renderKPIs();
 

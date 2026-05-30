@@ -87,7 +87,7 @@ must("prefers-reduced-motion media query disables animations",
 // push the page down.
 must("live render containers reserve min-height",
   /#matrix[\s\S]{0,200}min-height/.test(css) ||
-  /#overview-rows[\s\S]{0,200}min-height/.test(css));
+  /#signals-list[\s\S]{0,200}min-height/.test(css));
 
 // ---- 1b. Viewport fit — Mini App must not drift off-screen ---------------
 // html/body must block horizontal overflow so the shell can't be pushed
@@ -198,6 +198,12 @@ must("bottom tabbar is present with 5 data-nav targets",
   /data-nav="profile"/.test(html));
 must("Antarctic partner card still present",
   /id="partner-antarctic"/.test(html));
+must("removed Overview blocks stay absent (balance hero / ticker / action bar / top coins)",
+  !/class="balance-hero"/.test(html) &&
+  !/class="ticker"/.test(html) &&
+  !/class="action-bar"/.test(html) &&
+  !/class="card market-top"/.test(html) &&
+  !/id="overview-rows"/.test(html));
 must("no Crypto Combat / tap game markup",
   !/id="combat-cta-card"/.test(html) &&
   !/QSI_COMBAT/.test(app) &&

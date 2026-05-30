@@ -101,7 +101,6 @@ for (const k of MAJOR_COINS.filter(c => c !== "DEFAULT")) {
 // Coin marks should be rendered via coinLogoSVG (not the plain text mark)
 // in the render sites we control.
 for (const site of [
-  "renderOverviewRows",
   "renderSignalsScreen",
   "renderCoinChips",
   "renderLastSignal",
