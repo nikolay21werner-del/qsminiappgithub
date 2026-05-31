@@ -216,6 +216,27 @@ must("topbar label image declares width + height attributes",
 must("boot-splash label image declares width + height attributes",
   /class="boot-splash__label"[\s\S]{0,400}width="\d+"\s+height="\d+"/.test(html));
 
+// ---- 3b. Native app shell (v6) stability contract ------------------------
+// The pinned native header and tight card-stack feed must not reintroduce
+// layout shift or horizontal drift on phones.
+must("v6 sticky header still honours safe-area-inset-top",
+  /\.topbar\s*\{[\s\S]{0,400}env\(safe-area-inset-top\)/.test(css));
+must("v6 sticky header keeps a stable min-height (no collapse on scroll)",
+  /\.topbar\s*\{[\s\S]{0,260}min-height:\s*var\(--qsi-header-h\)/.test(css) &&
+  /--qsi-header-h:\s*5[0-9]px/.test(css));
+must("v6 tab bar keeps a >=44px tab tap target (min-height 50px)",
+  /\.tabbar\s+\.tab\s*\{[\s\S]{0,200}min-height:\s*50px/.test(css));
+must("v6 native section labels reserve height (no async jump)",
+  /\.stack-label\s*\{[\s\S]{0,260}min-height:\s*1[0-9]px/.test(css));
+must("v6 overview grids declare min-width:0 (no horizontal overflow)",
+  /\.kpi-strip,[\s\S]{0,160}min-width:\s*0/.test(css));
+must("v6 keyboard-open contract still pins header + hides tabbar",
+  /body\.keyboard-open\s+\.topbar\s*\{/.test(css) &&
+  /body\.keyboard-open\s+\.tabbar\s*\{[\s\S]*?(opacity:\s*0|translate)/.test(css));
+must("v6 stack-label press feedback is filter-only (no layout shift)",
+  /\.stack-label:active\s*\{[\s\S]{0,80}filter:/.test(css) &&
+  !/\.stack-label:active\s*\{[\s\S]{0,80}(margin|width|height|padding)\s*:/.test(css));
+
 // ---- 4. package.json verify script entry ---------------------------------
 must("npm run verify:stability is registered",
   pkg.scripts && pkg.scripts["verify:stability"] === "node scripts/verify-stability.mjs");

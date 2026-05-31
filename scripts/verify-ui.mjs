@@ -306,6 +306,35 @@ must("market-top CSS removed",
     !/rgba\(123,\s*108,\s*255/.test(lastBody));
 }
 
+// ---- 11f. Native phone app shell (v6) ---------------------------------
+// The Overview/app must read like a real phone app: a pinned native
+// header, a tight card-stack feed with section labels, and a stable
+// blurred bottom tab bar. Additive over v5 — no hooks renamed.
+must("v6 design layer header present",
+  /DESIGN SYSTEM v6[\s\S]{0,200}Native Phone App Shell/.test(css));
+must("v6 app-shell uses a 16px native gutter token",
+  /--qsi-gutter:\s*16px/.test(css));
+must("v6 topbar is a pinned/sticky native header",
+  /\.topbar\s*\{[\s\S]{0,260}position:\s*sticky[\s\S]{0,120}top:\s*0/.test(css));
+must("v6 sticky header uses a blurred dark shell surface",
+  /\.topbar\s*\{[\s\S]{0,400}backdrop-filter:\s*blur\(/.test(css) &&
+  /--qsi-shell:/.test(css));
+must("v6 sticky header reserves safe-area-inset-top padding",
+  /\.topbar\s*\{[\s\S]{0,400}env\(safe-area-inset-top\)/.test(css));
+must("v6 screen feed uses a tight card-stack gap token",
+  /\.screen\s*\{[\s\S]{0,120}gap:\s*var\(--qsi-stack-gap\)/.test(css));
+must("v6 native section labels (stack-label) styled with uppercase eyebrow",
+  /\.stack-label\s*\{[\s\S]{0,260}text-transform:\s*uppercase/.test(css));
+must("v6 stack-label markup present on Overview (3 native section labels)",
+  (html.match(/class="stack-label"/g) || []).length >= 3);
+must("v6 tab bar is blurred + sits near the bottom edge",
+  /\.tabbar\s*\{[\s\S]{0,260}bottom:\s*calc\(\s*6px\s*\+\s*env\(safe-area-inset-bottom\)/.test(css) &&
+  /\.tabbar\s*\{[\s\S]{0,260}backdrop-filter:\s*blur\(/.test(css));
+must("v6 tab geometry is stable (min-height + column icon/label)",
+  /\.tabbar\s+\.tab\s*\{[\s\S]{0,200}min-height:\s*50px[\s\S]{0,200}flex-direction:\s*column/.test(css));
+must("v6 overflow guards keep overview grids min-width:0",
+  /\.kpi-strip,[\s\S]{0,120}\.tf-tabs\s*\{[\s\S]{0,80}min-width:\s*0/.test(css));
+
 // ---- 12. package.json verify script entry -----------------------------
 must("npm run verify:ui is registered",
   pkg.scripts && pkg.scripts["verify:ui"] === "node scripts/verify-ui.mjs");

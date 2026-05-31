@@ -3370,7 +3370,154 @@ body {
     linear-gradient(90deg, rgba(0, 229, 216, .05) 1px, transparent 1px);
 }
 
-/* ---- Re-assert keyboard-open contract (must stay last) -------------- */
+/* =====================================================================
+   DESIGN SYSTEM v6 — Native Phone App Shell
+   ---------------------------------------------------------------------
+   Final polish layer that makes the Mini App read like a real phone
+   app instead of a web page / landing. Goals:
+     • App-shell: pinned native header (sticky, blurred dark surface),
+       single vertical scroll body, fixed bottom tab bar, no horizontal
+       overflow on 375–430px.
+     • Card stack rhythm: consistent 16px gutters, tighter inter-card
+       gaps, lightweight section labels so the Overview reads as a
+       stacked mobile feed (market card → AI → KPIs → partner → signal).
+     • Native tab bar feel: soft blurred dark surface, cyan active state,
+       stable icon/label sizing, content never hidden behind it.
+     • Stability: taps move only transform/opacity, dynamic data slots
+       reserve height, grids/cards keep min-width:0.
+   Additive only — every selector targets existing classes/IDs. No DOM
+   hook, testid, or data-action is renamed. Removed Overview blocks
+   (Total Balance / ticker / action bar / Top Coins) stay removed.
+   ===================================================================== */
+
+:root {
+  /* App-shell rhythm tokens */
+  --qsi-gutter: 16px;
+  --qsi-stack-gap: 14px;
+  --qsi-header-h: 56px;
+  --qsi-shell: rgba(8, 11, 18, .82);
+}
+
+/* ---- 1. App-shell gutters — 16px native side padding ---------------- */
+.app {
+  padding-left: var(--qsi-gutter);
+  padding-right: var(--qsi-gutter);
+  /* No native top padding here — the sticky header owns the top inset. */
+  padding-top: 0;
+}
+
+/* ---- 2. Pinned native header — sticky blurred app bar --------------- */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  min-height: var(--qsi-header-h);
+  margin: 0 calc(-1 * var(--qsi-gutter)) 12px;
+  padding: calc(6px + env(safe-area-inset-top)) var(--qsi-gutter) 8px;
+  border-radius: 0;
+  background: var(--qsi-shell);
+  border-bottom: 1px solid rgba(38, 230, 242, .10);
+  backdrop-filter: blur(18px) saturate(1.15);
+  -webkit-backdrop-filter: blur(18px) saturate(1.15);
+}
+
+/* ---- 3. Scroll body — single vertical app feed ---------------------- */
+.screen {
+  /* Tighter, even card-stack rhythm — native feed, not page sections. */
+  gap: var(--qsi-stack-gap);
+  padding-bottom: 4px;
+}
+
+/* Lightweight section labels: a small uppercase eyebrow before grouped
+   blocks so the stack reads like app sections, not loose page blocks. */
+.stack-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 2px -4px;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  min-height: 14px;
+}
+.stack-label::after {
+  content: "";
+  flex: 1 1 auto;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(38, 230, 242, .22), transparent);
+}
+
+/* ---- 4. Card stack — unified mobile surface rhythm ------------------ */
+/* Slightly larger native radii + consistent inner padding so the stack
+   reads as one continuous app surface rather than mixed web cards. */
+.hero-card { border-radius: 22px; padding: 16px 14px 14px; margin-top: 2px; }
+.card,
+.last-signal,
+.partner-card,
+.ai-summary { border-radius: 20px; }
+
+/* ---- 5. Native bottom tab bar — stable, blurred, cyan active ------- */
+.tabbar {
+  /* Sit close to the bottom like a real tab bar (not a floating pill
+     far above the edge), but still clear the home indicator. */
+  bottom: calc(6px + env(safe-area-inset-bottom));
+  background:
+    linear-gradient(180deg, rgba(15, 22, 34, .80), rgba(8, 11, 18, .94));
+  backdrop-filter: blur(20px) saturate(1.15);
+  -webkit-backdrop-filter: blur(20px) saturate(1.15);
+}
+/* Stable tab geometry — icon + label never reflow on active toggle. */
+.tabbar .tab {
+  min-height: 50px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+.tabbar .tab > span:last-child {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+.tabbar .tab__ico {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+}
+
+/* ---- 6. Content never hidden behind the fixed tab bar -------------- */
+.app {
+  padding-bottom: calc(var(--tab-h) + 32px + env(safe-area-inset-bottom));
+}
+
+/* ---- 7. Overflow guards (375–430px) — nothing widens the shell ----- */
+.kpi-strip,
+.kpis,
+.metric-row,
+.tf-tabs {
+  min-width: 0;
+  max-width: 100%;
+}
+.kpi-chip,
+.kpi,
+.metric { min-width: 0; }
+
+/* ---- 8. Press feedback stays transform/opacity only ---------------- */
+.kpi-chip:active,
+.stack-label:active { filter: brightness(.97); }
+
+/* ---- 9. Narrow phones (≤375px) — keep the stack tight -------------- */
+@media (max-width: 375px) {
+  :root { --qsi-gutter: 14px; }
+  .stack-label { font-size: 10px; letter-spacing: 0.12em; }
+}
+
+/* ---- 10. Re-assert keyboard-open contract (must stay last) --------- */
 body.keyboard-open .tabbar {
   transform: translate(-50%, 120%);
   opacity: 0;
@@ -3378,4 +3525,8 @@ body.keyboard-open .tabbar {
 }
 body.keyboard-open .app {
   padding-bottom: calc(12px + env(safe-area-inset-bottom));
+}
+/* Sticky header keeps pinned but flattens its top inset when typing. */
+body.keyboard-open .topbar {
+  padding-top: 6px;
 }
