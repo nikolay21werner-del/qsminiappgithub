@@ -153,7 +153,11 @@
         </section>
 
         <p class="stack-label" data-i18n="sectionMatrix">Матрица рынка</p>
-        <div class="hero-card" id="hero-card" data-coin="BTC">
+        <div class="hero-card" id="hero-card" data-coin="BTC"
+             data-action="open-hero-market"
+             data-testid="hero-card"
+             role="button" tabindex="0"
+             aria-label="Открыть рынок по выбранной монете">
           <div class="hero-card__banner" id="hero-banner" aria-hidden="true">
             <span class="hero-card__banner-glyph" id="hero-banner-glyph"></span>
             <span class="hero-card__banner-tag" id="hero-banner-tag">BTC</span>
@@ -239,7 +243,10 @@
         </div>
 
         <!-- ===== Reference-style last-signal summary card ===== -->
-        <section class="last-signal" id="last-signal-card" data-testid="last-signal-card" aria-label="Последний сигнал">
+        <section class="last-signal" id="last-signal-card" data-testid="last-signal-card"
+                 data-action="open-signals-focus"
+                 role="button" tabindex="0"
+                 aria-label="Последний сигнал — открыть ленту сигналов">
           <div class="last-signal__head">
             <span class="last-signal__title" data-i18n="lastSignalTitle">ПОСЛЕДНИЙ СИГНАЛ</span>
             <span class="coin-mark last-signal__mark" id="last-signal-mark" data-coin="BTC" aria-hidden="true">₿</span>
@@ -321,25 +328,28 @@
         </a>
 
         <section class="kpis" aria-label="KPI">
-          <div class="kpi">
+          <button type="button" class="kpi" data-action="open-signals-focus" data-testid="kpi-signals" aria-label="Активных сигналов">
             <div class="kpi-label" data-i18n="kpiSignals">Активных сигналов</div>
             <div class="kpi-value" data-counter="signals">—</div>
             <div class="kpi-trend up" data-i18n="kpiSignalsDelta">↑ 12% / 24ч</div>
-          </div>
-          <div class="kpi">
+          </button>
+          <button type="button" class="kpi" data-action="open-market" data-testid="kpi-coins" aria-label="Монет в наблюдении">
             <div class="kpi-label" data-i18n="kpiCoins">Монет в наблюдении</div>
             <div class="kpi-value" data-counter="coins">—</div>
             <div class="kpi-trend up" data-i18n="kpiCoinsDelta">↑ 4 новые</div>
-          </div>
-          <div class="kpi">
+          </button>
+          <button type="button" class="kpi" data-action="open-ai" data-testid="kpi-accuracy" aria-label="Точность модели">
             <div class="kpi-label" data-i18n="kpiAccuracy">Точность модели</div>
             <div class="kpi-value" data-counter="accuracy">—<span class="kpi-unit">%</span></div>
             <div class="kpi-trend flat" data-i18n="kpiAccuracyDelta">7д среднее</div>
-          </div>
+          </button>
         </section>
 
         <p class="stack-label" data-i18n="aiTitle">AI-анализ</p>
-        <section class="card ai-summary ai-summary--radar" aria-label="AI summary" data-testid="ai-summary-card">
+        <section class="card ai-summary ai-summary--radar" aria-label="AI summary"
+                 data-testid="ai-summary-card"
+                 data-action="open-ai"
+                 role="button" tabindex="0">
           <div class="card__head">
             <h2 data-i18n="aiTitle">AI-анализ</h2>
             <span class="chip chip--ghost" data-i18n="aiBadge">Beta</span>
@@ -371,6 +381,30 @@
             <span><b data-i18n="aiVolatility">Волатильность</b>: <em data-i18n="medium">средняя</em></span>
           </div>
         </section>
+
+        <p class="stack-label" data-i18n="healthTitle">Состояние системы</p>
+        <button type="button"
+                class="card health-card"
+                id="health-card"
+                data-testid="health-card"
+                data-action="open-system-health"
+                aria-label="Состояние системы — открыть диагностику">
+          <span class="health-card__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="M3 12h4l2 6 4-14 2 8h6" stroke="#00e5d8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          <span class="health-card__text">
+            <b data-i18n="healthTitle">Состояние системы</b>
+            <em data-i18n="healthSub">Живая диагностика</em>
+          </span>
+          <span class="health-card__dots" aria-hidden="true">
+            <i class="health-card__dot" id="health-dot-market"></i>
+            <i class="health-card__dot" id="health-dot-ai"></i>
+            <i class="health-card__dot" id="health-dot-signals"></i>
+          </span>
+          <span class="health-card__cta" data-i18n="healthOpen">Диагностика
+            <svg viewBox="0 0 16 16" width="13" height="13" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+        </button>
 
       </section>
 
@@ -568,6 +602,15 @@
     <div class="sheet__panel">
       <button class="sheet__close" type="button" data-action="close-sheet" aria-label="Закрыть">×</button>
       <div class="sheet__body" id="signal-sheet-body"></div>
+    </div>
+  </div>
+
+  <!-- ===== System Health diagnostics sheet ===== -->
+  <div class="sheet" id="health-sheet" data-testid="health-sheet" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="sheet__backdrop" data-action="close-health"></div>
+    <div class="sheet__panel">
+      <button class="sheet__close" type="button" data-action="close-health" aria-label="Закрыть">×</button>
+      <div class="sheet__body" id="health-sheet-body"></div>
     </div>
   </div>
 

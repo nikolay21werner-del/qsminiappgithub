@@ -3530,3 +3530,140 @@ body.keyboard-open .app {
 body.keyboard-open .topbar {
   padding-top: 6px;
 }
+
+/* ====================================================================
+   DESIGN SYSTEM v7 — Functional Panels (every panel is an action)
+   Additive only. Makes the Overview panels read+behave like real app
+   modules: each is a tap target that routes to its module, with
+   transform/opacity press feedback (no layout shift) and visible focus.
+   ==================================================================== */
+
+/* --- Interactive container panels: pointer + neutral active feedback -- */
+.hero-card[data-action],
+.ai-summary[data-action],
+.last-signal[data-action],
+.health-card[data-action] {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+}
+.hero-card[data-action]:active,
+.ai-summary[data-action]:active,
+.last-signal[data-action]:active,
+.health-card[data-action]:active {
+  transform: scale(.99);
+}
+.hero-card[data-action]:focus-visible,
+.ai-summary[data-action]:focus-visible,
+.last-signal[data-action]:focus-visible,
+.health-card[data-action]:focus-visible,
+.kpi[data-action]:focus-visible {
+  outline: 2px solid rgba(0, 229, 216, .65);
+  outline-offset: 2px;
+}
+/* Inner controls inside tappable panels keep their own hit area on top. */
+.hero-card .tf-tabs button,
+.last-signal .cta { position: relative; z-index: 2; }
+
+/* --- KPI cards promoted to <button>: strip native chrome ------------- */
+.kpi[data-action] {
+  appearance: none;
+  -webkit-appearance: none;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  width: 100%;
+  display: block;
+  transition: transform .12s ease, border-color .12s ease;
+}
+.kpi[data-action]:active { transform: scale(.97); }
+
+/* --- System Health card (overview module) ---------------------------- */
+.health-card {
+  appearance: none;
+  -webkit-appearance: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: 16px;
+}
+.health-card__icon {
+  flex: 0 0 auto;
+  width: 38px; height: 38px;
+  display: grid; place-items: center;
+  border-radius: 12px;
+  background: rgba(0, 229, 216, .10);
+  border: 1px solid rgba(0, 229, 216, .22);
+}
+.health-card__text { display: flex; flex-direction: column; min-width: 0; flex: 1 1 auto; }
+.health-card__text b { font-size: 13px; color: var(--ink-1); }
+.health-card__text em { font-style: normal; font-size: 10.5px; color: var(--ink-2); }
+.health-card__dots { display: inline-flex; gap: 5px; flex: 0 0 auto; }
+.health-card__dot {
+  width: 8px; height: 8px; border-radius: 999px;
+  background: var(--ink-2);
+  box-shadow: 0 0 0 0 rgba(0,0,0,0);
+}
+.health-card__dot.is-ok   { background: #2bd47a; box-shadow: 0 0 8px rgba(43,212,122,.6); }
+.health-card__dot.is-warn { background: #ffb24a; box-shadow: 0 0 8px rgba(255,178,74,.55); }
+.health-card__dot.is-off  { background: #ff5d6c; box-shadow: 0 0 8px rgba(255,93,108,.5); }
+.health-card__cta {
+  flex: 0 0 auto;
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11px; font-weight: 700;
+  color: var(--qsi-teal, #00e5d8);
+}
+
+/* --- System Health diagnostics sheet body ---------------------------- */
+.health__head { margin-bottom: 12px; }
+.health__head h2 {
+  font-size: 16px; font-weight: 800; color: var(--ink-1);
+  text-transform: uppercase; letter-spacing: 0.08em;
+}
+.health__sub { display: block; font-size: 11px; color: var(--ink-2); margin-top: 2px; }
+.health-list { list-style: none; margin: 0 0 14px; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.health-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px; border-radius: 14px;
+  background: var(--qsi-glass, rgba(255,255,255,.03));
+  border: 1px solid var(--qsi-line-2, rgba(255,255,255,.08));
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: transform .12s ease, border-color .12s ease;
+}
+.health-row:active { transform: scale(.98); }
+.health-row:focus-visible { outline: 2px solid rgba(0,229,216,.65); outline-offset: 2px; }
+.health-row__dot { width: 10px; height: 10px; border-radius: 999px; flex: 0 0 auto; }
+.health-row__dot--ok   { background: #2bd47a; box-shadow: 0 0 8px rgba(43,212,122,.6); }
+.health-row__dot--warn { background: #ffb24a; box-shadow: 0 0 8px rgba(255,178,74,.55); }
+.health-row__dot--off  { background: #ff5d6c; box-shadow: 0 0 8px rgba(255,93,108,.5); }
+.health-row__name { flex: 1 1 auto; font-size: 13px; color: var(--ink-1); }
+.health-row__val { font-size: 12px; font-weight: 700; }
+.health-row__val--ok   { color: #2bd47a; }
+.health-row__val--warn { color: #ffb24a; }
+.health-row__val--off  { color: #ff5d6c; }
+.health-meta { display: flex; flex-direction: column; gap: 2px; margin-bottom: 10px; }
+.health-hint { font-size: 11px; color: var(--ink-2); margin: 0; }
+
+/* --- Signals: transient highlight when arrived via Activity tap ------ */
+.signal-card--focus {
+  border-color: rgba(0, 229, 216, .8) !important;
+  box-shadow: 0 0 0 2px rgba(0, 229, 216, .35), 0 0 24px rgba(0, 229, 216, .25);
+  animation: signalFocusPulse 1.6s ease;
+}
+@keyframes signalFocusPulse {
+  0%   { box-shadow: 0 0 0 2px rgba(0,229,216,.55), 0 0 28px rgba(0,229,216,.4); }
+  100% { box-shadow: 0 0 0 2px rgba(0,229,216,0),   0 0 24px rgba(0,229,216,0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .signal-card--focus { animation: none; }
+}

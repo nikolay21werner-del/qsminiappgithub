@@ -815,6 +815,21 @@
     el.innerHTML = html;
   }
 
+  // Scroll the Signals list to its top (active) card and flash a highlight
+  // ring so a tap from the overview Activity/last-signal card lands clearly.
+  function focusActiveSignal() {
+    requestAnimationFrame(function () {
+      var list = $("#signals-list");
+      if (!list) return;
+      var card = list.querySelector('.signal-card[data-signal-idx="0"]') ||
+                 list.querySelector(".signal-card");
+      if (!card) return;
+      try { card.scrollIntoView({ behavior: "smooth", block: "center" }); } catch (_) {}
+      card.classList.add("signal-card--focus");
+      setTimeout(function () { card.classList.remove("signal-card--focus"); }, 1600);
+    });
+  }
+
   function renderSignalDetail(idx) {
     var s = state.signals && state.signals[idx];
     if (!s) return;
@@ -1204,6 +1219,65 @@
     return I18N.t("transportOffline");
   }
 
+  // ---------- System Health diagnostics (in-app, no external admin) -------
+  // Renders a live snapshot of the three subsystems the Mini App depends on:
+  // market data feed, AI engine and the signal feed. Pure read-only view of
+  // the existing realtime state — no new network calls, no admin surface.
+  function renderSystemHealth() {
+    var body = $("#health-sheet-body");
+    if (!body) return;
+    var st = state.status || {};
+    var t = st.transport || "offline";
+    var marketOk = t !== "offline" && !!(state.tickers && state.tickers.length);
+    var signalsN = (computeSignals() || []).length;
+    var coinsN = (state.tickers || []).length;
+    var aiOk = typeof API !== "undefined" && API && typeof API.aiChat === "function";
+
+    function statusLabel(ok, degraded) {
+      if (ok) return I18N.t("healthOk");
+      if (degraded) return I18N.t("healthDegraded");
+      return I18N.t("healthOffline");
+    }
+    function dot(kind) { // kind: ok | warn | off
+      return '<i class="health-row__dot health-row__dot--' + kind + '" aria-hidden="true"></i>';
+    }
+    function rowKind(ok, degraded) { return ok ? "ok" : (degraded ? "warn" : "off"); }
+
+    var marketKind = rowKind(marketOk, t === "rest");
+    var signalsKind = rowKind(signalsN > 0, true);
+    var aiKind = rowKind(aiOk, false);
+
+    body.innerHTML =
+      '<div class="health__head">' +
+        '<h2>' + escapeHtml(I18N.t("healthTitle")) + '</h2>' +
+        '<span class="health__sub">' + escapeHtml(I18N.t("healthSub")) + '</span>' +
+      '</div>' +
+      '<ul class="health-list">' +
+        '<li class="health-row" data-testid="health-row-market" data-action="open-market" role="button" tabindex="0" aria-label="' + escapeHtml(I18N.t("healthMarket")) + '">' +
+          dot(marketKind) +
+          '<span class="health-row__name">' + escapeHtml(I18N.t("healthMarket")) + '</span>' +
+          '<b class="health-row__val health-row__val--' + marketKind + '">' + escapeHtml(statusLabel(marketOk, t === "rest")) + '</b>' +
+        '</li>' +
+        '<li class="health-row" data-testid="health-row-ai" data-action="open-ai" role="button" tabindex="0" aria-label="' + escapeHtml(I18N.t("healthAI")) + '">' +
+          dot(aiKind) +
+          '<span class="health-row__name">' + escapeHtml(I18N.t("healthAI")) + '</span>' +
+          '<b class="health-row__val health-row__val--' + aiKind + '">' + escapeHtml(statusLabel(aiOk, false)) + '</b>' +
+        '</li>' +
+        '<li class="health-row" data-testid="health-row-signals" data-action="open-signals-focus" role="button" tabindex="0" aria-label="' + escapeHtml(I18N.t("healthSignals")) + '">' +
+          dot(signalsKind) +
+          '<span class="health-row__name">' + escapeHtml(I18N.t("healthSignals")) + '</span>' +
+          '<b class="health-row__val health-row__val--' + signalsKind + '">' + signalsN + '</b>' +
+        '</li>' +
+      '</ul>' +
+      '<div class="health-meta">' +
+        '<div class="row-line"><span>' + escapeHtml(I18N.t("healthConn")) + '</span><b>' + escapeHtml(transportLabel(t)) + '</b></div>' +
+        '<div class="row-line"><span>' + escapeHtml(I18N.t("healthProvider")) + '</span><b>' + escapeHtml(st.provider || "Bybit V5") + '</b></div>' +
+        '<div class="row-line"><span>' + escapeHtml(I18N.t("healthCoins")) + '</span><b>' + coinsN + '</b></div>' +
+        '<div class="row-line"><span>' + escapeHtml(I18N.t("healthLastUpdate")) + '</span><b>' + (st.lastUpdateTs ? escapeHtml(relTime(st.lastUpdateTs)) : "—") + '</b></div>' +
+      '</div>' +
+      '<p class="health-hint">' + escapeHtml(I18N.t("healthHint")) + '</p>';
+  }
+
   function renderLangGrid() {
     var el = $("#lang-grid");
     if (!el) return;
@@ -1242,6 +1316,24 @@
       setText("#prof-last-update", state.status.lastUpdateTs ? relTime(state.status.lastUpdateTs) : "—");
       setText("#prof-status", t === "offline" ? I18N.t("transportOffline") : I18N.t("connected"));
     }
+    applyHealthDots();
+  }
+
+  // Reflect subsystem health on the overview System Health card's 3 dots.
+  function applyHealthDots() {
+    var t = (state.status && state.status.transport) || "offline";
+    var marketOk = t !== "offline" && !!(state.tickers && state.tickers.length);
+    var aiOk = !!(API && typeof API.aiChat === "function");
+    var signalsOk = (computeSignals() || []).length > 0;
+    function paint(id, ok, warn) {
+      var el = $(id);
+      if (!el) return;
+      el.classList.remove("is-ok", "is-warn", "is-off");
+      el.classList.add(ok ? "is-ok" : (warn ? "is-warn" : "is-off"));
+    }
+    paint("#health-dot-market", marketOk, t === "rest");
+    paint("#health-dot-ai", aiOk, false);
+    paint("#health-dot-signals", signalsOk, true);
   }
 
   // ---------- Sheets ----------
@@ -1300,6 +1392,15 @@
         return;
       }
       var actionEl = e.target.closest("[data-action]");
+      // Container-level actions (e.g. the tappable hero card) must not
+      // swallow taps that land on their own interactive children — the
+      // timeframe tabs, toggles and lang chips keep their own behavior.
+      if (actionEl) {
+        var innerCtl = e.target.closest("[data-tf],[data-mtf],[data-toggle],[data-lang],[data-suggest]");
+        if (innerCtl && actionEl.contains(innerCtl)) {
+          actionEl = innerCtl.closest("[data-action]:not(#hero-card)");
+        }
+      }
       if (actionEl) {
         var act = actionEl.getAttribute("data-action");
         // For anchor-based actions (e.g. partner card) prevent the default
@@ -1413,6 +1514,18 @@
       if (e.key === "Escape") {
         closeSheet("#signal-sheet");
         closeSheet("#roadmap-sheet");
+        closeSheet("#health-sheet");
+        return;
+      }
+      // Keyboard activation for non-button cards exposed as role="button".
+      if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+        var t = e.target;
+        if (t && t.getAttribute && t.getAttribute("role") === "button" &&
+            t.tagName !== "BUTTON" && t.tagName !== "A" &&
+            t.hasAttribute("data-action")) {
+          e.preventDefault();
+          handleAction(t.getAttribute("data-action"), t);
+        }
       }
     });
   }
@@ -1429,6 +1542,28 @@
         haptic("light"); setScreen("ai"); break;
       case "open-profile":
         haptic("light"); setScreen("profile"); break;
+      case "open-hero-market":
+        // Tapping the BTC/main market card opens Market focused on the
+        // currently-selected symbol (defaults to BTCUSDT).
+        haptic("light");
+        selectSymbol(state.selectedSymbol || "BTCUSDT", { switchScreen: true });
+        break;
+      case "open-signals-focus":
+        // Activity / last-signal tap → Signals screen, then scroll to and
+        // highlight the active (top) signal card.
+        haptic("light");
+        setScreen("signals");
+        focusActiveSignal();
+        break;
+      case "open-system-health":
+        haptic("selection");
+        renderSystemHealth();
+        openSheet("#health-sheet");
+        break;
+      case "close-health":
+        closeSheet("#health-sheet");
+        haptic("selection");
+        break;
       case "refresh":
         haptic("light");
         if (realtime && realtime.getStatus) {

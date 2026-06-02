@@ -335,6 +335,84 @@ must("v6 tab geometry is stable (min-height + column icon/label)",
 must("v6 overflow guards keep overview grids min-width:0",
   /\.kpi-strip,[\s\S]{0,120}\.tf-tabs\s*\{[\s\S]{0,80}min-width:\s*0/.test(css));
 
+// ---- 11g. Functional panels (v7) — every panel performs an action -----
+// Each Overview panel must be a real tap target: it carries a data-action
+// + data-testid in markup AND a matching handler case in app.js. This is
+// the "каждая панель отвечает за своё действие" contract.
+
+// Hero / main market card → opens Market for the selected symbol.
+must("hero card is a tappable panel (data-action + data-testid)",
+  /id="hero-card"[\s\S]{0,260}data-action="open-hero-market"/.test(html) &&
+  /data-testid="hero-card"/.test(html));
+must("hero card exposes button role + keyboard focus",
+  /id="hero-card"[\s\S]{0,260}role="button"[\s\S]{0,60}tabindex="0"/.test(html));
+
+// KPI cards → Signals / Market / AI.
+must("KPI cards are actionable buttons routing to modules",
+  /class="kpi"[\s\S]{0,120}data-action="open-signals-focus"[\s\S]{0,120}data-testid="kpi-signals"/.test(html) &&
+  /class="kpi"[\s\S]{0,120}data-action="open-market"[\s\S]{0,120}data-testid="kpi-coins"/.test(html) &&
+  /class="kpi"[\s\S]{0,120}data-action="open-ai"[\s\S]{0,120}data-testid="kpi-accuracy"/.test(html));
+
+// AI analysis card → AI assistant.
+must("AI summary card opens the AI assistant",
+  /data-testid="ai-summary-card"[\s\S]{0,120}data-action="open-ai"/.test(html) &&
+  /data-testid="ai-summary-card"[\s\S]{0,160}role="button"/.test(html));
+
+// Last-signal / activity card → Signals (focus active signal).
+must("last-signal card opens + focuses the active signal",
+  /data-testid="last-signal-card"[\s\S]{0,160}data-action="open-signals-focus"/.test(html));
+
+// System Health card + diagnostics sheet (new in-app status module).
+must("System Health card present + actionable on Overview",
+  /id="health-card"[\s\S]{0,200}data-action="open-system-health"/.test(html) &&
+  /data-testid="health-card"/.test(html));
+must("System Health diagnostics sheet markup present",
+  /id="health-sheet"[\s\S]{0,400}id="health-sheet-body"/.test(html));
+must("System Health card carries 3 status dots",
+  /id="health-dot-market"/.test(html) &&
+  /id="health-dot-ai"/.test(html) &&
+  /id="health-dot-signals"/.test(html));
+
+// Every panel data-action must have a matching handler case in app.js.
+[
+  "open-hero-market",
+  "open-signals-focus",
+  "open-system-health",
+  "close-health",
+  "open-market",
+  "open-signals",
+  "open-ai",
+  "open-profile",
+].forEach(function (act) {
+  must('app.js handles "' + act + '" action',
+    new RegExp('case\\s+"' + act + '"\\s*:').test(app));
+});
+
+// Supporting handler functions must exist.
+must("app.js defines focusActiveSignal()",
+  /function\s+focusActiveSignal\s*\(/.test(app));
+must("app.js defines renderSystemHealth()",
+  /function\s+renderSystemHealth\s*\(/.test(app));
+must("app.js defines applyHealthDots()",
+  /function\s+applyHealthDots\s*\(/.test(app));
+
+// Keyboard activation for role=button cards + Escape closes health sheet.
+must("app.js activates role=button panels via Enter/Space",
+  /role"\)\s*===\s*"button"/.test(app) &&
+  /handleAction\(\s*t\.getAttribute\("data-action"\)/.test(app));
+must("Escape closes the health sheet too",
+  /closeSheet\("#health-sheet"\)/.test(app));
+
+// Press feedback for functional panels stays transform/opacity (no shift).
+must("v7 functional panels use transform-only :active feedback",
+  /\.health-card\[data-action\]:active\s*\{[\s\S]{0,60}transform:\s*scale/.test(css) &&
+  /\.kpi\[data-action\]:active\s*\{[\s\S]{0,60}transform:\s*scale/.test(css));
+must("v7 functional panels expose a visible focus ring",
+  /\.kpi\[data-action\]:focus-visible/.test(css) &&
+  /\.health-card\[data-action\]:focus-visible/.test(css));
+must("v7 signal focus highlight styled",
+  /\.signal-card--focus\s*\{/.test(css));
+
 // ---- 12. package.json verify script entry -----------------------------
 must("npm run verify:ui is registered",
   pkg.scripts && pkg.scripts["verify:ui"] === "node scripts/verify-ui.mjs");
