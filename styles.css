@@ -3982,3 +3982,362 @@ body.keyboard-open .topbar {
   .app-panel__dot { animation: none; }
   #sig-ring-arc { transition: none; }
 }
+
+/* =====================================================================
+   DESIGN SYSTEM v9 — Blue-Neon Crypto AI Terminal
+   ---------------------------------------------------------------------
+   A deliberately RADICAL, visually obvious re-skin so the Mini App reads
+   as an electric blue-neon crypto AI dashboard (the approved reference):
+     • Deep navy/black canvas with an animated data-grid + cyan glow.
+     • Electric blue / cyan neon everywhere: glowing panel borders, lit
+       panel headers, glassmorphism surfaces, neon active states.
+     • Main Market card = crypto-terminal centerpiece (blue-glow chart,
+       metric strips, selected BTC/USDT styling).
+     • AI Signal panel = confidence ring + strong LONG/SHORT neon accents.
+     • Market Matrix / Activity / System Health get distinct neon blocks.
+     • Bottom nav = native neon dock with a glow under the active icon.
+     • Header = QUANTSIGNAL AI mark + live dot + data-source status.
+   Additive only. Every selector targets EXISTING classes/IDs — no markup,
+   testid, data-action, or live hook is renamed. Removed Overview blocks
+   (Total Balance / ticker / action bar / Top Coins) stay removed.
+   ===================================================================== */
+
+:root {
+  --qsn-navy-0: #02050e;          /* absolute base */
+  --qsn-navy-1: #050b1c;          /* panel base navy */
+  --qsn-navy-2: #08132b;          /* raised navy */
+  --qsn-blue: #2f8bff;            /* electric blue */
+  --qsn-blue-deep: #0c4cff;       /* deep electric */
+  --qsn-cyan: #2fe6ff;            /* neon cyan */
+  --qsn-cyan-soft: #7bf4ff;
+  --qsn-edge: rgba(47, 160, 255, .42);     /* glowing border */
+  --qsn-edge-soft: rgba(47, 160, 255, .20);
+  --qsn-glass: rgba(8, 18, 40, .68);
+  --qsn-glass-2: rgba(10, 24, 52, .58);
+  --qsn-glow-cyan: 0 0 0 1px rgba(47, 230, 255, .35),
+                   0 0 22px rgba(47, 160, 255, .35),
+                   0 0 60px rgba(12, 76, 255, .22);
+  --qsn-glow-soft: 0 0 24px rgba(47, 160, 255, .18);
+  --qsn-pos: #25f2a3;
+  --qsn-neg: #ff527a;
+}
+
+/* ---- 1. Canvas — deep navy/black + animated data grid + cyan glow ---
+   Keeps the v5 palette tokens (--qsi-canvas near-black + cyan/teal glow,
+   no orange/violet) layered under the navy gradient so the design stays
+   coherent and earlier palette guards hold. */
+body {
+  background:
+    radial-gradient(900px 560px at 50% -16%, rgba(47, 160, 255, .20), transparent 60%),
+    radial-gradient(700px 600px at 100% 8%, rgba(47, 230, 255, .12), transparent 62%),
+    radial-gradient(620px 540px at 0% 96%, rgba(0, 229, 216, .10), transparent 66%),
+    radial-gradient(820px 680px at 0% 96%, rgba(12, 76, 255, .16), transparent 66%),
+    linear-gradient(180deg, var(--qsn-navy-1) 0%, var(--qsn-navy-0) 100%),
+    var(--qsi-canvas);
+  background-attachment: fixed;
+}
+.bg-grid {
+  background-image:
+    linear-gradient(rgba(47, 160, 255, .10) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(47, 160, 255, .10) 1px, transparent 1px);
+  background-size: 40px 40px;
+  opacity: .8;
+  animation: qsnGridDrift 24s linear infinite;
+}
+.bg-glow--teal   { background: rgba(47, 230, 255, .26) !important; }
+.bg-glow--violet { background: rgba(12, 76, 255, .24) !important; }
+@keyframes qsnGridDrift {
+  from { background-position: 0 0, 0 0; }
+  to   { background-position: 40px 40px, 40px 40px; }
+}
+
+/* ---- 2. Header — illuminated QUANTSIGNAL AI app bar ----------------- */
+.topbar {
+  background:
+    linear-gradient(180deg, rgba(8, 20, 46, .92), rgba(4, 9, 22, .78)) !important;
+  border-bottom: 1px solid var(--qsn-edge) !important;
+  box-shadow: 0 1px 0 rgba(47, 230, 255, .14), 0 14px 30px -18px rgba(12, 76, 255, .8);
+}
+.topbar::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: -1px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--qsn-cyan), transparent);
+  opacity: .7;
+  pointer-events: none;
+}
+.topbar__btn {
+  border: 1px solid var(--qsn-edge-soft) !important;
+  background: rgba(10, 24, 52, .6) !important;
+  color: var(--qsn-cyan-soft) !important;
+  box-shadow: inset 0 0 12px rgba(47, 160, 255, .14);
+}
+.conn-pill {
+  border: 1px solid var(--qsn-edge) !important;
+  background: rgba(12, 76, 255, .14) !important;
+  color: var(--qsn-cyan-soft) !important;
+  text-shadow: 0 0 10px rgba(47, 230, 255, .5);
+  letter-spacing: .04em;
+}
+.dot-live, .brand-strip__dot, .wallet-status__dot, .app-panel__dot {
+  background: var(--qsn-cyan) !important;
+  box-shadow: 0 0 8px var(--qsn-cyan), 0 0 16px rgba(47, 160, 255, .8) !important;
+}
+
+/* ---- 3. Section eyebrow labels — neon underline -------------------- */
+.stack-label {
+  color: var(--qsn-cyan-soft);
+  text-shadow: 0 0 12px rgba(47, 230, 255, .35);
+}
+.stack-label::after {
+  background: linear-gradient(90deg, var(--qsn-cyan), transparent) !important;
+  box-shadow: 0 0 10px rgba(47, 230, 255, .4);
+}
+
+/* ---- 4. Brand strip + KPI chips — neon glass ----------------------- */
+.brand-strip__name { text-shadow: 0 0 16px rgba(47, 160, 255, .45); }
+.brand-strip__name b { color: var(--qsn-cyan) !important; }
+.brand-strip__status {
+  border: 1px solid var(--qsn-edge) !important;
+  background: rgba(12, 76, 255, .16) !important;
+  color: var(--qsn-cyan-soft) !important;
+  box-shadow: var(--qsn-glow-soft);
+}
+.kpi-chip {
+  border: 1px solid var(--qsn-edge-soft) !important;
+  background:
+    radial-gradient(120% 130% at 0% 0%, rgba(47, 160, 255, .12), transparent 55%),
+    var(--qsn-glass) !important;
+  box-shadow: var(--qsn-glow-soft), inset 0 1px 0 rgba(123, 244, 255, .08);
+}
+.kpi-chip--accent {
+  border-color: var(--qsn-edge) !important;
+  box-shadow: var(--qsn-glow-cyan) !important;
+}
+.kpi-chip__val { color: var(--qsn-cyan-soft) !important; text-shadow: 0 0 12px rgba(47, 230, 255, .35); }
+
+/* ---- 5. Main Market card — crypto-terminal centerpiece ------------- */
+.hero-card {
+  border: 1px solid var(--qsn-edge) !important;
+  background:
+    radial-gradient(140% 120% at 12% -10%, rgba(47, 160, 255, .18), transparent 55%),
+    radial-gradient(120% 140% at 100% 0%, rgba(47, 230, 255, .12), transparent 60%),
+    linear-gradient(180deg, var(--qsn-navy-2), var(--qsn-navy-1)) !important;
+  box-shadow:
+    var(--qsn-glow-cyan),
+    0 24px 60px -24px rgba(12, 76, 255, .7) !important;
+}
+.hero-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(47, 230, 255, .6), transparent 40%, rgba(12, 76, 255, .55));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+  opacity: .8;
+}
+.hero-card__price, #hero-price {
+  color: #f3f9ff !important;
+  text-shadow: 0 0 18px rgba(47, 160, 255, .5);
+}
+.hero-card__row b, #hero-pair {
+  color: var(--qsn-cyan-soft) !important;
+  letter-spacing: .02em;
+}
+/* Selected BTC/USDT terminal styling on the pair badge */
+.hero-card .badge--mute {
+  border: 1px solid var(--qsn-edge) !important;
+  background: rgba(12, 76, 255, .18) !important;
+  color: var(--qsn-cyan-soft) !important;
+}
+.coin-mark {
+  border: 1px solid var(--qsn-edge) !important;
+  background: rgba(10, 24, 52, .7) !important;
+  color: var(--qsn-cyan) !important;
+  box-shadow: 0 0 18px rgba(47, 160, 255, .4), inset 0 0 14px rgba(47, 230, 255, .18);
+}
+/* Timeframe tabs — neon pill row */
+.tf-tabs { border: 1px solid var(--qsn-edge-soft) !important; background: rgba(4, 10, 24, .5) !important; }
+.tf-tabs button.is-active {
+  background: linear-gradient(180deg, rgba(47, 160, 255, .35), rgba(12, 76, 255, .25)) !important;
+  color: #f1faff !important;
+  box-shadow: 0 0 16px rgba(47, 230, 255, .5);
+  border: 1px solid var(--qsn-edge) !important;
+}
+/* Chart well — blue-glow data surface */
+.chart-wrap {
+  border: 1px solid var(--qsn-edge-soft) !important;
+  background:
+    radial-gradient(120% 120% at 50% 0%, rgba(47, 160, 255, .14), transparent 60%),
+    rgba(3, 8, 20, .6) !important;
+  box-shadow: inset 0 0 40px rgba(12, 76, 255, .22);
+}
+.chart-tag {
+  border: 1px solid var(--qsn-edge) !important;
+  background: rgba(12, 76, 255, .22) !important;
+  color: var(--qsn-cyan-soft) !important;
+}
+/* Metric strips */
+.metric {
+  border: 1px solid var(--qsn-edge-soft) !important;
+  background: var(--qsn-glass-2) !important;
+  box-shadow: inset 0 1px 0 rgba(123, 244, 255, .06);
+}
+.metric__value { color: #eef6ff !important; text-shadow: 0 0 10px rgba(47, 160, 255, .3); }
+.metric__bars i { background: var(--qsn-cyan) !important; box-shadow: 0 0 6px rgba(47, 230, 255, .7); }
+.wallet-status__pill {
+  border: 1px solid var(--qsn-edge) !important;
+  background: rgba(8, 18, 40, .7) !important;
+  color: var(--qsn-cyan-soft) !important;
+  box-shadow: var(--qsn-glow-soft);
+}
+.wallet-status__pill--brand { color: #fff !important; background: rgba(12, 76, 255, .3) !important; }
+
+/* ---- 6. Shared app-panel chrome — neon glass blocks ---------------- */
+.app-panel {
+  border: 1px solid var(--qsn-edge) !important;
+  background:
+    radial-gradient(120% 140% at 0% 0%, rgba(47, 160, 255, .10), transparent 55%),
+    var(--qsn-glass) !important;
+  box-shadow: var(--qsn-glow-soft), 0 16px 40px -22px rgba(12, 76, 255, .7) !important;
+}
+.app-panel:focus-visible { outline: 2px solid var(--qsn-cyan) !important; }
+.app-panel__head {
+  position: relative;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(47, 160, 255, .14);
+}
+.app-panel__label {
+  color: var(--qsn-cyan-soft) !important;
+  text-shadow: 0 0 12px rgba(47, 230, 255, .4);
+}
+.app-panel__badge {
+  border: 1px solid var(--qsn-edge) !important;
+  background: rgba(12, 76, 255, .16) !important;
+  color: var(--qsn-cyan-soft) !important;
+}
+.app-panel__chevron { color: var(--qsn-cyan) !important; }
+
+/* ---- 7. AI Signal panel — neon confidence + LONG/SHORT accents ----- */
+#sig-ring-arc { stroke: var(--qsn-cyan) !important; filter: drop-shadow(0 0 6px rgba(47, 230, 255, .8)); }
+.sig-ring__val, #sig-conf { color: var(--qsn-cyan-soft) !important; text-shadow: 0 0 12px rgba(47, 230, 255, .5); }
+.sig-panel__pair { color: #eef6ff !important; }
+.sig-panel__side--long {
+  background: linear-gradient(180deg, rgba(37, 242, 163, .26), rgba(37, 242, 163, .12)) !important;
+  color: var(--qsn-pos) !important;
+  border: 1px solid rgba(37, 242, 163, .5) !important;
+  box-shadow: 0 0 16px rgba(37, 242, 163, .4);
+  text-shadow: 0 0 10px rgba(37, 242, 163, .6);
+}
+.sig-panel__side--short {
+  background: linear-gradient(180deg, rgba(255, 82, 122, .26), rgba(255, 82, 122, .12)) !important;
+  color: var(--qsn-neg) !important;
+  border: 1px solid rgba(255, 82, 122, .5) !important;
+  box-shadow: 0 0 16px rgba(255, 82, 122, .4);
+}
+.sig-panel__legs b { color: #eef6ff !important; }
+.sig-panel__leg--danger b { color: var(--qsn-neg) !important; }
+
+/* ---- 8. Market Matrix preview — neon heat cells -------------------- */
+.mp-cell {
+  border: 1px solid var(--qsn-edge-soft) !important;
+  background: var(--qsn-glass-2) !important;
+}
+.mp-cell--up   { box-shadow: inset 0 0 18px rgba(37, 242, 163, .22), 0 0 0 1px rgba(37, 242, 163, .3); }
+.mp-cell--down { box-shadow: inset 0 0 18px rgba(255, 82, 122, .22), 0 0 0 1px rgba(255, 82, 122, .3); }
+
+/* ---- 9. Activity feed rows — neon dividers ------------------------- */
+.feed-row { border-bottom: 1px solid rgba(47, 160, 255, .1) !important; }
+.feed-row__title { color: #eef6ff !important; }
+
+/* ---- 10. Last-signal + System Health blocks — distinct neon -------- */
+.last-signal, .health-card {
+  border: 1px solid var(--qsn-edge) !important;
+  background:
+    radial-gradient(120% 130% at 100% 0%, rgba(47, 230, 255, .1), transparent 55%),
+    var(--qsn-glass) !important;
+  box-shadow: var(--qsn-glow-soft);
+}
+.cta--strong {
+  background: linear-gradient(180deg, var(--qsn-blue), var(--qsn-blue-deep)) !important;
+  color: #fff !important;
+  box-shadow: 0 0 22px rgba(47, 160, 255, .55), inset 0 1px 0 rgba(255,255,255,.25) !important;
+  text-shadow: 0 0 10px rgba(255,255,255,.4);
+}
+
+/* ---- 11. AI summary radar — cyan core ------------------------------ */
+.ai-radar__core { color: var(--qsn-cyan) !important; text-shadow: 0 0 14px rgba(47, 230, 255, .7); }
+.ai-radar__ring, .ai-radar__ring--2 { border-color: rgba(47, 160, 255, .4) !important; }
+.ai-radar__sweep { background: conic-gradient(from 0deg, transparent, rgba(47, 230, 255, .55)) !important; }
+#ai-confidence { color: var(--qsn-cyan-soft) !important; }
+
+/* ---- 12. KPI cards — neon ------------------------------------------ */
+.kpi {
+  border: 1px solid var(--qsn-edge-soft) !important;
+  background: var(--qsn-glass-2) !important;
+  box-shadow: var(--qsn-glow-soft);
+}
+.kpi-value { color: var(--qsn-cyan-soft) !important; text-shadow: 0 0 12px rgba(47, 230, 255, .3); }
+
+/* ---- 13. Bottom nav — native neon dock ----------------------------- */
+.tabbar {
+  border: 1px solid var(--qsn-edge) !important;
+  background: linear-gradient(180deg, rgba(8, 20, 46, .9), rgba(3, 8, 20, .92)) !important;
+  box-shadow:
+    0 0 0 1px rgba(47, 230, 255, .12),
+    0 -2px 30px rgba(12, 76, 255, .35),
+    0 18px 40px -18px rgba(0, 0, 0, .9) !important;
+  backdrop-filter: blur(20px) saturate(1.3) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(1.3) !important;
+}
+.tabbar .tab { color: var(--ink-2, #7c8aa3); }
+.tabbar .tab.is-active {
+  color: var(--qsn-cyan-soft) !important;
+  text-shadow: 0 0 12px rgba(47, 230, 255, .6);
+}
+/* Neon glow under the active tab icon */
+.tabbar .tab.is-active .tab__ico {
+  color: var(--qsn-cyan) !important;
+  filter: drop-shadow(0 0 8px rgba(47, 230, 255, .9));
+}
+.tabbar .tab.is-active::before {
+  content: "";
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  width: 34px;
+  height: 26px;
+  transform: translateX(-50%);
+  border-radius: 14px;
+  background: radial-gradient(60% 70% at 50% 40%, rgba(47, 160, 255, .55), transparent 75%);
+  filter: blur(2px);
+  pointer-events: none;
+  z-index: 0;
+}
+.tabbar .tab.is-active::after {
+  content: "";
+  position: absolute;
+  bottom: 5px;
+  left: 50%;
+  width: 22px;
+  height: 3px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: var(--qsn-cyan);
+  box-shadow: 0 0 10px var(--qsn-cyan), 0 0 18px rgba(47, 160, 255, .9);
+  pointer-events: none;
+}
+.tabbar .tab__ico { position: relative; z-index: 1; }
+
+/* ---- 14. Partner card keeps Antarctic brand, gains neon edge ------- */
+.partner-card { border: 1px solid var(--qsn-edge) !important; box-shadow: var(--qsn-glow-soft); }
+
+/* ---- 15. Stability — keep press feedback transform-only ------------ */
+@media (prefers-reduced-motion: reduce) {
+  .bg-grid { animation: none; }
+}

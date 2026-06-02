@@ -503,6 +503,107 @@ must("v8 panels re-render on locale switch",
 must("v8 new panel grids stay min-width:0 (no horizontal overflow)",
   /\.sig-panel__legs,[\s\S]{0,120}\.matrix-panel__grid,[\s\S]{0,120}\.feed-panel__list\s*\{[\s\S]{0,80}min-width:\s*0/.test(css));
 
+// ---- 11i. Blue-Neon Crypto AI Terminal (v9) ---------------------------
+// The Mics-app must read as an electric blue/cyan neon crypto AI dashboard
+// (the approved reference): deep navy/black canvas, glowing borders, lit
+// panel headers, glassmorphism, neon active states, neon bottom dock.
+// Additive over v8 — no markup/hook renamed.
+must("v9 design layer header present",
+  /DESIGN SYSTEM v9[\s\S]{0,200}Blue-Neon Crypto AI Terminal/.test(css));
+
+// Neon brand tokens.
+must("v9 deep navy base token defined",
+  /--qsn-navy-0:\s*#02050e/.test(css));
+must("v9 electric blue token defined",
+  /--qsn-blue:\s*#2f8bff/.test(css));
+must("v9 neon cyan token defined",
+  /--qsn-cyan:\s*#2fe6ff/.test(css));
+must("v9 glowing border (edge) token defined",
+  /--qsn-edge:\s*rgba\(47,\s*160,\s*255/.test(css));
+must("v9 glass surface token defined",
+  /--qsn-glass:\s*rgba\(8,\s*18,\s*40/.test(css));
+must("v9 cyan glow shadow token defined",
+  /--qsn-glow-cyan:/.test(css));
+
+// Canvas — deep navy/black + animated data grid + cyan glow.
+{
+  const lastBodyIdx = css.lastIndexOf("\nbody {");
+  const lastBody = lastBodyIdx >= 0 ? css.slice(lastBodyIdx, lastBodyIdx + 700) : "";
+  must("v9 body canvas uses deep navy gradient base",
+    /var\(--qsn-navy-1\)/.test(lastBody) && /var\(--qsn-navy-0\)/.test(lastBody));
+  must("v9 body canvas carries electric blue glow",
+    /rgba\(47,\s*160,\s*255/.test(lastBody));
+}
+must("v9 animated data-grid drift keyframe present",
+  /@keyframes\s+qsnGridDrift/.test(css) &&
+  /\.bg-grid\s*\{[\s\S]{0,260}animation:\s*qsnGridDrift/.test(css));
+
+// Glowing neon borders / lit panel headers / glass panels.
+must("v9 hero card carries neon cyan glow shadow",
+  /\.hero-card\s*\{[\s\S]{0,400}var\(--qsn-glow-cyan\)/.test(css));
+must("v9 hero card has a neon gradient border (::before mask)",
+  /\.hero-card::before\s*\{[\s\S]{0,500}mask-composite:\s*exclude/.test(css));
+must("v9 app-panels use neon glass + glow",
+  /\.app-panel\s*\{[\s\S]{0,400}var\(--qsn-glass\)[\s\S]{0,200}var\(--qsn-glow-soft\)/.test(css));
+must("v9 lit panel header label glows cyan",
+  /\.app-panel__label\s*\{[\s\S]{0,200}var\(--qsn-cyan-soft\)/.test(css));
+
+// AI Signal panel — neon confidence + LONG/SHORT accents.
+must("v9 confidence ring arc glows cyan",
+  /#sig-ring-arc\s*\{[\s\S]{0,160}var\(--qsn-cyan\)[\s\S]{0,120}drop-shadow/.test(css));
+must("v9 LONG side gets neon green accent",
+  /\.sig-panel__side--long\s*\{[\s\S]{0,260}var\(--qsn-pos\)/.test(css));
+must("v9 SHORT side gets neon red accent",
+  /\.sig-panel__side--short\s*\{[\s\S]{0,260}var\(--qsn-neg\)/.test(css));
+
+// Distinct neon blocks for Matrix / Activity / System Health.
+must("v9 matrix heat cells get neon up/down rings",
+  /\.mp-cell--up\s*\{[\s\S]{0,160}rgba\(37,\s*242,\s*163/.test(css) &&
+  /\.mp-cell--down\s*\{[\s\S]{0,160}rgba\(255,\s*82,\s*122/.test(css));
+must("v9 last-signal + System Health blocks get neon edge",
+  /\.last-signal,\s*\.health-card\s*\{[\s\S]{0,300}var\(--qsn-edge\)/.test(css));
+
+// Bottom nav — native neon dock with glow under active icon.
+must("v9 tabbar is a neon dock (edge border + blue glow shadow)",
+  /\.tabbar\s*\{[\s\S]{0,400}var\(--qsn-edge\)[\s\S]{0,300}rgba\(12,\s*76,\s*255/.test(css));
+must("v9 active tab icon glows cyan (drop-shadow)",
+  /\.tabbar\s+\.tab\.is-active\s+\.tab__ico\s*\{[\s\S]{0,160}drop-shadow/.test(css));
+must("v9 active tab carries a glow halo + neon underline",
+  /\.tabbar\s+\.tab\.is-active::before\s*\{/.test(css) &&
+  /\.tabbar\s+\.tab\.is-active::after\s*\{/.test(css));
+
+// Header — illuminated QUANTSIGNAL AI app bar.
+must("v9 topbar gets an illuminated neon underline (::after)",
+  /\.topbar::after\s*\{[\s\S]{0,200}var\(--qsn-cyan\)/.test(css));
+must("v9 connection/data-source pill glows cyan",
+  /\.conn-pill\s*\{[\s\S]{0,200}var\(--qsn-cyan-soft\)/.test(css));
+must("v9 live dot uses a cyan neon glow",
+  /\.dot-live[\s\S]{0,160}var\(--qsn-cyan\)[\s\S]{0,120}box-shadow/.test(css));
+
+// ---- 11j. Cache-busting / build versioning ----------------------------
+// Telegram/Vercel must never serve a stale bundle: a build version meta
+// tag + ?v= query strings on the static asset links + a no-cache HTML
+// header guarantee the new neon design is fetched.
+const ver = read("vercel.json");
+const VBUILD = "v9-neon-20260602";
+must("build version meta tag present in HTML",
+  new RegExp('<meta\\s+name="qsi-build"\\s+content="' + VBUILD + '"').test(html));
+must("window.QSI_BUILD exposes the build version",
+  new RegExp('QSI_BUILD\\s*=\\s*"' + VBUILD + '"').test(html));
+must("styles.css link is cache-busted with ?v=",
+  /href="\.\/styles\.css\?v=9-neon-20260602"/.test(html));
+must("app.js link is cache-busted with ?v=",
+  /src="\.\/app\.js\?v=9-neon-20260602"/.test(html));
+must("i18n.js + api.js links are cache-busted with ?v=",
+  /src="\.\/i18n\.js\?v=9-neon-20260602"/.test(html) &&
+  /src="\.\/api\.js\?v=9-neon-20260602"/.test(html));
+must("vercel.json revalidates JS/CSS bundles",
+  /styles[\\.]+css\|app[\\.]+js\|api[\\.]+js\|i18n[\\.]+js/.test(ver) &&
+  /max-age=0,\s*must-revalidate/.test(ver));
+must("vercel.json marks HTML as no-cache (fresh ?v= links served)",
+  /"source":\s*"\/index\.html"[\s\S]{0,160}no-cache/.test(ver) &&
+  /"source":\s*"\/"[\s\S]{0,160}no-cache/.test(ver));
+
 // ---- 12. package.json verify script entry -----------------------------
 must("npm run verify:ui is registered",
   pkg.scripts && pkg.scripts["verify:ui"] === "node scripts/verify-ui.mjs");
