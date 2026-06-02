@@ -152,7 +152,7 @@
           </div>
         </section>
 
-        <p class="stack-label" data-i18n="sectionMatrix">Матрица рынка</p>
+        <p class="stack-label" data-i18n="panelMainMarket">Главный рынок</p>
         <div class="hero-card" id="hero-card" data-coin="BTC"
              data-action="open-hero-market"
              data-testid="hero-card"
@@ -241,6 +241,89 @@
             </div>
           </div>
         </div>
+
+        <!-- ===== AI Signal Panel — current AI call + confidence ring ===== -->
+        <p class="stack-label" data-i18n="panelSignalTitle">AI-сигнал</p>
+        <section class="app-panel sig-panel" id="signal-panel"
+                 data-testid="signal-panel"
+                 data-action="open-signals-focus"
+                 role="button" tabindex="0"
+                 aria-label="AI-сигнал — открыть ленту сигналов">
+          <header class="app-panel__head">
+            <span class="app-panel__label" data-i18n="panelSignalTitle">AI-сигнал</span>
+            <span class="app-panel__badge app-panel__badge--live">
+              <i class="app-panel__dot" aria-hidden="true"></i>
+              <span data-i18n="panelSignalLive">Live</span>
+            </span>
+            <span class="app-panel__chevron" aria-hidden="true">
+              <svg viewBox="0 0 16 16" width="14" height="14" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          </header>
+          <div class="sig-panel__body">
+            <span class="sig-ring" id="sig-ring" aria-hidden="true">
+              <svg viewBox="0 0 72 72" width="72" height="72">
+                <circle cx="36" cy="36" r="30" stroke="rgba(255,255,255,.08)" stroke-width="7" fill="none"/>
+                <circle id="sig-ring-arc" cx="36" cy="36" r="30" stroke="var(--qsi-teal)" stroke-width="7"
+                        fill="none" stroke-linecap="round" stroke-dasharray="188.5" stroke-dashoffset="47"
+                        transform="rotate(-90 36 36)"/>
+              </svg>
+              <b class="sig-ring__val" id="sig-conf">—</b>
+            </span>
+            <div class="sig-panel__col">
+              <div class="sig-panel__top">
+                <span class="coin-mark sig-panel__mark" id="sig-mark" data-coin="BTC" aria-hidden="true">₿</span>
+                <span class="sig-panel__pair" id="sig-pair">BTC/USDT</span>
+                <span class="sig-panel__side sig-panel__side--long" id="sig-side" data-i18n="sideLong">LONG</span>
+              </div>
+              <ul class="sig-panel__legs">
+                <li><span data-i18n="panelSignalEntry">Вход</span><b id="sig-entry">—</b></li>
+                <li><span data-i18n="panelSignalTarget">Цель</span><b id="sig-target">—</b></li>
+                <li class="sig-panel__leg--danger"><span data-i18n="panelSignalStop">Стоп</span><b id="sig-stop">—</b></li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== Market Matrix Panel — preview of top movers ===== -->
+        <p class="stack-label" data-i18n="panelMatrixTitle">Матрица рынка</p>
+        <section class="app-panel matrix-panel" id="matrix-panel"
+                 data-testid="matrix-panel"
+                 data-action="open-market"
+                 role="button" tabindex="0"
+                 aria-label="Матрица рынка — открыть весь рынок">
+          <header class="app-panel__head">
+            <span class="app-panel__label" data-i18n="panelMatrixSub">Лидеры движения</span>
+            <span class="app-panel__badge" id="matrix-panel-count">—</span>
+            <span class="app-panel__chevron" aria-hidden="true">
+              <svg viewBox="0 0 16 16" width="14" height="14" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          </header>
+          <div class="matrix-panel__grid" id="matrix-panel-grid" data-testid="matrix-panel-grid" aria-hidden="true">
+            <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
+          </div>
+        </section>
+
+        <!-- ===== Activity Feed Panel — latest market / AI events ===== -->
+        <p class="stack-label" data-i18n="panelActivityTitle">Активность</p>
+        <section class="app-panel feed-panel" id="activity-panel"
+                 data-testid="activity-panel"
+                 data-action="open-signals-focus"
+                 role="button" tabindex="0"
+                 aria-label="Активность — открыть ленту сигналов">
+          <header class="app-panel__head">
+            <span class="app-panel__label" data-i18n="panelActivitySub">Последние события</span>
+            <span class="app-panel__badge app-panel__badge--live">
+              <i class="app-panel__dot" aria-hidden="true"></i>
+              <span data-i18n="panelActivityOpen">Открыть ленту</span>
+            </span>
+            <span class="app-panel__chevron" aria-hidden="true">
+              <svg viewBox="0 0 16 16" width="14" height="14" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          </header>
+          <ul class="feed-panel__list" id="activity-feed" data-testid="activity-feed">
+            <li class="feed-panel__empty" data-i18n="panelActivityEmpty">Ожидаем рыночные события…</li>
+          </ul>
+        </section>
 
         <!-- ===== Reference-style last-signal summary card ===== -->
         <section class="last-signal" id="last-signal-card" data-testid="last-signal-card"

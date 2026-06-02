@@ -413,6 +413,96 @@ must("v7 functional panels expose a visible focus ring",
 must("v7 signal focus highlight styled",
   /\.signal-card--focus\s*\{/.test(css));
 
+// ---- 11h. App Panels (v8) — self-contained dashboard modules ----------
+// The Overview must read like a native app with discrete panels, each
+// carrying shared "panel chrome" (uppercase label + status badge +
+// chevron) and a panel-level action. Three new live modules — AI Signal,
+// Market Matrix preview, Activity Feed — are required, wired to live data.
+must("v8 design layer header present",
+  /DESIGN SYSTEM v8[\s\S]{0,200}App Panels/.test(css));
+
+// Shared panel chrome primitives.
+must("v8 .app-panel base styled (glass card, rounded, pointer)",
+  /\.app-panel\s*\{[\s\S]{0,500}border-radius:\s*20px/.test(css) &&
+  /\.app-panel\s*\{[\s\S]{0,500}cursor:\s*pointer/.test(css));
+must("v8 .app-panel uses transform-only :active feedback (no layout shift)",
+  /\.app-panel:active\s*\{[\s\S]{0,60}transform:\s*scale/.test(css));
+must("v8 .app-panel exposes a focus ring",
+  /\.app-panel:focus-visible\s*\{/.test(css));
+must("v8 panel header label is an uppercase eyebrow",
+  /\.app-panel__label\s*\{[\s\S]{0,200}text-transform:\s*uppercase/.test(css));
+must("v8 panel badge + live dot styled (pulsing)",
+  /\.app-panel__badge\s*\{/.test(css) &&
+  /\.app-panel__dot[\s\S]{0,160}animation:\s*pulse/.test(css));
+must("v8 panel chevron affordance styled",
+  /\.app-panel__chevron\s*\{/.test(css));
+
+// AI Signal Panel.
+must("AI Signal panel present + actionable on Overview",
+  /id="signal-panel"[\s\S]{0,200}data-action="open-signals-focus"/.test(html) &&
+  /data-testid="signal-panel"/.test(html));
+must("AI Signal panel is a keyboard-activatable button role",
+  /id="signal-panel"[\s\S]{0,240}role="button"[\s\S]{0,60}tabindex="0"/.test(html));
+must("AI Signal panel has confidence ring + value hook",
+  /id="sig-ring-arc"/.test(html) && /id="sig-conf"/.test(html));
+must("AI Signal panel has side + entry/target/stop hooks",
+  /id="sig-side"/.test(html) && /id="sig-entry"/.test(html) &&
+  /id="sig-target"/.test(html) && /id="sig-stop"/.test(html));
+must("AI Signal panel supports LONG/SHORT/WAIT side styling",
+  /\.sig-panel__side--long/.test(css) &&
+  /\.sig-panel__side--short/.test(css) &&
+  /\.sig-panel__side--wait/.test(css));
+
+// Market Matrix preview panel.
+must("Market Matrix preview panel present + opens Market",
+  /id="matrix-panel"[\s\S]{0,200}data-action="open-market"/.test(html) &&
+  /data-testid="matrix-panel"/.test(html));
+must("Market Matrix preview panel has a live grid hook",
+  /id="matrix-panel-grid"/.test(html) && /data-testid="matrix-panel-grid"/.test(html));
+must("Market Matrix preview cells styled with heat + up/down direction",
+  /\.mp-cell--up/.test(css) && /\.mp-cell--down/.test(css) &&
+  /\.mp-cell__heat/.test(css));
+must("Market Matrix preview grid reserves min-height (no reflow)",
+  /\.matrix-panel__grid\s*\{[\s\S]{0,200}min-height:/.test(css));
+
+// Activity Feed panel.
+must("Activity Feed panel present + opens Signals",
+  /id="activity-panel"[\s\S]{0,200}data-action="open-signals-focus"/.test(html) &&
+  /data-testid="activity-panel"/.test(html));
+must("Activity Feed panel has a live list hook",
+  /id="activity-feed"/.test(html) && /data-testid="activity-feed"/.test(html));
+must("Activity Feed rows + reserved min-height styled",
+  /\.feed-row\s*\{/.test(css) &&
+  /\.feed-panel__list\s*\{[\s\S]{0,200}min-height:/.test(css));
+
+// Live render functions exist + are wired into the realtime path.
+must("app.js defines renderSignalPanel()",
+  /function\s+renderSignalPanel\s*\(/.test(app));
+must("app.js defines renderMatrixPanel()",
+  /function\s+renderMatrixPanel\s*\(/.test(app));
+must("app.js defines renderActivityPanel()",
+  /function\s+renderActivityPanel\s*\(/.test(app));
+must("v8 panels render on every realtime tick",
+  /onRealtimeTickers[\s\S]{0,400}renderSignalPanel\(\)[\s\S]{0,120}renderMatrixPanel\(\)[\s\S]{0,120}renderActivityPanel\(\)/.test(app));
+must("v8 panels re-render on locale switch",
+  /function\s+applyI18N\s*\([\s\S]{0,900}renderSignalPanel\(\)[\s\S]{0,160}renderMatrixPanel\(\)[\s\S]{0,160}renderActivityPanel\(\)/.test(app));
+
+// i18n keys for the new panels exist in all three locales.
+[
+  "panelSignalTitle", "panelSignalConf", "sideWait",
+  "panelMatrixTitle", "panelMatrixSub",
+  "panelActivityTitle", "panelActivitySub", "panelActivityEmpty",
+].forEach(function (key) {
+  const re = new RegExp(key + "\\s*:", "g");
+  const n = (read("i18n.js").match(re) || []).length;
+  must('i18n key "' + key + '" defined in all 3 locales', n >= 3,
+    "found " + n + " (need >=3)");
+});
+
+// v8 panel grids stay overflow-safe (min-width:0).
+must("v8 new panel grids stay min-width:0 (no horizontal overflow)",
+  /\.sig-panel__legs,[\s\S]{0,120}\.matrix-panel__grid,[\s\S]{0,120}\.feed-panel__list\s*\{[\s\S]{0,80}min-width:\s*0/.test(css));
+
 // ---- 12. package.json verify script entry -----------------------------
 must("npm run verify:ui is registered",
   pkg.scripts && pkg.scripts["verify:ui"] === "node scripts/verify-ui.mjs");

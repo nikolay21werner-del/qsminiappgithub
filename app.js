@@ -526,6 +526,122 @@
     if (stopEl) stopEl.textContent = fmtPrice(top.stop_loss);
   }
 
+  // ---------- AI Signal Panel (confidence ring + LONG/SHORT/WAIT) -------
+  // Mirrors the top computed signal but as a self-contained dashboard
+  // module: a confidence ring (SVG arc), the call side, and entry/target/
+  // stop legs. A low-confidence top signal collapses to a WAIT state.
+  var SIG_RING_CIRC = 2 * Math.PI * 30; // r=30 → ~188.5
+  function renderSignalPanel() {
+    var panel = $("#signal-panel");
+    if (!panel) return;
+    var top = (computeSignals() || [])[0];
+    var conf = top ? Math.round((top.confidence || 0) * 100) : 0;
+    var sideEl = $("#sig-side");
+    var side = !top ? "WAIT" : (conf < 45 ? "WAIT" : top.direction);
+    if (sideEl) {
+      sideEl.classList.remove("sig-panel__side--long", "sig-panel__side--short", "sig-panel__side--wait");
+      if (side === "LONG") { sideEl.classList.add("sig-panel__side--long"); sideEl.textContent = I18N.t("sideLong"); }
+      else if (side === "SHORT") { sideEl.classList.add("sig-panel__side--short"); sideEl.textContent = I18N.t("sideShort"); }
+      else { sideEl.classList.add("sig-panel__side--wait"); sideEl.textContent = I18N.t("sideWait"); }
+    }
+    setText("#sig-conf", top ? conf + "%" : "—");
+    var arc = $("#sig-ring-arc");
+    if (arc) {
+      var off = SIG_RING_CIRC * (1 - Math.max(0, Math.min(1, conf / 100)));
+      arc.setAttribute("stroke-dashoffset", off.toFixed(1));
+      arc.setAttribute("stroke", side === "SHORT" ? "#ff5d6c" : side === "WAIT" ? "#ffb24a" : "var(--qsi-teal)");
+    }
+    if (top) {
+      var mark = $("#sig-mark");
+      if (mark) { mark.setAttribute("data-coin", coinKey(top.symbol)); mark.innerHTML = coinLogoSVG(top.symbol); }
+      var quote = String(top.symbol || "").indexOf("USDT") >= 0 ? "USDT" : String(top.symbol || "").slice(-4);
+      setText("#sig-pair", shortSym(top.symbol) + "/" + quote);
+      setText("#sig-entry", fmtPrice(top.entry));
+      setText("#sig-target", fmtPrice(top.take_profit_1));
+      setText("#sig-stop", fmtPrice(top.stop_loss));
+    }
+  }
+
+  // ---------- Market Matrix preview panel (top movers) ----------------
+  // Shows the 4 strongest movers (by |Δ24h|) as heat cells. The whole
+  // panel taps through to the full Market screen.
+  function renderMatrixPanel() {
+    var grid = $("#matrix-panel-grid");
+    if (!grid) return;
+    var rows = (state.tickers || []).filter(function (t) { return t && isFinite(t.last_price); });
+    if (!rows.length) return;
+    var movers = rows.slice().sort(function (a, b) {
+      return Math.abs(b.change_pct_24h || 0) - Math.abs(a.change_pct_24h || 0);
+    }).slice(0, 4);
+    setText("#matrix-panel-count", String(rows.length));
+    var maxAbs = movers.reduce(function (m, t) { return Math.max(m, Math.abs(t.change_pct_24h || 0)); }, 0.01);
+    grid.innerHTML = movers.map(function (t) {
+      var chg = t.change_pct_24h || 0;
+      var up = chg >= 0;
+      var heat = Math.max(8, Math.min(100, Math.round(Math.abs(chg) / maxAbs * 100)));
+      return '<div class="mp-cell ' + (up ? "mp-cell--up" : "mp-cell--down") + '">' +
+        '<div class="mp-cell__row">' +
+          '<span class="mp-cell__sym">' + escapeHtml(shortSym(t.symbol)) + '</span>' +
+          '<span class="mp-cell__chg ' + (up ? "mp-cell__chg--up" : "mp-cell__chg--down") + '">' + escapeHtml(fmtPct(chg)) + '</span>' +
+        '</div>' +
+        '<div class="mp-cell__price">' + escapeHtml(fmtPrice(t.last_price)) + '</div>' +
+        '<div class="mp-cell__heat"><i style="width:' + heat + '%"></i></div>' +
+      '</div>';
+    }).join("");
+  }
+
+  // ---------- Activity Feed panel (latest market / AI events) ---------
+  // Synthesises a short event ledger from the live signal stream so the
+  // feed always reflects current market state. Each row taps through to
+  // the Signals screen (panel-level action).
+  function renderActivityPanel() {
+    var list = $("#activity-feed");
+    if (!list) return;
+    var signals = computeSignals() || [];
+    var now = Date.now();
+    var events = [];
+    signals.slice(0, 3).forEach(function (s, i) {
+      var up = s.direction === "LONG";
+      events.push({
+        kind: up ? "up" : "down",
+        title: shortSym(s.symbol) + " · " + (up ? I18N.t("sideLong") : I18N.t("sideShort")),
+        sub: I18N.t("eventSignal") + " · " + Math.round((s.confidence || 0) * 100) + "%",
+        ts: now - i * 90000
+      });
+    });
+    events.push({ kind: "scan", title: I18N.t("eventScan"), sub: (state.tickers || []).length + " · " + I18N.t("kpiCoins"), ts: now - 240000 });
+    events.push({ kind: "scan", title: I18N.t("eventSync"), sub: state.status.provider || "Bybit V5", ts: state.status.lastUpdateTs || now });
+    if (!events.length) {
+      list.innerHTML = '<li class="feed-panel__empty">' + escapeHtml(I18N.t("panelActivityEmpty")) + '</li>';
+      return;
+    }
+    events.sort(function (a, b) { return b.ts - a.ts; });
+    list.innerHTML = events.slice(0, 4).map(function (e) {
+      var icoCls = e.kind === "up" ? "feed-row__ico--up" : e.kind === "down" ? "feed-row__ico--down" : "";
+      var glyph = e.kind === "up"
+        ? '<svg viewBox="0 0 16 16" width="13" height="13" fill="none"><path d="M3 11l4-4 3 3 4-6" stroke="#2bd47a" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+        : e.kind === "down"
+        ? '<svg viewBox="0 0 16 16" width="13" height="13" fill="none"><path d="M3 5l4 4 3-3 4 6" stroke="#ff5d6c" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+        : '<svg viewBox="0 0 16 16" width="13" height="13" fill="none"><circle cx="7" cy="7" r="4.5" stroke="#00e5d8" stroke-width="1.6"/><path d="M11 11l3 3" stroke="#00e5d8" stroke-width="1.6" stroke-linecap="round"/></svg>';
+      return '<li class="feed-row">' +
+        '<span class="feed-row__ico ' + icoCls + '" aria-hidden="true">' + glyph + '</span>' +
+        '<span class="feed-row__body">' +
+          '<b class="feed-row__title">' + escapeHtml(e.title) + '</b>' +
+          '<span class="feed-row__sub">' + escapeHtml(e.sub) + '</span>' +
+        '</span>' +
+        '<span class="feed-row__time">' + fmtAgo(now - e.ts) + '</span>' +
+      '</li>';
+    }).join("");
+  }
+
+  function fmtAgo(ms) {
+    var s = Math.max(0, Math.round(ms / 1000));
+    if (s < 60) return s + "s";
+    var m = Math.round(s / 60);
+    if (m < 60) return m + "m";
+    return Math.round(m / 60) + "h";
+  }
+
   function klineKey(symbol, tf) { return symbol + "|" + tf; }
 
   function ensureKlines(symbol, tf) {
@@ -1641,6 +1757,9 @@
       if (v != null) el.setAttribute("placeholder", v);
     });
     applyConnectionStatus();
+    renderSignalPanel();
+    renderMatrixPanel();
+    renderActivityPanel();
     if (state.screen === "signals") renderSignalsScreen();
     if (state.screen === "ai") renderAIInitial();
     if (state.screen === "profile") renderProfileScreen();
@@ -1653,6 +1772,9 @@
     list.forEach(function (t) { state.tickerMap[t.symbol] = t; });
     state.status.lastUpdateTs = Date.now();
     applyHeroSnapshot();
+    renderSignalPanel();
+    renderMatrixPanel();
+    renderActivityPanel();
     if (state.screen === "market") renderMarketScreen();
     if (state.screen === "signals") renderSignalsScreen();
     renderKPIs();

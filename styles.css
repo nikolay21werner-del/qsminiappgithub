@@ -3667,3 +3667,318 @@ body.keyboard-open .topbar {
 @media (prefers-reduced-motion: reduce) {
   .signal-card--focus { animation: none; }
 }
+
+/* ====================================================================
+   DESIGN SYSTEM v8 — App Panels (self-contained dashboard modules)
+   Additive only. Gives every Overview module a shared "panel chrome":
+   a header row (uppercase label + status badge + chevron affordance)
+   over glass card body. Three new live modules — AI Signal, Market
+   Matrix preview, Activity Feed — share this chrome. All press states
+   are transform/opacity only (no layout shift); grids stay min-width:0
+   and reserve min-heights so live data never reflows the feed.
+   ==================================================================== */
+
+.app-panel {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-width: 0;
+  text-align: left;
+  box-sizing: border-box;
+  padding: 12px 14px 14px;
+  border: 1px solid var(--qsi-border, #1e2535);
+  border-radius: 20px;
+  background:
+    radial-gradient(120% 140% at 0% 0%, rgba(0,229,216,.06), transparent 55%),
+    var(--qsi-card, #111520);
+  box-shadow: 0 10px 26px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.03);
+  color: var(--ink-1, #b9c6d8);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+}
+.app-panel:active { transform: scale(.985); }
+.app-panel:focus-visible {
+  outline: 2px solid rgba(0,229,216,.65);
+  outline-offset: 2px;
+}
+
+/* --- Shared panel header chrome ------------------------------------- */
+.app-panel__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  margin-bottom: 10px;
+}
+.app-panel__label {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-2, #7c8aa3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.app-panel__badge {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  color: var(--ink-1, #b9c6d8);
+  background: rgba(255,255,255,.05);
+  border: 1px solid var(--qsi-border, #1e2535);
+}
+.app-panel__badge--live {
+  color: var(--qsi-teal, #00e5d8);
+  background: rgba(0,229,216,.10);
+  border-color: rgba(0,229,216,.28);
+}
+.app-panel__dot {
+  width: 6px; height: 6px;
+  border-radius: 999px;
+  background: var(--qsi-teal, #00e5d8);
+  box-shadow: 0 0 8px rgba(0,229,216,.8);
+  animation: pulse 1.8s ease-in-out infinite;
+}
+.app-panel__chevron {
+  flex: 0 0 auto;
+  display: inline-flex;
+  color: var(--ink-2, #7c8aa3);
+}
+
+/* --- AI Signal Panel ------------------------------------------------ */
+.sig-panel__body {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+.sig-ring {
+  position: relative;
+  flex: 0 0 auto;
+  width: 72px; height: 72px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.sig-ring__val {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  font-weight: 800;
+  color: #eafcff;
+}
+#sig-ring-arc { transition: stroke-dashoffset .5s ease, stroke .3s ease; }
+.sig-panel__col { flex: 1 1 auto; min-width: 0; }
+.sig-panel__top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  min-width: 0;
+}
+.sig-panel__mark { flex: 0 0 auto; }
+.sig-panel__pair {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 800;
+  color: #eaf2ff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sig-panel__side {
+  flex: 0 0 auto;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .04em;
+}
+.sig-panel__side--long  { color: #04140f; background: #2bd47a; }
+.sig-panel__side--short { color: #1a0608; background: #ff5d6c; }
+.sig-panel__side--wait  { color: #14110a; background: #ffb24a; }
+.sig-panel__legs {
+  list-style: none;
+  margin: 0; padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  min-width: 0;
+}
+.sig-panel__legs li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 7px 8px;
+  border-radius: 12px;
+  background: var(--qsi-card-2, #141926);
+  border: 1px solid var(--qsi-border, #1e2535);
+}
+.sig-panel__legs span {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--ink-2, #7c8aa3);
+}
+.sig-panel__legs b {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #eaf2ff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sig-panel__leg--danger b { color: #ff8a96; }
+
+/* --- Market Matrix preview panel ------------------------------------ */
+.matrix-panel__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  min-width: 0;
+  min-height: 132px;
+}
+.mp-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 9px 10px;
+  border-radius: 13px;
+  border: 1px solid var(--qsi-border, #1e2535);
+  background: var(--qsi-card-2, #141926);
+  overflow: hidden;
+}
+.mp-cell--up   { box-shadow: inset 3px 0 0 #2bd47a; }
+.mp-cell--down { box-shadow: inset 3px 0 0 #ff5d6c; }
+.mp-cell__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.mp-cell__sym {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #eaf2ff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mp-cell__chg {
+  flex: 0 0 auto;
+  font-size: 11.5px;
+  font-weight: 800;
+}
+.mp-cell__chg--up   { color: #2bd47a; }
+.mp-cell__chg--down { color: #ff5d6c; }
+.mp-cell__price {
+  font-size: 11px;
+  color: var(--ink-1, #b9c6d8);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mp-cell__heat {
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.06);
+  overflow: hidden;
+}
+.mp-cell__heat i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+}
+.mp-cell--up .mp-cell__heat i   { background: linear-gradient(90deg,#0fae6e,#2bd47a); }
+.mp-cell--down .mp-cell__heat i { background: linear-gradient(90deg,#c23b48,#ff5d6c); }
+
+/* --- Activity Feed panel -------------------------------------------- */
+.feed-panel__list {
+  list-style: none;
+  margin: 0; padding: 0;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 120px;
+}
+.feed-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+}
+.feed-row:last-child { border-bottom: 0; }
+.feed-row__ico {
+  flex: 0 0 auto;
+  width: 26px; height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: rgba(0,229,216,.10);
+  border: 1px solid rgba(0,229,216,.22);
+}
+.feed-row__ico--up   { background: rgba(43,212,122,.12); border-color: rgba(43,212,122,.3); }
+.feed-row__ico--down { background: rgba(255,93,108,.12); border-color: rgba(255,93,108,.3); }
+.feed-row__body { flex: 1 1 auto; min-width: 0; }
+.feed-row__title {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #eaf2ff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.feed-row__sub {
+  display: block;
+  font-size: 10.5px;
+  color: var(--ink-2, #7c8aa3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.feed-row__time {
+  flex: 0 0 auto;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--ink-2, #7c8aa3);
+}
+.feed-panel__empty {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  color: var(--ink-2, #7c8aa3);
+}
+
+/* --- Overflow guards: new panel grids never push the viewport ------- */
+.sig-panel__legs,
+.matrix-panel__grid,
+.feed-panel__list { min-width: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .app-panel__dot { animation: none; }
+  #sig-ring-arc { transition: none; }
+}
