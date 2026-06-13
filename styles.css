@@ -28,6 +28,11 @@
   --radius-md: 12px;
   --radius-sm: 8px;
   --tab-h: 64px;
+  /* Stable measured height of the fixed bottom tab dock (icon stack +
+     internal padding). Used as the single source of truth for the
+     bottom clearance every scrollable screen reserves so the dock can
+     never overlap the final visible panel (e.g. AI Signal). */
+  --bottom-nav-height: 64px;
   /* --app-height is set by app.js from Telegram.WebApp.viewportStableHeight /
      visualViewport.height. It falls back to 100dvh / 100vh below so the page
      still sizes correctly before JS runs. */
@@ -4464,3 +4469,64 @@ html.js .fallback-shell {
 @media (prefers-reduced-motion: reduce) {
   .fallback-shell__skeleton { animation: none; }
 }
+
+/* =========================================================
+   DESIGN SYSTEM v11 — Real-App Fix (20260613)
+   ---------------------------------------------------------
+   Fixes found on the real 390x844 production screenshot after v10:
+     1. The fixed bottom nav overlapped the AI Signal panel — the
+        last visible card sat *behind* the dock. Reserve clearance
+        from a single nav-height variable + safe-area + a generous
+        gap, and add scroll-padding so programmatic/anchor scrolls
+        also stop above the dock.
+     2. Chart axis tick labels were too low-contrast (--ink-3 #4a5670
+        ~ invisible on dark navy). Lift to a still-subtle slate blue.
+     3. Red candles/wicks (#ff5577) washed out against the dark blue
+        canvas. Lift to a brighter neon pink and add a faint glow so
+        bearish bodies read clearly without losing the neon style.
+   Additive, last-in-cascade layer — wins over all prior .app/.tabbar
+   padding rules. Preserves v10 opaque shell + no-JS fallback.
+   ========================================================= */
+
+/* 1. Bottom-nav overlap guard. Every scrollable app surface reserves
+   clearance equal to the dock height + safe-area + a 28px breathing gap
+   so the final panel (AI Signal and any later panel) always scrolls
+   fully clear of the fixed nav. */
+.app {
+  padding-bottom: calc(
+    var(--bottom-nav-height) + env(safe-area-inset-bottom) + 28px
+  );
+  /* Anchor/programmatic scrolls (focus, scrollIntoView) also stop above
+     the dock instead of parking content underneath it. */
+  scroll-padding-bottom: calc(
+    var(--bottom-nav-height) + env(safe-area-inset-bottom) + 28px
+  );
+}
+/* The AI screen scrolls its own column on some hosts — give it the same
+   guard so the AI Signal card never hides under the dock. */
+.screen--ai {
+  scroll-padding-bottom: calc(
+    var(--bottom-nav-height) + env(safe-area-inset-bottom) + 28px
+  );
+}
+/* When the keyboard is open the dock is hidden, so drop the reservation
+   back to a small inset (re-assert v10 contract, must stay after the
+   rule above). */
+body.keyboard-open .app {
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+}
+
+/* 2. Chart axis labels — readable but still subtle slate blue. */
+.chart-axis,
+.chart-axis--x,
+.chart-axis--x i {
+  color: #7894b8;
+}
+
+/* 3. Brighter, more legible bearish red against the dark blue chart,
+   keeping the neon aesthetic. Used by CSS-driven down states. */
+:root {
+  --neg: #ff5d7e;
+}
+.mp-cell--down { box-shadow: inset 3px 0 0 #ff5d7e; }
+.mp-cell__chg--down { color: #ff5d7e; }

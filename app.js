@@ -772,7 +772,7 @@
       var yOpen = padTop + (1 - (r.open - min) / range) * usable;
       var yClose = padTop + (1 - (r.close - min) / range) * usable;
       var up = r.close >= r.open;
-      var color = up ? "#26e6f2" : "#ff5577";
+      var color = up ? "#26e6f2" : "#ff5d7e";
       var top = Math.min(yOpen, yClose);
       var bottom = Math.max(yOpen, yClose);
       var bodyH = Math.max(1.5, bottom - top);
@@ -803,7 +803,7 @@
       var trend = trendDir * i * 1.6;
       var y = Math.max(6, Math.min(108, baseY + trend + noise));
       var h = Math.max(8, 14 + (rand() * 18));
-      var color = rand() > 0.45 ? "#26e6f2" : "#ff5577";
+      var color = rand() > 0.45 ? "#26e6f2" : "#ff5d7e";
       html += '<rect x="' + (x + i * step) + '" y="' + y.toFixed(1) + '" width="' + w + '" height="' + h.toFixed(1) + '" fill="' + color + '"/>';
     }
     g.innerHTML = html;

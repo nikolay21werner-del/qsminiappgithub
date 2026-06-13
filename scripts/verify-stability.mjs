@@ -155,6 +155,23 @@ must("app.js swaps root no-js -> js so fallback hides only when JS lives",
   /classList\.remove\(\s*["']no-js["']\s*\)/.test(app) &&
   /classList\.add\(\s*["']js["']\s*\)/.test(app));
 
+// ---- 1b3. Bottom-nav overlap guard (v11) --------------------------------
+// The fixed bottom dock must NEVER overlap the final visible panel. Every
+// scrollable surface reserves clearance from a single nav-height variable
+// + safe-area + a gap, with matching scroll-padding for anchored scrolls.
+// Stability guard for the "AI Signal hidden behind the nav" regression.
+must("v11 real-app fix layer present",
+  /DESIGN SYSTEM v11[\s\S]{0,160}Real-App Fix/.test(css));
+must("stable --bottom-nav-height variable defined",
+  /--bottom-nav-height:\s*\d+px/.test(css));
+must(".app reserves bottom-nav clearance (nav height + safe-area + gap)",
+  /\.app\s*\{[\s\S]{0,200}padding-bottom:\s*calc\(\s*var\(--bottom-nav-height\)\s*\+\s*env\(safe-area-inset-bottom\)\s*\+\s*28px/.test(css));
+must(".app sets scroll-padding-bottom so anchored scrolls clear the nav",
+  /\.app\s*\{[\s\S]{0,400}scroll-padding-bottom:\s*calc\(\s*var\(--bottom-nav-height\)/.test(css));
+must("v11 cache marker bumped (no stale CSS/JS served)",
+  /content="v11-realapp-fix-20260613"/.test(html) &&
+  /\?v=11-realapp-fix-20260613/.test(html));
+
 // ---- 1c. Keyboard-aware viewport mode -----------------------------------
 // When an editable element is focused and the visualViewport shrinks
 // (soft keyboard up), the app must:

@@ -626,24 +626,44 @@ must("app.js swaps the root class no-js -> js on boot",
 // tag + ?v= query strings on the static asset links + a no-cache HTML
 // header guarantee the new neon design is fetched.
 const ver = read("vercel.json");
-const VBUILD = "v10-realapp-20260602";
+const VBUILD = "v11-realapp-fix-20260613";
+const VQUERY = "11-realapp-fix-20260613";
 must("build version meta tag present in HTML",
   new RegExp('<meta\\s+name="qsi-build"\\s+content="' + VBUILD + '"').test(html));
 must("window.QSI_BUILD exposes the build version",
   new RegExp('QSI_BUILD\\s*=\\s*"' + VBUILD + '"').test(html));
 must("styles.css link is cache-busted with ?v=",
-  /href="\.\/styles\.css\?v=10-realapp-20260602"/.test(html));
+  new RegExp('href="\\./styles\\.css\\?v=' + VQUERY + '"').test(html));
 must("app.js link is cache-busted with ?v=",
-  /src="\.\/app\.js\?v=10-realapp-20260602"/.test(html));
+  new RegExp('src="\\./app\\.js\\?v=' + VQUERY + '"').test(html));
 must("i18n.js + api.js links are cache-busted with ?v=",
-  /src="\.\/i18n\.js\?v=10-realapp-20260602"/.test(html) &&
-  /src="\.\/api\.js\?v=10-realapp-20260602"/.test(html));
+  new RegExp('src="\\./i18n\\.js\\?v=' + VQUERY + '"').test(html) &&
+  new RegExp('src="\\./api\\.js\\?v=' + VQUERY + '"').test(html));
 must("vercel.json revalidates JS/CSS bundles",
   /styles[\\.]+css\|app[\\.]+js\|api[\\.]+js\|i18n[\\.]+js/.test(ver) &&
   /max-age=0,\s*must-revalidate/.test(ver));
 must("vercel.json marks HTML as no-cache (fresh ?v= links served)",
   /"source":\s*"\/index\.html"[\s\S]{0,160}no-cache/.test(ver) &&
   /"source":\s*"\/"[\s\S]{0,160}no-cache/.test(ver));
+
+// ---- 11k. v11 real-app fix — nav overlap guard + contrast -------------
+// The real 390x844 screenshot showed the fixed bottom nav overlapping the
+// AI Signal panel and washed-out chart axis/red candles. Lock in the
+// fixes so they cannot silently regress.
+must("v11 design layer header present",
+  /DESIGN SYSTEM v11[\s\S]{0,160}Real-App Fix/.test(css));
+must("stable --bottom-nav-height variable defined",
+  /--bottom-nav-height:\s*\d+px/.test(css));
+must(".app reserves bottom clearance from nav height + safe-area + gap",
+  /\.app\s*\{[\s\S]{0,200}padding-bottom:\s*calc\(\s*var\(--bottom-nav-height\)\s*\+\s*env\(safe-area-inset-bottom\)\s*\+\s*28px/.test(css));
+must(".app sets scroll-padding-bottom so anchored scrolls clear the nav",
+  /\.app\s*\{[\s\S]{0,400}scroll-padding-bottom:\s*calc\(\s*var\(--bottom-nav-height\)\s*\+\s*env\(safe-area-inset-bottom\)\s*\+\s*28px/.test(css));
+must("AI screen reserves the same bottom-nav clearance",
+  /\.screen--ai\s*\{[\s\S]{0,200}scroll-padding-bottom:\s*calc\(\s*var\(--bottom-nav-height\)/.test(css));
+must("chart axis labels lifted to readable subtle slate (#7894b8)",
+  /\.chart-axis[\s\S]{0,120}color:\s*#7894b8/.test(css));
+must("bearish red lifted to readable neon pink (#ff5d7e)",
+  /--neg:\s*#ff5d7e/.test(css) && /#ff5d7e/.test(app));
 
 // ---- 12. package.json verify script entry -----------------------------
 must("npm run verify:ui is registered",
