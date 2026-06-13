@@ -580,23 +580,64 @@ must("v9 connection/data-source pill glows cyan",
 must("v9 live dot uses a cyan neon glow",
   /\.dot-live[\s\S]{0,160}var\(--qsn-cyan\)[\s\S]{0,120}box-shadow/.test(css));
 
+// ---- 11i2. Opaque real-app shell + no-JS fallback (v10) --------------
+// The Mini App must NEVER render transparent: the host chat / a foreign
+// document image must not show through if JS/API fail. This locks in the
+// opaque root canvas, the removal of the JS-gated visibility:hidden, the
+// CSS-only splash auto-hide, and the static no-JS fallback shell.
+must("v10 design layer header present",
+  /DESIGN SYSTEM v10[\s\S]{0,200}Real-App Opaque Shell/.test(css));
+must("html + body pinned to an opaque near-black canvas (#020612)",
+  /html,\s*body\s*\{[\s\S]{0,160}background-color:\s*#020612\s*!important/.test(css));
+must("html declares its own opaque background + isolation",
+  /html\s*\{[\s\S]{0,120}isolation:\s*isolate[\s\S]{0,120}background-color:\s*#020612/.test(css));
+must(".app carries a solid opaque dark base (#050b18)",
+  /\.app\s*\{[\s\S]{0,200}background-color:\s*#050b18/.test(css));
+must(".bg-stack sits on an opaque navy base (no host bleed-through)",
+  /\.bg-stack\s*\{[\s\S]{0,120}background-color:\s*#02050e/.test(css));
+must("boot-splash has an opaque solid background-color",
+  /\.boot-splash\s*\{[\s\S]{0,120}background-color:\s*#04070d/.test(css));
+
+// The JS-gated visibility:hidden that hid the app forever on a failed
+// bundle MUST be gone, replaced by a CSS-only auto-hide.
+must("legacy JS-gated visibility:hidden on .app/.bg-stack is removed",
+  !/body:not\(\.boot-done\)\s+\.app[\s\S]{0,80}visibility:\s*hidden/.test(css));
+must("boot-splash auto-hides via CSS even without JS",
+  /@keyframes\s+bootSplashAutoHide/.test(css) &&
+  /\.boot-splash\s*\{[\s\S]{0,160}animation:\s*bootSplashAutoHide/.test(css));
+
+// No-JS fallback shell — markup + CSS + the app.js root-class swap.
+must("root html ships the no-js fallback class by default",
+  /<html\s+lang="ru"\s+class="no-js"/.test(html));
+must("no-JS fallback shell markup present on the page",
+  /class="fallback-shell"[\s\S]{0,120}data-testid="fallback-shell"/.test(html));
+must("fallback shell shows blue-neon skeleton panels",
+  (html.match(/class="fallback-shell__panel"/g) || []).length >= 3 &&
+  /class="fallback-shell__skeleton/.test(html));
+must("fallback shell is shown under html.no-js, hidden under html.js",
+  /html\.no-js\s+\.fallback-shell\s*\{[\s\S]{0,80}display:\s*block/.test(css) &&
+  /html\.js\s+\.fallback-shell\s*\{[\s\S]{0,80}display:\s*none/.test(css));
+must("app.js swaps the root class no-js -> js on boot",
+  /classList\.remove\(\s*["']no-js["']\s*\)/.test(app) &&
+  /classList\.add\(\s*["']js["']\s*\)/.test(app));
+
 // ---- 11j. Cache-busting / build versioning ----------------------------
 // Telegram/Vercel must never serve a stale bundle: a build version meta
 // tag + ?v= query strings on the static asset links + a no-cache HTML
 // header guarantee the new neon design is fetched.
 const ver = read("vercel.json");
-const VBUILD = "v9-neon-20260602";
+const VBUILD = "v10-realapp-20260602";
 must("build version meta tag present in HTML",
   new RegExp('<meta\\s+name="qsi-build"\\s+content="' + VBUILD + '"').test(html));
 must("window.QSI_BUILD exposes the build version",
   new RegExp('QSI_BUILD\\s*=\\s*"' + VBUILD + '"').test(html));
 must("styles.css link is cache-busted with ?v=",
-  /href="\.\/styles\.css\?v=9-neon-20260602"/.test(html));
+  /href="\.\/styles\.css\?v=10-realapp-20260602"/.test(html));
 must("app.js link is cache-busted with ?v=",
-  /src="\.\/app\.js\?v=9-neon-20260602"/.test(html));
+  /src="\.\/app\.js\?v=10-realapp-20260602"/.test(html));
 must("i18n.js + api.js links are cache-busted with ?v=",
-  /src="\.\/i18n\.js\?v=9-neon-20260602"/.test(html) &&
-  /src="\.\/api\.js\?v=9-neon-20260602"/.test(html));
+  /src="\.\/i18n\.js\?v=10-realapp-20260602"/.test(html) &&
+  /src="\.\/api\.js\?v=10-realapp-20260602"/.test(html));
 must("vercel.json revalidates JS/CSS bundles",
   /styles[\\.]+css\|app[\\.]+js\|api[\\.]+js\|i18n[\\.]+js/.test(ver) &&
   /max-age=0,\s*must-revalidate/.test(ver));

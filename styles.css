@@ -39,6 +39,11 @@
 html, body {
   margin: 0;
   padding: 0;
+  /* Opaque, near-black canvas pinned on BOTH html and body. This is the
+     bottom-most paint layer: even if every stylesheet/script after this
+     fails to load, the Telegram WebView can never show through to the
+     chat background or a foreign document/image behind the Mini App. */
+  background-color: #020612;
   background: var(--bg-0);
   color: var(--ink-0);
   font-family: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -54,6 +59,10 @@ html, body {
   overflow-x: hidden;
   overscroll-behavior-y: contain;
 }
+
+/* New stacking context on the root so descendant z-index can never escape
+   to composite behind the page and reveal the host background. */
+html { isolation: isolate; background-color: #020612; }
 
 body {
   background:
@@ -1638,13 +1647,24 @@ body.boot-done .boot-splash {
   visibility: hidden;
   pointer-events: none;
 }
-body:not(.boot-done) {
-  overflow: hidden;
+/* CSS-ONLY FALLBACK — the splash dismisses itself even if app.js never
+   loads or never adds `.boot-done`. Without this, a failed JS bundle left
+   the splash pinned forever (and the app shell hidden), which is exactly
+   how the host chat/background bled through. Now: the app shell is ALWAYS
+   visible underneath, and the splash fades out on its own after ~6s. JS,
+   when it works, still adds `.boot-done` to fade it faster. */
+.boot-splash {
+  animation: bootSplashAutoHide 0s linear 6s forwards;
 }
-body:not(.boot-done) .app,
-body:not(.boot-done) .bg-stack {
-  visibility: hidden;
+@keyframes bootSplashAutoHide {
+  to { opacity: 0; visibility: hidden; pointer-events: none; }
 }
+@media (prefers-reduced-motion: reduce) {
+  .boot-splash { animation-delay: 2s; }
+}
+/* The app shell and atmospheric background are NEVER gated on JS anymore.
+   They render immediately as an opaque dark blue-neon surface so the
+   viewport is always filled with our UI, splash or not. */
 
 .boot-splash__bg {
   position: absolute;
@@ -4340,4 +4360,107 @@ body {
 /* ---- 15. Stability — keep press feedback transform-only ------------ */
 @media (prefers-reduced-motion: reduce) {
   .bg-grid { animation: none; }
+}
+
+/* =========================================================
+   DESIGN SYSTEM v10 — Real-App Opaque Shell + No-JS Fallback
+   ---------------------------------------------------------
+   Root cause this layer fixes: the Telegram Mini App could render
+   transparent — the host chat / a foreign document image showed
+   through — whenever app.js failed to load or never added
+   `.boot-done` (the old rule kept .app + .bg-stack visibility:hidden
+   and pinned the splash forever). v10 guarantees the ENTIRE viewport
+   is always an opaque dark blue-neon QUANTSIGNAL surface, with or
+   without JS, and ships a self-contained no-JS fallback shell.
+   ========================================================= */
+
+/* 1. Opaque backstops on every root container. Each is painted with a
+   solid near-black/navy BEFORE any translucent neon layering, so a
+   missing/late background image or glow can never reveal the host. */
+html, body {
+  background-color: #020612 !important;
+}
+.app {
+  /* Solid layered dark base under the (mostly transparent) shell so the
+     content column itself is never see-through. z-index keeps it above
+     .bg-stack but below interactive chrome. */
+  background-color: #050b18;
+  background-image:
+    radial-gradient(1200px 760px at 50% -12%, rgba(47, 160, 255, .10), transparent 60%),
+    linear-gradient(180deg, #050b1c 0%, #02050e 100%);
+  isolation: isolate;
+}
+.screens,
+.screen {
+  background-color: transparent;
+}
+/* The atmospheric layer must itself sit on an opaque base — if its glows
+   fail to paint, we still get navy, never the host surface. */
+.bg-stack {
+  background-color: #02050e;
+}
+
+/* 2. Boot-splash is fully opaque regardless of gradient support. */
+.boot-splash {
+  background-color: #04070d;
+}
+/* If the brand <img> fails to load it must not leave a transparent hole. */
+.boot-splash__label,
+.topbar__label {
+  background-color: transparent;
+}
+
+/* 3. No-JS / failed-bundle fallback shell. <html class="no-js"> is the
+   default in markup; app.js swaps it to `js` the instant it runs. While
+   `no-js` is set we surface a static blue-neon skeleton so the user sees
+   a real app shell (panels + skeleton rows), never a blank/transparent
+   screen, even if every script 404s. */
+.fallback-shell {
+  display: none;
+}
+html.no-js .fallback-shell {
+  display: block;
+  position: relative;
+  z-index: 2;
+  margin-top: 8px;
+}
+/* When JS is alive, the live screens render and the fallback is removed. */
+html.js .fallback-shell {
+  display: none !important;
+}
+.fallback-shell__panel {
+  background:
+    linear-gradient(180deg, rgba(8, 18, 40, .92), rgba(4, 9, 22, .92)),
+    #050b18;
+  border: 1px solid var(--qsn-edge, rgba(47, 160, 255, .35));
+  border-radius: 20px;
+  padding: 16px;
+  margin-bottom: 14px;
+  box-shadow: var(--qsn-glow-soft, 0 0 40px rgba(12, 76, 255, .18));
+}
+.fallback-shell__label {
+  font: 700 11px/1 "JetBrains Mono", ui-monospace, monospace;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--qsn-cyan-soft, #9fe9ff);
+  text-shadow: 0 0 12px rgba(47, 230, 255, .35);
+  margin: 0 0 12px;
+}
+.fallback-shell__skeleton {
+  height: 14px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  background: linear-gradient(90deg, rgba(47, 160, 255, .10), rgba(47, 230, 255, .22), rgba(47, 160, 255, .10));
+  background-size: 200% 100%;
+  animation: fallbackShimmer 1.6s linear infinite;
+}
+.fallback-shell__skeleton--wide { width: 100%; }
+.fallback-shell__skeleton--mid  { width: 70%; }
+.fallback-shell__skeleton--sm   { width: 40%; }
+@keyframes fallbackShimmer {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fallback-shell__skeleton { animation: none; }
 }

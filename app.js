@@ -6,6 +6,16 @@
 (function () {
   "use strict";
 
+  // Flip the root from the static `no-js` fallback to the live `js` shell
+  // the instant this bundle executes. If app.js ever fails to load, the
+  // class stays `no-js` and the opaque blue-neon fallback skeleton remains
+  // visible — the viewport is never blank/transparent.
+  try {
+    var rootEl = document.documentElement;
+    rootEl.classList.remove("no-js");
+    rootEl.classList.add("js");
+  } catch (e) {}
+
   var tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
   var I18N = window.QSI18N;
   var API = window.QSI_API;

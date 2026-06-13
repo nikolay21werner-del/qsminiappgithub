@@ -135,6 +135,26 @@ must("app.js binds viewport listeners (resize/orientationchange/visualViewport)"
 must("app.js subscribes to Telegram viewportChanged",
   /tg\.onEvent[\s\S]{0,80}["']viewportChanged["']|onEvent\(\s*["']viewportChanged["']/.test(app));
 
+// ---- 1b2. Opaque shell — never render transparent (v10) ------------------
+// The Mini App must always paint an opaque dark surface so the Telegram
+// host chat / a foreign background can never show through if JS or the
+// API fail to load. This is the stability guard for the "приложение
+// прозрачное / посторонняя картинка" regression.
+must("html + body have an opaque near-black background-color",
+  /html,\s*body\s*\{[\s\S]{0,200}background-color:\s*#020612/.test(css));
+must(".app paints a solid opaque dark base",
+  /\.app\s*\{[\s\S]{0,200}background-color:\s*#050b18/.test(css));
+must("no JS-gated visibility:hidden hides the app on a failed bundle",
+  !/body:not\(\.boot-done\)\s+\.app[\s\S]{0,80}visibility:\s*hidden/.test(css));
+must("boot-splash auto-dismisses via CSS (no permanent overlay if JS dies)",
+  /@keyframes\s+bootSplashAutoHide/.test(css));
+must("static no-JS fallback shell exists in markup",
+  /class="fallback-shell"/.test(html) &&
+  /<html\s+lang="ru"\s+class="no-js"/.test(html));
+must("app.js swaps root no-js -> js so fallback hides only when JS lives",
+  /classList\.remove\(\s*["']no-js["']\s*\)/.test(app) &&
+  /classList\.add\(\s*["']js["']\s*\)/.test(app));
+
 // ---- 1c. Keyboard-aware viewport mode -----------------------------------
 // When an editable element is focused and the visualViewport shrinks
 // (soft keyboard up), the app must:
