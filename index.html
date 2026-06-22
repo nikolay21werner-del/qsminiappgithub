@@ -3,808 +3,502 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#04070d" />
-  <meta name="description" content="QUANTSIGNAL AI — Telegram Mini App для сигналов, рынка и AI-анализа криптовалют." />
-  <meta property="og:title" content="QUANTSIGNAL AI" />
-  <meta property="og:description" content="Сигналы, рынок и AI-анализ внутри Telegram." />
-  <meta property="og:type" content="website" />
-  <!-- Build version — bump on every visual release so Telegram/Vercel
-       cannot serve a stale CSS/JS bundle. Mirrored on the static asset
-       query strings below (?v=) for hard cache invalidation. -->
-  <meta name="qsi-build" content="v17-full-replace-20260622" />
-  <title>QUANTSIGNAL AI — Telegram Mini App</title>
-  <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg" />
+  <meta name="theme-color" content="#050A12" />
+  <meta name="description" content="QUANTSIGNAL AI — Professional crypto trading terminal with AI signals, live market data and analysis." />
+  <meta name="qsi-build" content="v18-pro-redesign-20260622" />
+  <title>QUANTSIGNAL AI</title>
+
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" />
-  <link rel="stylesheet" href="./styles.css?v=15-logo-style-20260622" />
-  <link rel="stylesheet" href="./override.css?v=15-logo-style-20260622" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" />
+
+  <!-- Telegram SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <!-- CRITICAL CSS OVERRIDE: forces new design colors regardless of any cached stylesheet -->
-  <style id="qs-critical-override">
-    :root {
-      --bg-0: #060A0F !important;
-      --bg-1: #080C14 !important;
-      --bg-2: #0B1019 !important;
-      --teal: #00D4E8 !important;
-      --orange: #FF8C00 !important;
-      --pos: #00D68F !important;
-      --neg: #FF3B5C !important;
-      --line: rgba(0, 212, 232, 0.12) !important;
-      --line-strong: rgba(0, 212, 232, 0.22) !important;
-      --panel: rgba(11, 18, 28, 0.78) !important;
-      --glow-teal: 0 0 24px rgba(0, 212, 232, 0.45) !important;
-    }
-    html, body { background: #060A0F !important; background-color: #060A0F !important; }
-  </style>
-  <script>window.QSI_API_BASE = ""; window.QSI_BUILD = "v17-full-replace-20260622";</script>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="./styles.css?v=18" />
+
+  <script>
+    window.QSI_BUILD = "v18-pro-redesign-20260622";
+    // Remove no-js class immediately
+    document.documentElement.classList.remove('no-js');
+    document.documentElement.classList.add('js');
+  </script>
 </head>
 <body>
-  <!-- ===== Boot splash (shown on initial load, fades out after data warms up) ===== -->
-  <div class="boot-splash" id="boot-splash" data-testid="boot-splash" role="status" aria-live="polite">
-    <div class="boot-splash__bg" aria-hidden="true">
-      <div class="boot-splash__grid"></div>
-      <div class="boot-splash__glow boot-splash__glow--teal"></div>
-      <div class="boot-splash__glow boot-splash__glow--orange"></div>
-    </div>
-    <div class="boot-splash__inner">
-      <div class="boot-splash__mark" data-testid="boot-brand">
-        <span class="boot-splash__halo" aria-hidden="true"></span>
-        <img
-          class="boot-splash__label"
-          data-testid="brand-label"
-          src="./assets/telegram/quantsignal-label.jpeg"
-          alt="QUANTSIGNAL AI"
-          width="560" height="400"
-          loading="eager"
-          decoding="async" />
-      </div>
-      <h1 class="boot-splash__title visually-hidden">QUANTSIGNAL <span class="boot-splash__ai">AI</span></h1>
-      <p class="boot-splash__tagline" id="boot-tagline" data-i18n="bootTagline">Сигналы, рынок, AI-анализ</p>
-      <div class="boot-splash__features" aria-hidden="true">
-        <span class="boot-splash__feat"><i class="boot-splash__feat-ico boot-splash__feat-ico--target"></i><b data-i18n="bootFeatSignals">Точные сигналы</b></span>
-        <span class="boot-splash__feat"><i class="boot-splash__feat-ico boot-splash__feat-ico--chart"></i><b data-i18n="bootFeatMarket">Анализ рынка</b></span>
-        <span class="boot-splash__feat"><i class="boot-splash__feat-ico boot-splash__feat-ico--ai"></i><b data-i18n="bootFeatAI">AI аналитика</b></span>
-        <span class="boot-splash__feat"><i class="boot-splash__feat-ico boot-splash__feat-ico--shield"></i><b data-i18n="bootFeatRisk">Риск-менеджмент</b></span>
-      </div>
-      <div class="boot-splash__progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="boot-progress">
-        <span class="boot-splash__progress-bar" id="boot-progress-bar"></span>
-      </div>
-      <p class="boot-splash__status" id="boot-status" data-testid="boot-status" data-i18n="bootStep1">Подключаем рынок…</p>
-      <p class="boot-splash__hint" data-i18n="bootHint">Telegram Mini App · Ваш AI-помощник в мире крипто</p>
-    </div>
-  </div>
 
-  <div class="bg-stack" aria-hidden="true">
-    <div class="bg-grid"></div>
-    <div class="bg-glow bg-glow--teal"></div>
-    <div class="bg-glow bg-glow--violet"></div>
-    <div class="bg-particles"></div>
-  </div>
-
-  <main class="app" id="app" aria-label="QUANTSIGNAL AI">
-    <header class="topbar">
-      <button class="topbar__btn" type="button" aria-label="Меню" data-action="open-profile">
-        <span></span><span></span><span></span>
-      </button>
-      <div class="topbar__brand" data-action="go-overview">
-        <img
-          class="topbar__label"
-          data-testid="topbar-label"
-          src="./assets/telegram/quantsignal-label.jpeg"
-          alt="QUANTSIGNAL AI"
-          width="140" height="32"
-          loading="eager"
-          decoding="async" />
-        <span class="topbar__brand-text visually-hidden" data-testid="topbar-brand-text">
-          <span class="topbar__brand-line">
-            <span class="dot-live" id="dot-live" aria-hidden="true"></span>
-            <span class="topbar__brand-name">QUANTSIGNAL <b>AI</b></span>
-          </span>
-          <span class="topbar__brand-sub" data-i18n="miniAppSub">mini app</span>
-        </span>
-        <span class="conn-pill" id="conn-pill" data-i18n="connecting">connecting…</span>
-      </div>
-      <button class="topbar__btn topbar__btn--bell" type="button" aria-label="Обновить" data-action="refresh">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
-          <path d="M18 9a6 6 0 1 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
-          <path d="M10 21h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+  <!-- ======== BOOT SPLASH ======== -->
+  <div class="splash" id="splash" aria-live="polite" role="status">
+    <canvas class="splash__canvas" id="splash-canvas" aria-hidden="true"></canvas>
+    <div class="splash__content">
+      <div class="splash__logo">
+        <svg viewBox="0 0 80 80" width="80" height="80" fill="none" aria-hidden="true">
+          <circle cx="40" cy="40" r="38" stroke="rgba(30,200,220,0.15)" stroke-width="1"/>
+          <circle cx="40" cy="40" r="38" stroke="url(#logoGrad)" stroke-width="2" stroke-dasharray="240" stroke-dashoffset="60" stroke-linecap="round">
+            <animateTransform attributeName="transform" type="rotate" from="0 40 40" to="360 40 40" dur="4s" repeatCount="indefinite"/>
+          </circle>
+          <defs>
+            <linearGradient id="logoGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#1EC8DC"/>
+              <stop offset="100%" stop-color="#FF8000"/>
+            </linearGradient>
+          </defs>
+          <!-- Q letter -->
+          <text x="40" y="52" text-anchor="middle" font-family="Space Grotesk,sans-serif" font-weight="700" font-size="36" fill="url(#logoGrad)">Q</text>
+          <!-- Arrow inside Q tail -->
+          <path d="M47 47 L55 55" stroke="#FF8000" stroke-width="3" stroke-linecap="round"/>
         </svg>
-        <i class="topbar__pulse"></i>
-      </button>
+      </div>
+      <div class="splash__title">QUANTSIGNAL <span class="splash__ai">AI</span></div>
+      <div class="splash__tagline">Professional Crypto Terminal</div>
+      <div class="splash__progress-wrap">
+        <div class="splash__progress"><div class="splash__bar" id="splash-bar"></div></div>
+        <div class="splash__status" id="splash-status">Connecting to market…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======== BACKGROUND ======== -->
+  <div class="bg" aria-hidden="true">
+    <canvas class="bg__circuit" id="bg-circuit"></canvas>
+    <div class="bg__glow bg__glow--teal"></div>
+    <div class="bg__glow bg__glow--orange"></div>
+    <div class="bg__vignette"></div>
+  </div>
+
+  <!-- ======== APP SHELL ======== -->
+  <div class="app" id="app">
+
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <div class="topbar__logo">
+        <svg viewBox="0 0 32 32" width="28" height="28" fill="none" aria-hidden="true">
+          <circle cx="16" cy="16" r="14" stroke="url(#tbGrad)" stroke-width="1.5"/>
+          <defs>
+            <linearGradient id="tbGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#1EC8DC"/>
+              <stop offset="100%" stop-color="#FF8000"/>
+            </linearGradient>
+          </defs>
+          <text x="16" y="21" text-anchor="middle" font-family="Space Grotesk,sans-serif" font-weight="700" font-size="14" fill="url(#tbGrad)">Q</text>
+        </svg>
+        <span class="topbar__name">QUANTSIGNAL <b>AI</b></span>
+      </div>
+      <div class="topbar__right">
+        <div class="topbar__conn" id="conn-status">
+          <span class="conn-dot" id="conn-dot"></span>
+          <span class="conn-label" id="conn-label">LIVE</span>
+        </div>
+        <button class="topbar__refresh" id="btn-refresh" type="button" aria-label="Refresh">
+          <svg viewBox="0 0 20 20" width="18" height="18" fill="none">
+            <path d="M3.5 10a6.5 6.5 0 1 0 1.4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+            <path d="M3.5 5v5H8.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
     </header>
 
-    <!-- ===== Screens (only the active one is visible) ===== -->
+    <!-- ======== SCREENS ======== -->
     <div class="screens" id="screens">
 
-      <!-- ========== OVERVIEW ========== -->
-      <section class="screen is-active" data-screen="overview" aria-label="Обзор">
+      <!-- ====== OVERVIEW SCREEN ====== -->
+      <section class="screen is-active" data-screen="overview">
 
-        <!-- ===== Brand strip: compact app header + live KPI chips ===== -->
-        <section class="brand-strip" id="promo-hero" data-testid="promo-hero" aria-label="QUANTSIGNAL AI">
-          <div class="brand-strip__head">
-            <span class="brand-strip__mark" aria-hidden="true">
-              <img
-                class="brand-strip__mark-img"
-                data-testid="qsi-badge-img"
-                src="./assets/telegram/quantsignal-badge.jpeg"
-                alt=""
-                width="40" height="40"
-                loading="eager"
-                decoding="async" />
-            </span>
-            <div class="brand-strip__title">
-              <h2 class="brand-strip__name">QUANTSIGNAL <b>AI</b></h2>
-              <p class="brand-strip__eyebrow" data-i18n="promoEyebrow">AI Trading Terminal · Live</p>
-            </div>
-            <span class="brand-strip__status" data-testid="brand-strip-status">
-              <i class="brand-strip__dot" aria-hidden="true"></i>
-              <span>LIVE</span>
-            </span>
-          </div>
-
-          <div class="kpi-strip" role="group" aria-label="Ключевые показатели">
-            <button type="button"
-                    class="kpi-chip"
-                    data-action="open-market"
-                    data-testid="promo-card-market"
-                    aria-label="Рынок">
-              <span class="kpi-chip__head"><span data-i18n="promoMarket">Рынок</span><i></i></span>
-              <span class="kpi-chip__val" id="promo-balance">—</span>
-              <span class="kpi-chip__sub" data-i18n="promoBalance">BTC</span>
-            </button>
-            <button type="button"
-                    class="kpi-chip kpi-chip--accent"
-                    data-action="open-signals"
-                    data-testid="promo-card-signals"
-                    aria-label="Сигналы">
-              <span class="kpi-chip__head"><span data-i18n="promoSignalsLabel">Signals</span><i></i></span>
-              <span class="kpi-chip__val" id="promo-signals">—</span>
-              <span class="kpi-chip__sub" data-i18n="kpiSignals">Активных</span>
-            </button>
-            <button type="button"
-                    class="kpi-chip"
-                    data-action="open-ai"
-                    data-testid="promo-card-ai"
-                    aria-label="AI-анализ">
-              <span class="kpi-chip__head"><span data-i18n="promoAILabel">AI Score</span><i></i></span>
-              <span class="kpi-chip__val" id="promo-ai-score">78%</span>
-              <span class="kpi-chip__sub" data-i18n="promoAI">AI-анализ</span>
-            </button>
-          </div>
-        </section>
-
-        <p class="stack-label" data-i18n="panelMainMarket">Главный рынок</p>
-        <div class="hero-card" id="hero-card" data-coin="BTC"
-             data-action="open-hero-market"
-             data-testid="hero-card"
-             role="button" tabindex="0"
-             aria-label="Открыть рынок по выбранной монете">
-          <div class="hero-card__banner" id="hero-banner" aria-hidden="true">
-            <span class="hero-card__banner-glyph" id="hero-banner-glyph"></span>
-            <span class="hero-card__banner-tag" id="hero-banner-tag">BTC</span>
-          </div>
-          <div class="wallet-status" data-testid="wallet-status" aria-label="Статус терминала">
-            <span class="wallet-status__pill wallet-status__pill--live">
-              <i class="wallet-status__dot" aria-hidden="true"></i>
-              <span>LIVE MARKET</span>
-            </span>
-            <span class="wallet-status__pill wallet-status__pill--ai">
-              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" aria-hidden="true"><path d="M12 3 14 9l6 1-4.5 4 1 6L12 17l-4.5 3 1-6L4 10l6-1L12 3Z" stroke="#ffb24a" stroke-width="1.6" stroke-linejoin="round"/></svg>
-              <span>AI ENGINE</span>
-            </span>
-            <span class="wallet-status__pill wallet-status__pill--brand">QSI</span>
-          </div>
-          <div class="hero-card__top">
-            <span class="coin-mark" id="hero-coin-mark" data-coin="BTC" aria-hidden="true">₿</span>
-            <div class="hero-card__sym">
-              <div class="hero-card__row">
-                <b id="hero-pair">BTCUSDT</b>
-                <span class="badge badge--mute" data-i18n="perpetual">Бессрочный</span>
-              </div>
-              <div class="hero-card__price"><span id="hero-price">—</span> <em id="hero-delta">—</em></div>
-              <div class="hero-card__sub"><span id="hero-sub" data-i18n="change24h">24ч изменение</span></div>
-            </div>
-            <div class="hero-card__side">
-              <span class="trend-up" aria-hidden="true">
-                <svg viewBox="0 0 24 24" width="24" height="24" fill="none"><path d="M4 18 L10 12 L13 15 L20 7" stroke="#26e6f2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 7 L20 7 L20 12" stroke="#26e6f2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </span>
-            </div>
-          </div>
-
-          <div class="tf-tabs" role="tablist" aria-label="Таймфрейм" id="tf-tabs">
-            <button type="button" data-tf="1m">1м</button>
-            <button type="button" data-tf="5m" class="is-active">5м</button>
-            <button type="button" data-tf="15m">15м</button>
-            <button type="button" data-tf="1h">1ч</button>
-            <button type="button" data-tf="4h">4ч</button>
-            <button type="button" data-tf="1d">1д</button>
-          </div>
-
-          <div class="chart-wrap" aria-hidden="true">
-            <div class="chart-status" id="hero-chart-status" hidden></div>
-            <svg viewBox="0 0 320 140" preserveAspectRatio="none" id="hero-chart">
-              <defs>
-                <linearGradient id="cFill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0" stop-color="rgba(38,230,242,.35)"/>
-                  <stop offset="1" stop-color="rgba(38,230,242,0)"/>
-                </linearGradient>
-              </defs>
-              <g stroke="rgba(255,255,255,.05)" stroke-width="1">
-                <line x1="0" y1="28" x2="320" y2="28"/>
-                <line x1="0" y1="56" x2="320" y2="56"/>
-                <line x1="0" y1="84" x2="320" y2="84"/>
-                <line x1="0" y1="112" x2="320" y2="112"/>
-              </g>
-              <g id="hero-chart-candles"></g>
-              <line x1="0" y1="20" x2="320" y2="20" stroke="rgba(38,230,242,.4)" stroke-dasharray="3 3"/>
-            </svg>
-            <span class="chart-tag" id="hero-chart-tag">—</span>
-            <span class="chart-axis chart-axis--x"><i>06:00</i><i>09:00</i><i>12:00</i><i>15:00</i><i>18:00</i><i>21:00</i></span>
-          </div>
-
-          <div class="metric-row">
-            <div class="metric">
-              <div class="metric__name">RSI (14)</div>
-              <div class="metric__value">63.7</div>
-              <div class="metric__tag metric__tag--mute" data-i18n="neutral">Нейтрально</div>
-            </div>
-            <div class="metric">
-              <div class="metric__name">MACD</div>
-              <div class="metric__value">215.6</div>
-              <div class="metric__tag metric__tag--pos" data-i18n="bullishShort">Бычий</div>
-            </div>
-            <div class="metric">
-              <div class="metric__name" data-i18n="vol24h">Объём 24ч</div>
-              <div class="metric__value" id="hero-vol">28.5B</div>
-              <div class="metric__bars" aria-hidden="true">
-                <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
-              </div>
-            </div>
+        <!-- Hero ticker tape -->
+        <div class="ticker-wrap" aria-hidden="true">
+          <div class="ticker" id="ticker">
+            <span class="ticker__item">BTC <em id="tick-btc" class="pos">—</em></span>
+            <span class="ticker__sep">·</span>
+            <span class="ticker__item">ETH <em id="tick-eth" class="pos">—</em></span>
+            <span class="ticker__sep">·</span>
+            <span class="ticker__item">SOL <em id="tick-sol" class="pos">—</em></span>
+            <span class="ticker__sep">·</span>
+            <span class="ticker__item">BNB <em id="tick-bnb" class="pos">—</em></span>
+            <span class="ticker__sep">·</span>
+            <span class="ticker__item">XRP <em id="tick-xrp" class="pos">—</em></span>
+            <span class="ticker__sep">·</span>
+            <span class="ticker__item">BTC <em class="pos">—</em></span>
+            <span class="ticker__sep">·</span>
+            <span class="ticker__item">ETH <em class="pos">—</em></span>
+            <span class="ticker__sep">·</span>
+            <span class="ticker__item">SOL <em class="pos">—</em></span>
           </div>
         </div>
 
-        <!-- ===== AI Signal Panel — current AI call + confidence ring ===== -->
-        <p class="stack-label" data-i18n="panelSignalTitle">AI-сигнал</p>
-        <section class="app-panel sig-panel" id="signal-panel"
-                 data-testid="signal-panel"
-                 data-action="open-signals-focus"
-                 role="button" tabindex="0"
-                 aria-label="AI-сигнал — открыть ленту сигналов">
-          <header class="app-panel__head">
-            <span class="app-panel__label" data-i18n="panelSignalTitle">AI-сигнал</span>
-            <span class="app-panel__badge app-panel__badge--live">
-              <i class="app-panel__dot" aria-hidden="true"></i>
-              <span data-i18n="panelSignalLive">Live</span>
-            </span>
-            <span class="app-panel__chevron" aria-hidden="true">
-              <svg viewBox="0 0 16 16" width="14" height="14" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </span>
-          </header>
-          <div class="sig-panel__body">
-            <span class="sig-ring" id="sig-ring" aria-hidden="true">
-              <svg viewBox="0 0 72 72" width="72" height="72">
-                <circle cx="36" cy="36" r="30" stroke="rgba(255,255,255,.08)" stroke-width="7" fill="none"/>
-                <circle id="sig-ring-arc" cx="36" cy="36" r="30" stroke="var(--qsi-teal)" stroke-width="7"
-                        fill="none" stroke-linecap="round" stroke-dasharray="188.5" stroke-dashoffset="47"
-                        transform="rotate(-90 36 36)"/>
-              </svg>
-              <b class="sig-ring__val" id="sig-conf">—</b>
-            </span>
-            <div class="sig-panel__col">
-              <div class="sig-panel__top">
-                <span class="coin-mark sig-panel__mark" id="sig-mark" data-coin="BTC" aria-hidden="true">₿</span>
-                <span class="sig-panel__pair" id="sig-pair">BTC/USDT</span>
-                <span class="sig-panel__side sig-panel__side--long" id="sig-side" data-i18n="sideLong">LONG</span>
-              </div>
-              <ul class="sig-panel__legs">
-                <li><span data-i18n="panelSignalEntry">Вход</span><b id="sig-entry">—</b></li>
-                <li><span data-i18n="panelSignalTarget">Цель</span><b id="sig-target">—</b></li>
-                <li class="sig-panel__leg--danger"><span data-i18n="panelSignalStop">Стоп</span><b id="sig-stop">—</b></li>
-              </ul>
+        <!-- Market Hero Card -->
+        <div class="hero-wrap">
+          <div class="hero-card" id="hero-card">
+
+            <!-- Coin selector -->
+            <div class="coin-selector" id="coin-selector" role="radiogroup" aria-label="Select coin">
+              <button class="coin-btn is-active" data-coin="BTC" type="button">
+                <span class="coin-btn__sym">₿</span><span>BTC</span>
+              </button>
+              <button class="coin-btn" data-coin="ETH" type="button">
+                <span class="coin-btn__sym">Ξ</span><span>ETH</span>
+              </button>
+              <button class="coin-btn" data-coin="SOL" type="button">
+                <span class="coin-btn__sym">◎</span><span>SOL</span>
+              </button>
+              <button class="coin-btn" data-coin="BNB" type="button">
+                <span class="coin-btn__sym">⬡</span><span>BNB</span>
+              </button>
             </div>
-          </div>
-        </section>
 
-        <!-- ===== Market Matrix Panel — preview of top movers ===== -->
-        <p class="stack-label" data-i18n="panelMatrixTitle">Матрица рынка</p>
-        <section class="app-panel matrix-panel" id="matrix-panel"
-                 data-testid="matrix-panel"
-                 data-action="open-market"
-                 role="button" tabindex="0"
-                 aria-label="Матрица рынка — открыть весь рынок">
-          <header class="app-panel__head">
-            <span class="app-panel__label" data-i18n="panelMatrixSub">Лидеры движения</span>
-            <span class="app-panel__badge" id="matrix-panel-count">—</span>
-            <span class="app-panel__chevron" aria-hidden="true">
-              <svg viewBox="0 0 16 16" width="14" height="14" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </span>
-          </header>
-          <div class="matrix-panel__grid" id="matrix-panel-grid" data-testid="matrix-panel-grid" aria-hidden="true">
-            <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
-          </div>
-        </section>
+            <!-- Price display -->
+            <div class="price-block">
+              <div class="price-block__pair" id="hero-pair">BTC / USDT</div>
+              <div class="price-block__price" id="hero-price">—</div>
+              <div class="price-block__change">
+                <span class="price-block__delta" id="hero-delta">—</span>
+                <span class="price-block__label">24h change</span>
+              </div>
+            </div>
 
-        <!-- ===== Activity Feed Panel — latest market / AI events ===== -->
-        <p class="stack-label" data-i18n="panelActivityTitle">Активность</p>
-        <section class="app-panel feed-panel" id="activity-panel"
-                 data-testid="activity-panel"
-                 data-action="open-signals-focus"
-                 role="button" tabindex="0"
-                 aria-label="Активность — открыть ленту сигналов">
-          <header class="app-panel__head">
-            <span class="app-panel__label" data-i18n="panelActivitySub">Последние события</span>
-            <span class="app-panel__badge app-panel__badge--live">
-              <i class="app-panel__dot" aria-hidden="true"></i>
-              <span data-i18n="panelActivityOpen">Открыть ленту</span>
-            </span>
-            <span class="app-panel__chevron" aria-hidden="true">
-              <svg viewBox="0 0 16 16" width="14" height="14" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </span>
-          </header>
-          <ul class="feed-panel__list" id="activity-feed" data-testid="activity-feed">
-            <li class="feed-panel__empty" data-i18n="panelActivityEmpty">Ожидаем рыночные события…</li>
-          </ul>
-        </section>
-
-        <!-- ===== Reference-style last-signal summary card ===== -->
-        <section class="last-signal" id="last-signal-card" data-testid="last-signal-card"
-                 data-action="open-signals-focus"
-                 role="button" tabindex="0"
-                 aria-label="Последний сигнал — открыть ленту сигналов">
-          <div class="last-signal__head">
-            <span class="last-signal__title" data-i18n="lastSignalTitle">ПОСЛЕДНИЙ СИГНАЛ</span>
-            <span class="coin-mark last-signal__mark" id="last-signal-mark" data-coin="BTC" aria-hidden="true">₿</span>
-            <span class="last-signal__pair" id="last-signal-pair">BTC/USDT</span>
-            <span class="last-signal__side last-signal__side--long" id="last-signal-side" data-i18n="sideLong">LONG</span>
-          </div>
-          <ul class="last-signal__rows">
-            <li><span data-i18n="entry">Точка входа</span><b id="last-signal-entry">—</b></li>
-            <li><span data-i18n="tp1">Тейк-профит 1</span><b id="last-signal-tp1">—</b></li>
-            <li><span data-i18n="tp2">Тейк-профит 2</span><b id="last-signal-tp2">—</b></li>
-            <li class="last-signal__danger"><span data-i18n="stop">Стоп-лосс</span><b id="last-signal-stop">—</b></li>
-          </ul>
-          <button class="cta cta--strong" type="button" data-action="open-signals" data-testid="strong-signal-cta">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true"><path d="M4 18 L10 12 L13 15 L20 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 7 L20 7 L20 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <span data-i18n="strongSignal">СИЛЬНЫЙ СИГНАЛ</span>
-          </button>
-        </section>
-
-        <!-- ===== Antarctic Wallet — native partner module ===== -->
-        <p class="stack-label" data-i18n="partnerTitle">Antarctic Wallet</p>
-        <a
-          class="partner-card"
-          id="partner-antarctic"
-          data-testid="partner-antarctic"
-          data-action="open-partner-antarctic"
-          data-partner-url="https://t.me/antarctic_wallet_bot/app?startapp=ref_7d913f8149"
-          href="https://t.me/antarctic_wallet_bot/app?startapp=ref_7d913f8149"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Antarctic Wallet">
-          <span class="partner-card__glow" aria-hidden="true"></span>
-          <div class="partner-card__body">
-            <span class="partner-card__mark" aria-hidden="true">
-              <!-- Penguin mark on Antarctic blue disc -->
-              <svg viewBox="0 0 44 44" width="44" height="44" fill="none" aria-hidden="true">
+            <!-- Mini chart -->
+            <div class="mini-chart-wrap">
+              <svg class="mini-chart" id="hero-chart" viewBox="0 0 300 80" preserveAspectRatio="none">
                 <defs>
-                  <linearGradient id="awDisc" x1="0" y1="0" x2="44" y2="44" gradientUnits="userSpaceOnUse">
-                    <stop offset="0" stop-color="#5fb8ff"/>
-                    <stop offset="1" stop-color="#0a5bff"/>
-                  </linearGradient>
-                  <linearGradient id="awBelly" x1="22" y1="14" x2="22" y2="38" gradientUnits="userSpaceOnUse">
-                    <stop offset="0" stop-color="#ffffff"/>
-                    <stop offset="1" stop-color="#e6f3ff"/>
+                  <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="rgba(30,200,220,0.4)"/>
+                    <stop offset="100%" stop-color="rgba(30,200,220,0)"/>
                   </linearGradient>
                 </defs>
-                <circle cx="22" cy="22" r="20" fill="url(#awDisc)"/>
-                <!-- penguin body -->
-                <ellipse cx="22" cy="26" rx="11" ry="13" fill="#0c1730"/>
-                <!-- belly -->
-                <ellipse cx="22" cy="27" rx="7" ry="9.5" fill="url(#awBelly)"/>
-                <!-- head highlight -->
-                <ellipse cx="22" cy="16.5" rx="8.2" ry="7.5" fill="#0c1730"/>
-                <!-- eyes -->
-                <circle cx="19.2" cy="16.6" r="1.35" fill="#ffffff"/>
-                <circle cx="24.8" cy="16.6" r="1.35" fill="#ffffff"/>
-                <circle cx="19.4" cy="16.8" r="0.7" fill="#0c1730"/>
-                <circle cx="25.0" cy="16.8" r="0.7" fill="#0c1730"/>
-                <!-- beak -->
-                <path d="M20.7 19.2 L23.3 19.2 L22 21.0 Z" fill="#ffb24a"/>
-                <!-- feet -->
-                <path d="M17.5 36.6 q1.5 -1 3.3 -0.4" stroke="#ffb24a" stroke-width="1.8" stroke-linecap="round"/>
-                <path d="M26.5 36.6 q-1.5 -1 -3.3 -0.4" stroke="#ffb24a" stroke-width="1.8" stroke-linecap="round"/>
+                <path class="chart-area" id="chart-area" d="" fill="url(#chartGrad)"/>
+                <path class="chart-line" id="chart-line" d="" fill="none" stroke="#1EC8DC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
-            </span>
-            <div class="partner-card__text">
-              <div class="partner-card__title">
-                <b data-i18n="partnerTitle">Antarctic Wallet</b>
-                <span class="partner-card__chip" data-i18n="partnerChip">USDT в сети TON</span>
-              </div>
-              <div class="partner-card__lede" data-i18n="partnerLede">
-                Уже в кошельке — храните и отправляйте USDT в сети TON.
+              <div class="chart-tfs" id="chart-tfs">
+                <button class="tf-btn" data-tf="1m" type="button">1м</button>
+                <button class="tf-btn is-active" data-tf="5m" type="button">5м</button>
+                <button class="tf-btn" data-tf="15m" type="button">15м</button>
+                <button class="tf-btn" data-tf="1h" type="button">1ч</button>
+                <button class="tf-btn" data-tf="4h" type="button">4ч</button>
               </div>
             </div>
-            <span class="partner-card__cta" data-i18n="partnerCta">
-              Открыть
-              <svg viewBox="0 0 16 16" width="14" height="14" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </span>
-          </div>
-        </a>
 
-        <section class="kpis" aria-label="KPI">
-          <button type="button" class="kpi" data-action="open-signals-focus" data-testid="kpi-signals" aria-label="Активных сигналов">
-            <div class="kpi-label" data-i18n="kpiSignals">Активных сигналов</div>
-            <div class="kpi-value" data-counter="signals">—</div>
-            <div class="kpi-trend up" data-i18n="kpiSignalsDelta">↑ 12% / 24ч</div>
-          </button>
-          <button type="button" class="kpi" data-action="open-market" data-testid="kpi-coins" aria-label="Монет в наблюдении">
-            <div class="kpi-label" data-i18n="kpiCoins">Монет в наблюдении</div>
-            <div class="kpi-value" data-counter="coins">—</div>
-            <div class="kpi-trend up" data-i18n="kpiCoinsDelta">↑ 4 новые</div>
-          </button>
-          <button type="button" class="kpi" data-action="open-ai" data-testid="kpi-accuracy" aria-label="Точность модели">
-            <div class="kpi-label" data-i18n="kpiAccuracy">Точность модели</div>
-            <div class="kpi-value" data-counter="accuracy">—<span class="kpi-unit">%</span></div>
-            <div class="kpi-trend flat" data-i18n="kpiAccuracyDelta">7д среднее</div>
-          </button>
-        </section>
-
-        <p class="stack-label" data-i18n="aiTitle">AI-анализ</p>
-        <section class="card ai-summary ai-summary--radar" aria-label="AI summary"
-                 data-testid="ai-summary-card"
-                 data-action="open-ai"
-                 role="button" tabindex="0">
-          <div class="card__head">
-            <h2 data-i18n="aiTitle">AI-анализ</h2>
-            <span class="chip chip--ghost" data-i18n="aiBadge">Beta</span>
-          </div>
-          <div class="ai-summary__body">
-            <span class="ai-radar" aria-hidden="true">
-              <span class="ai-radar__ring"></span>
-              <span class="ai-radar__ring ai-radar__ring--2"></span>
-              <span class="ai-radar__sweep"></span>
-              <span class="ai-radar__core">AI</span>
-            </span>
-            <div class="ai-summary__col">
-              <div class="ai-summary__mood">
-                <span data-i18n="aiMood">Настроение рынка</span>
-                <b data-i18n="bullish">Бычий</b>
+            <!-- Stats row -->
+            <div class="stats-row">
+              <div class="stat">
+                <div class="stat__label">Vol 24h</div>
+                <div class="stat__val" id="stat-vol">—</div>
               </div>
-              <div class="ai-summary__confidence">
-                <span data-i18n="aiConfidence">Уверенность</span>
-                <b id="ai-confidence">78%</b>
+              <div class="stat">
+                <div class="stat__label">High 24h</div>
+                <div class="stat__val stat__val--pos" id="stat-high">—</div>
+              </div>
+              <div class="stat">
+                <div class="stat__label">Low 24h</div>
+                <div class="stat__val stat__val--neg" id="stat-low">—</div>
+              </div>
+              <div class="stat">
+                <div class="stat__label">OI</div>
+                <div class="stat__val" id="stat-oi">—</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- AI Signal Card -->
+        <div class="section-label">
+          <span class="section-label__dot"></span>
+          AI Signal
+          <span class="section-label__badge">LIVE</span>
+        </div>
+        <div class="signal-card" id="signal-card" role="button" tabindex="0" data-action="open-signals">
+          <div class="signal-card__left">
+            <div class="signal-ring" id="signal-ring">
+              <svg viewBox="0 0 64 64" width="64" height="64">
+                <circle cx="32" cy="32" r="26" stroke="rgba(255,255,255,0.06)" stroke-width="6" fill="none"/>
+                <circle id="ring-arc" cx="32" cy="32" r="26" stroke="#1EC8DC" stroke-width="6"
+                        fill="none" stroke-linecap="round"
+                        stroke-dasharray="163.4" stroke-dashoffset="41"
+                        transform="rotate(-90 32 32)"/>
+              </svg>
+              <span class="signal-ring__val" id="sig-conf">75%</span>
+            </div>
+            <div class="signal-card__info">
+              <div class="signal-card__pair" id="sig-pair">BTC/USDT</div>
+              <div class="signal-card__side" id="sig-side">
+                <span class="side-badge side-badge--long">LONG</span>
               </div>
             </div>
           </div>
-          <p id="ai-summary-text" class="ai-summary__text" data-i18n="aiSummary">
-            Рынок в бычьем тренде. Объёмы растут, ключевые уровни поддержки удерживаются. Индикаторы указывают на продолжение роста в краткосрочной перспективе.
-          </p>
-          <div class="chips">
-            <span><b data-i18n="aiTrend">Тренд</b>: <em data-i18n="bullish">Бычий</em></span>
-            <span><b data-i18n="aiConfidence">Уверенность</b>: <em>78%</em></span>
-            <span><b data-i18n="aiVolatility">Волатильность</b>: <em data-i18n="medium">средняя</em></span>
+          <div class="signal-card__right">
+            <div class="signal-entry">
+              <div class="signal-entry__label">Entry</div>
+              <div class="signal-entry__val" id="sig-entry">—</div>
+            </div>
+            <div class="signal-entry">
+              <div class="signal-entry__label">Target</div>
+              <div class="signal-entry__val signal-entry__val--pos" id="sig-tp">—</div>
+            </div>
+            <div class="signal-entry">
+              <div class="signal-entry__label">Stop</div>
+              <div class="signal-entry__val signal-entry__val--neg" id="sig-sl">—</div>
+            </div>
           </div>
-        </section>
+          <div class="signal-card__arr">›</div>
+        </div>
 
-        <p class="stack-label" data-i18n="healthTitle">Состояние системы</p>
-        <button type="button"
-                class="card health-card"
-                id="health-card"
-                data-testid="health-card"
-                data-action="open-system-health"
-                aria-label="Состояние системы — открыть диагностику">
-          <span class="health-card__icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="M3 12h4l2 6 4-14 2 8h6" stroke="#00e5d8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </span>
-          <span class="health-card__text">
-            <b data-i18n="healthTitle">Состояние системы</b>
-            <em data-i18n="healthSub">Живая диагностика</em>
-          </span>
-          <span class="health-card__dots" aria-hidden="true">
-            <i class="health-card__dot" id="health-dot-market"></i>
-            <i class="health-card__dot" id="health-dot-ai"></i>
-            <i class="health-card__dot" id="health-dot-signals"></i>
-          </span>
-          <span class="health-card__cta" data-i18n="healthOpen">Диагностика
-            <svg viewBox="0 0 16 16" width="13" height="13" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </span>
-        </button>
+        <!-- Market Matrix -->
+        <div class="section-label">
+          <span class="section-label__dot section-label__dot--orange"></span>
+          Market Matrix
+        </div>
+        <div class="matrix-grid" id="matrix-grid">
+          <div class="matrix-cell">
+            <div class="matrix-cell__label">Fear & Greed</div>
+            <div class="matrix-cell__val" id="mx-fng">—</div>
+            <div class="matrix-cell__sub" id="mx-fng-label">Loading…</div>
+            <div class="matrix-cell__bar"><div class="matrix-cell__fill" id="mx-fng-bar" style="width:50%"></div></div>
+          </div>
+          <div class="matrix-cell">
+            <div class="matrix-cell__label">BTC Dominance</div>
+            <div class="matrix-cell__val" id="mx-dom">—</div>
+            <div class="matrix-cell__sub">Market share</div>
+            <div class="matrix-cell__bar"><div class="matrix-cell__fill matrix-cell__fill--orange" id="mx-dom-bar" style="width:60%"></div></div>
+          </div>
+          <div class="matrix-cell">
+            <div class="matrix-cell__label">Funding Rate</div>
+            <div class="matrix-cell__val" id="mx-fund">—</div>
+            <div class="matrix-cell__sub">BTC Perp 8h</div>
+          </div>
+          <div class="matrix-cell">
+            <div class="matrix-cell__label">Market Cap</div>
+            <div class="matrix-cell__val" id="mx-cap">—</div>
+            <div class="matrix-cell__sub" id="mx-cap-chg">24h change</div>
+          </div>
+        </div>
 
+        <!-- Top Movers -->
+        <div class="section-label">
+          <span class="section-label__dot"></span>
+          Top Movers
+        </div>
+        <div class="movers-list" id="movers-list">
+          <div class="mover-item mover-item--skeleton">
+            <div class="mover-item__coin">···</div>
+            <div class="mover-item__price">——</div>
+            <div class="mover-item__delta">——</div>
+          </div>
+          <div class="mover-item mover-item--skeleton">
+            <div class="mover-item__coin">···</div>
+            <div class="mover-item__price">——</div>
+            <div class="mover-item__delta">——</div>
+          </div>
+          <div class="mover-item mover-item--skeleton">
+            <div class="mover-item__coin">···</div>
+            <div class="mover-item__price">——</div>
+            <div class="mover-item__delta">——</div>
+          </div>
+        </div>
+
+        <div class="screen-pad"></div>
       </section>
 
-      <!-- ========== SIGNALS ========== -->
-      <section class="screen" data-screen="signals" aria-label="Сигналы">
-        <div class="screen__head">
-          <h1 class="screen__title" data-i18n="sectionSignals">Активные сигналы</h1>
-          <button class="chip" type="button" data-action="refresh" data-i18n="refresh">Обновить</button>
+      <!-- ====== SIGNALS SCREEN ====== -->
+      <section class="screen" data-screen="signals">
+
+        <div class="signals-header">
+          <h2 class="signals-header__title">AI Signals</h2>
+          <div class="signals-header__filters" id="sig-filters">
+            <button class="filter-btn is-active" data-filter="all" type="button">All</button>
+            <button class="filter-btn" data-filter="long" type="button">Long</button>
+            <button class="filter-btn" data-filter="short" type="button">Short</button>
+          </div>
         </div>
+
         <div class="signals-list" id="signals-list">
-          <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
+          <!-- Populated by JS -->
+          <div class="signal-skeleton"><div class="sk-line sk-line--wide"></div><div class="sk-line sk-line--short"></div></div>
+          <div class="signal-skeleton"><div class="sk-line sk-line--wide"></div><div class="sk-line sk-line--short"></div></div>
+          <div class="signal-skeleton"><div class="sk-line sk-line--wide"></div><div class="sk-line sk-line--short"></div></div>
         </div>
+
+        <div class="screen-pad"></div>
       </section>
 
-      <!-- ========== MARKET ========== -->
-      <section class="screen" data-screen="market" aria-label="Рынок">
-        <div class="screen__head">
-          <h1 class="screen__title" data-i18n="sectionMatrix">Матрица рынка</h1>
-          <button class="chip" type="button" data-action="refresh" data-i18n="refresh">Обновить</button>
-        </div>
-        <div class="market-search">
-          <input
-            type="search"
-            id="market-search"
-            class="market-search__input"
-            data-testid="market-search"
-            autocomplete="off"
-            spellcheck="false"
-            data-i18n-placeholder="searchPlaceholder"
-            placeholder="Поиск монеты…" />
-          <span class="market-search__count" id="market-count" data-testid="market-count">—</span>
-        </div>
-        <div class="coin-chips" id="coin-chips" data-testid="coin-chips" aria-label="Быстрый выбор монеты"></div>
-        <div class="tf-tabs tf-tabs--row" id="market-tabs" role="tablist" aria-label="Таймфрейм">
-          <button type="button" data-mtf="1m">1м</button>
-          <button type="button" data-mtf="5m" class="is-active">5м</button>
-          <button type="button" data-mtf="15m">15м</button>
-          <button type="button" data-mtf="1h">1ч</button>
-          <button type="button" data-mtf="4h">4ч</button>
-          <button type="button" data-mtf="1d">1д</button>
-        </div>
-        <div class="matrix" id="matrix" data-testid="market-matrix">
-          <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
-        </div>
-        <p class="muted market-empty" id="market-empty" hidden data-i18n="searchNoMatch">
-          Совпадений не найдено
-        </p>
-      </section>
+      <!-- ====== AI CHAT SCREEN ====== -->
+      <section class="screen" data-screen="ai">
 
-      <!-- ========== AI ========== -->
-      <section class="screen screen--ai" data-screen="ai" aria-label="AI">
-        <div class="screen__head">
-          <h1 class="screen__title" data-i18n="sectionAI">AI-ассистент</h1>
-          <span class="badge badge--beta">beta</span>
-        </div>
-        <div class="ai-intro">
-          <span class="ai-intro__bot" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none"><rect x="4" y="7" width="16" height="12" rx="3" stroke="#26e6f2" stroke-width="1.6"/><circle cx="9.5" cy="13" r="1.2" fill="#26e6f2"/><circle cx="14.5" cy="13" r="1.2" fill="#26e6f2"/><path d="M12 3v4" stroke="#26e6f2" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="3" r="1.2" fill="#26e6f2"/></svg>
-          </span>
-          <p data-i18n="aiIntro">Спросите про BTCUSDT, тренды, сигналы или стратегии. Я подскажу.</p>
-        </div>
-        <div class="ai-chat" id="ai-chat" aria-live="polite"></div>
-        <div class="ai-suggest" id="ai-suggest"></div>
-        <form class="ai-compose" id="ai-form" autocomplete="off">
-          <button type="button" class="ai-compose__attach" aria-label="Прикрепить">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M21 12.5l-8.5 8.5a5 5 0 1 1-7-7L15 5.5a3.5 3.5 0 1 1 5 5l-9 9a2 2 0 1 1-3-3l8-8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-          </button>
-          <input type="text" id="ai-text" placeholder="Напишите сообщение…" data-i18n-placeholder="askPlaceholder" />
-          <button type="button" class="ai-compose__mic" id="ai-mic" aria-label="Голос">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><rect x="9" y="3" width="6" height="12" rx="3" stroke="#04070d" stroke-width="1.8"/><path d="M5 12a7 7 0 0 0 14 0" stroke="#04070d" stroke-width="1.8" stroke-linecap="round"/><path d="M12 19v3" stroke="#04070d" stroke-width="1.8" stroke-linecap="round"/></svg>
-          </button>
-          <button type="submit" class="ai-compose__send" aria-label="Отправить" id="ai-send">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M3 11l18-8-8 18-2-8-8-2Z" stroke="#04070d" stroke-width="1.8" stroke-linejoin="round"/></svg>
-          </button>
-        </form>
-      </section>
-
-      <!-- ========== PROFILE ========== -->
-      <section class="screen" data-screen="profile" aria-label="Профиль">
-        <div class="screen__head">
-          <h1 class="screen__title" data-i18n="sectionProfile">Профиль</h1>
-        </div>
-
-        <div class="card profile-card">
-          <div class="profile-id">
-            <span class="avatar" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none"><circle cx="12" cy="9" r="3.5" stroke="#26e6f2" stroke-width="1.6"/><path d="M5 20c1.2-3.5 4-5 7-5s5.8 1.5 7 5" stroke="#26e6f2" stroke-width="1.6" stroke-linecap="round"/></svg>
-            </span>
-            <div>
-              <div class="profile-id__name" id="prof-name">Guest</div>
-              <div class="profile-id__sub" id="prof-platform">Telegram Web App</div>
+        <div class="chat-header">
+          <div class="chat-header__avatar">
+            <svg viewBox="0 0 36 36" width="36" height="36" fill="none">
+              <circle cx="18" cy="18" r="16" fill="rgba(30,200,220,0.1)" stroke="#1EC8DC" stroke-width="1"/>
+              <path d="M10 18h16M18 10v16" stroke="#1EC8DC" stroke-width="1.5" stroke-linecap="round"/>
+              <circle cx="18" cy="18" r="4" fill="rgba(30,200,220,0.3)" stroke="#1EC8DC" stroke-width="1"/>
+            </svg>
+          </div>
+          <div class="chat-header__info">
+            <div class="chat-header__name">QSI Neural</div>
+            <div class="chat-header__status">
+              <span class="conn-dot conn-dot--active"></span>
+              AI Engine Online
             </div>
           </div>
-          <div class="profile-rows">
-            <div class="row-line"><span>Username</span><b id="prof-username">—</b></div>
-            <div class="row-line"><span data-i18n="languageLabel">Язык</span><b id="prof-lang">—</b></div>
-            <div class="row-line"><span data-i18n="connection">Подключение</span><b id="prof-status">demo</b></div>
-            <div class="row-line"><span data-i18n="transportLabel">Канал данных</span><b id="prof-transport">—</b></div>
-            <div class="row-line"><span data-i18n="providerLabel">Источник данных</span><b id="prof-provider">Bybit V5</b></div>
-            <div class="row-line"><span data-i18n="lastUpdate">Последнее обновление</span><b id="prof-last-update">—</b></div>
+        </div>
+
+        <div class="chat-messages" id="chat-messages">
+          <div class="msg msg--bot">
+            <div class="msg__bubble">
+              Привет! Я <b>QSI Neural</b> — ваш AI-аналитик крипторынка. Спросите меня о ценах, трендах, сигналах или стратегиях торговли.
+            </div>
+            <div class="msg__time">Now</div>
+          </div>
+
+          <div class="chat-suggestions" id="chat-suggestions">
+            <button class="suggestion" type="button" data-query="Анализ BTC сейчас">📊 Анализ BTC</button>
+            <button class="suggestion" type="button" data-query="Лучшие сигналы сегодня">⚡ Топ сигналы</button>
+            <button class="suggestion" type="button" data-query="Что купить сейчас">🎯 Что купить?</button>
+            <button class="suggestion" type="button" data-query="Риск-менеджмент советы">🛡 Риск-менеджмент</button>
           </div>
         </div>
 
-        <div class="card">
-          <div class="card__head"><h2 data-i18n="languageLabel">Язык</h2></div>
-          <div class="lang-grid" id="lang-grid"></div>
+        <div class="chat-input-wrap">
+          <div class="chat-input-row">
+            <textarea
+              class="chat-input"
+              id="chat-input"
+              placeholder="Ask AI about crypto…"
+              rows="1"
+              aria-label="Message AI"></textarea>
+            <button class="chat-send" id="chat-send" type="button" aria-label="Send">
+              <svg viewBox="0 0 20 20" width="18" height="18" fill="none">
+                <path d="M17 10L3 3l3.5 7L3 17l14-7z" fill="currentColor"/>
+              </svg>
+            </button>
+          </div>
         </div>
 
-        <div class="card">
-          <div class="card__head"><h2 data-i18n="settings">Настройки</h2></div>
-          <ul class="settings">
-            <li>
-              <span class="set-ico" aria-hidden="true">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none"><path d="M18 9a6 6 0 1 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9Z" stroke="#26e6f2" stroke-width="1.6"/></svg>
-              </span>
-              <span class="set-name" data-i18n="notifications">Уведомления</span>
-              <button type="button" class="toggle is-on" data-toggle="notif" aria-pressed="true" aria-label="Уведомления"><i></i></button>
-            </li>
-            <li>
-              <span class="set-ico" aria-hidden="true">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none"><path d="M20 14A8 8 0 1 1 10 4a6 6 0 0 0 10 10Z" stroke="#26e6f2" stroke-width="1.6"/></svg>
-              </span>
-              <span class="set-name" data-i18n="darkTheme">Тёмная тема</span>
-              <button type="button" class="toggle is-on" data-toggle="theme" aria-pressed="true" aria-label="Тёмная тема"><i></i></button>
-            </li>
-            <li>
-              <span class="set-ico" aria-hidden="true">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none"><rect x="4" y="5" width="16" height="14" rx="2" stroke="#26e6f2" stroke-width="1.6"/><path d="M4 9h16" stroke="#26e6f2" stroke-width="1.6"/></svg>
-              </span>
-              <span class="set-name" data-i18n="defaultTf">Таймфрейм по умолчанию</span>
-              <b class="set-val" id="set-tf">5m</b>
-            </li>
-            <li>
-              <span class="set-ico" aria-hidden="true">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none"><circle cx="12" cy="12" r="8" stroke="#26e6f2" stroke-width="1.6"/><path d="M9 9c.5-1.5 4-2 4 0s-3 1.5-3 3" stroke="#26e6f2" stroke-width="1.6" stroke-linecap="round"/><circle cx="10" cy="16" r="0.9" fill="#26e6f2"/></svg>
-              </span>
-              <span class="set-name" data-i18n="currency">Валюта отображения</span>
-              <b class="set-val">USD</b>
-            </li>
-          </ul>
-        </div>
-
-        <div class="card">
-          <div class="card__head"><h2 data-i18n="aboutTitle">О приложении</h2></div>
-          <p class="muted" data-i18n="aboutLead">QUANTSIGNAL AI — Telegram Mini App в стиле premium crypto terminal: сигналы, рыночный обзор, AI-анализ и быстрый доступ к ключевым разделам.</p>
-          <ul class="bullets">
-            <li><b data-i18n="aboutReliableTitle">Надёжно</b> — <span data-i18n="aboutReliable">Telegram Web App SDK подключён и инициализирован</span></li>
-            <li><b data-i18n="aboutSecureTitle">Безопасно</b> — <span data-i18n="aboutSecure">без cookies, localStorage и внешних логинов</span></li>
-            <li><b data-i18n="aboutFastTitle">Быстро</b> — <span data-i18n="aboutFast">статический интерфейс, готовый к подключению API</span></li>
-          </ul>
-          <button class="cta cta--ghost" type="button" data-action="open-roadmap" data-i18n="viewRoadmap">Посмотреть путь пользователя →</button>
-        </div>
       </section>
 
-    </div>
+      <!-- ====== MARKET SCREEN ====== -->
+      <section class="screen" data-screen="market">
 
-    <!-- ===== No-JS / failed-bundle fallback shell =====
-         Visible ONLY while <html class="no-js"> (the default). app.js
-         swaps the root class to `js` the instant it runs, hiding this.
-         Guarantees the user always sees an opaque blue-neon app shell
-         with skeleton panels instead of a blank/transparent screen if
-         the JS bundle 404s or the API never warms up. -->
-    <div class="fallback-shell" data-testid="fallback-shell" aria-hidden="true">
-      <div class="fallback-shell__panel">
-        <p class="fallback-shell__label">QUANTSIGNAL AI · LIVE MARKET</p>
-        <div class="fallback-shell__skeleton fallback-shell__skeleton--wide"></div>
-        <div class="fallback-shell__skeleton fallback-shell__skeleton--mid"></div>
-        <div class="fallback-shell__skeleton fallback-shell__skeleton--sm"></div>
-      </div>
-      <div class="fallback-shell__panel">
-        <p class="fallback-shell__label">AI Signal Engine</p>
-        <div class="fallback-shell__skeleton fallback-shell__skeleton--mid"></div>
-        <div class="fallback-shell__skeleton fallback-shell__skeleton--wide"></div>
-      </div>
-      <div class="fallback-shell__panel">
-        <p class="fallback-shell__label">Market Matrix</p>
-        <div class="fallback-shell__skeleton fallback-shell__skeleton--wide"></div>
-        <div class="fallback-shell__skeleton fallback-shell__skeleton--sm"></div>
-      </div>
-    </div>
+        <div class="market-header">
+          <h2 class="market-header__title">Markets</h2>
+          <div class="market-search-wrap">
+            <svg viewBox="0 0 16 16" width="14" height="14" fill="none" aria-hidden="true">
+              <circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" stroke-width="1.3"/>
+              <path d="M10 10 L14 14" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+            </svg>
+            <input class="market-search" id="market-search" type="text" placeholder="Search coins…" />
+          </div>
+        </div>
 
-    <!-- ===== Bottom navigation ===== -->
-    <nav class="tabbar" aria-label="Навигация">
-      <button type="button" class="tab is-active" data-nav="overview">
-        <span class="tab__ico" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="M3 12l9-9 9 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 10v10h14V10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </span>
-        <span data-i18n="navOverview">Обзор</span>
+        <div class="market-tabs" id="market-tabs">
+          <button class="market-tab is-active" data-category="all" type="button">All</button>
+          <button class="market-tab" data-category="gainers" type="button">Gainers 🚀</button>
+          <button class="market-tab" data-category="losers" type="button">Losers 📉</button>
+        </div>
+
+        <div class="market-table-wrap">
+          <div class="market-table-head">
+            <span>Coin</span>
+            <span>Price</span>
+            <span>24h %</span>
+            <span>Vol</span>
+          </div>
+          <div class="market-table" id="market-table">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <div class="screen-pad"></div>
+      </section>
+
+    </div><!-- /screens -->
+
+    <!-- ======== TAB BAR ======== -->
+    <nav class="tabbar" role="tablist" aria-label="Navigation">
+      <button class="tab is-active" data-tab="overview" type="button" role="tab" aria-selected="true">
+        <svg class="tab__icon" viewBox="0 0 20 20" width="20" height="20" fill="none">
+          <rect x="2" y="10" width="4" height="8" rx="1" fill="currentColor" opacity="0.5"/>
+          <rect x="8" y="6" width="4" height="12" rx="1" fill="currentColor" opacity="0.8"/>
+          <rect x="14" y="2" width="4" height="16" rx="1" fill="currentColor"/>
+        </svg>
+        <span>Overview</span>
       </button>
-      <button type="button" class="tab" data-nav="signals">
-        <span class="tab__ico" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
-        </span>
-        <span data-i18n="navSignals">Сигналы</span>
+      <button class="tab" data-tab="signals" type="button" role="tab" aria-selected="false">
+        <svg class="tab__icon" viewBox="0 0 20 20" width="20" height="20" fill="none">
+          <path d="M10 2 L12 8 L18 9 L13.5 13.5 L15 20 L10 17 L5 20 L6.5 13.5 L2 9 L8 8 Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" fill="none"/>
+        </svg>
+        <span>Signals</span>
       </button>
-      <button type="button" class="tab" data-nav="market">
-        <span class="tab__ico" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none"><rect x="3" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="14" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="3" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="14" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/></svg>
-        </span>
-        <span data-i18n="navMatrix">Рынок</span>
+      <button class="tab tab--center" data-tab="ai" type="button" role="tab" aria-selected="false">
+        <div class="tab__center-btn">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
+            <circle cx="12" cy="12" r="3" fill="white"/>
+            <path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M16.9 16.9l2.1 2.1M4.9 19.1l2.1-2.1M16.9 7.1l2.1-2.1" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span>AI Chat</span>
       </button>
-      <button type="button" class="tab" data-nav="ai">
-        <span class="tab__ico" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none"><rect x="4" y="7" width="16" height="12" rx="3" stroke="currentColor" stroke-width="1.6"/><circle cx="9.5" cy="13" r="1.2" fill="currentColor"/><circle cx="14.5" cy="13" r="1.2" fill="currentColor"/><path d="M12 3v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-        </span>
-        <span data-i18n="navAI">AI</span>
+      <button class="tab" data-tab="market" type="button" role="tab" aria-selected="false">
+        <svg class="tab__icon" viewBox="0 0 20 20" width="20" height="20" fill="none">
+          <path d="M3 14 L7 10 L10 12 L14 7 L17 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <path d="M17 6 L17 10 L13 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>Market</span>
       </button>
-      <button type="button" class="tab" data-nav="profile">
-        <span class="tab__ico" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none"><circle cx="12" cy="9" r="3.5" stroke="currentColor" stroke-width="1.6"/><path d="M5 20c1.2-3.5 4-5 7-5s5.8 1.5 7 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-        </span>
-        <span data-i18n="navProfile">Профиль</span>
+      <button class="tab" data-tab="settings" type="button" role="tab" aria-selected="false">
+        <svg class="tab__icon" viewBox="0 0 20 20" width="20" height="20" fill="none">
+          <circle cx="10" cy="10" r="2.5" stroke="currentColor" stroke-width="1.4"/>
+          <path d="M10 1v2.5M10 16.5V19M1 10h2.5M16.5 10H19M3.2 3.2l1.8 1.8M15 15l1.8 1.8M16.8 3.2L15 5M5 15l-1.8 1.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+        <span>Settings</span>
       </button>
     </nav>
-  </main>
 
-  <!-- ===== Signal detail sheet ===== -->
-  <div class="sheet" id="signal-sheet" aria-hidden="true" role="dialog" aria-modal="true">
-    <div class="sheet__backdrop" data-action="close-sheet"></div>
-    <div class="sheet__panel">
-      <button class="sheet__close" type="button" data-action="close-sheet" aria-label="Закрыть">×</button>
-      <div class="sheet__body" id="signal-sheet-body"></div>
-    </div>
-  </div>
-
-  <!-- ===== System Health diagnostics sheet ===== -->
-  <div class="sheet" id="health-sheet" data-testid="health-sheet" aria-hidden="true" role="dialog" aria-modal="true">
-    <div class="sheet__backdrop" data-action="close-health"></div>
-    <div class="sheet__panel">
-      <button class="sheet__close" type="button" data-action="close-health" aria-label="Закрыть">×</button>
-      <div class="sheet__body" id="health-sheet-body"></div>
-    </div>
-  </div>
-
-  <!-- ===== Roadmap sheet (legacy presentation moved here) ===== -->
-  <div class="sheet sheet--full" id="roadmap-sheet" aria-hidden="true" role="dialog" aria-modal="true">
-    <div class="sheet__backdrop" data-action="close-roadmap"></div>
-    <div class="sheet__panel sheet__panel--wide">
-      <button class="sheet__close" type="button" data-action="close-roadmap" aria-label="Закрыть">×</button>
-      <div class="sheet__body">
-        <header class="roadmap__brand">
-          <h1 class="brand-title">QUANTSIGNAL <span class="brand-title__ai">AI</span></h1>
-          <p class="brand-subtitle" data-i18n="roadmapSubtitle">продуманный путь пользователя</p>
-        </header>
-        <ol class="timeline">
-          <li class="timeline__step">
-            <span class="timeline__num">1</span>
-            <div class="timeline__body">
-              <h3 data-i18n="rm1Title">Загрузка приложения</h3>
-              <p data-i18n="rm1Body">Пользователь открывает Mini App и происходит загрузка рыночных данных для анализа.</p>
+    <!-- Settings screen (panel overlay) -->
+    <section class="screen screen--settings" data-screen="settings" style="display:none">
+      <div class="settings-wrap">
+        <div class="settings-header">
+          <h2>Settings</h2>
+        </div>
+        <div class="settings-section">
+          <div class="settings-label">Language</div>
+          <div class="settings-row">
+            <span>Interface Language</span>
+            <select class="settings-select" id="lang-select">
+              <option value="ru">Русский</option>
+              <option value="en">English</option>
+            </select>
+          </div>
+        </div>
+        <div class="settings-section">
+          <div class="settings-label">About</div>
+          <div class="settings-about">
+            <div class="settings-about__logo">
+              <svg viewBox="0 0 48 48" width="48" height="48" fill="none">
+                <circle cx="24" cy="24" r="22" stroke="url(#settGrad)" stroke-width="1.5"/>
+                <defs>
+                  <linearGradient id="settGrad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#1EC8DC"/>
+                    <stop offset="100%" stop-color="#FF8000"/>
+                  </linearGradient>
+                </defs>
+                <text x="24" y="31" text-anchor="middle" font-family="Space Grotesk,sans-serif" font-weight="700" font-size="20" fill="url(#settGrad)">Q</text>
+              </svg>
             </div>
-          </li>
-          <li class="timeline__step">
-            <span class="timeline__num">2</span>
-            <div class="timeline__body">
-              <h3 data-i18n="rm2Title">Главный экран аналитики</h3>
-              <p data-i18n="rm2Body">Отображение ключевого актива, графика, рыночных показателей и индикаторов в реальном времени.</p>
+            <div class="settings-about__text">
+              <div class="settings-about__name">QUANTSIGNAL AI</div>
+              <div class="settings-about__ver">v18 Professional</div>
+              <div class="settings-about__desc">AI-powered crypto terminal. Real-time signals, market analysis, and intelligent trading assistance.</div>
             </div>
-          </li>
-          <li class="timeline__step">
-            <span class="timeline__num">3</span>
-            <div class="timeline__body">
-              <h3 data-i18n="rm3Title">AI Ассистент</h3>
-              <p data-i18n="rm3Body">Пользователь может задать вопрос о рынке и получить AI-аналитику в диалоге.</p>
-            </div>
-          </li>
-          <li class="timeline__step">
-            <span class="timeline__num">4</span>
-            <div class="timeline__body">
-              <h3 data-i18n="rm4Title">Торговые сигналы</h3>
-              <p data-i18n="rm4Body">AI анализирует рынок и предоставляет актуальные торговые сигналы с уровнем уверенности.</p>
-            </div>
-          </li>
-          <li class="timeline__step">
-            <span class="timeline__num">5</span>
-            <div class="timeline__body">
-              <h3 data-i18n="rm5Title">Настройки и язык</h3>
-              <p data-i18n="rm5Body">Пользователь может настроить приложение под себя: язык, темы, уведомления и параметры анализа.</p>
-            </div>
-          </li>
-          <li class="timeline__step timeline__step--last">
-            <span class="timeline__num">6</span>
-            <div class="timeline__body">
-              <h3 data-i18n="rm6Title">Уведомление о сигнале</h3>
-              <p data-i18n="rm6Body">Пользователь получает push-уведомление о новом высоковероятном сигнале в реальном времени.</p>
-            </div>
-          </li>
-        </ol>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
+      <div class="screen-pad"></div>
+    </section>
 
-  <script src="./i18n.js?v=15-logo-style-20260622" defer></script>
-  <script src="./api.js?v=15-logo-style-20260622" defer></script>
-  <script src="./app.js?v=15-logo-style-20260622" defer></script>
+  </div><!-- /app -->
+
+  <!-- ======== TOAST ======== -->
+  <div class="toast" id="toast" role="alert" aria-live="assertive" aria-atomic="true"></div>
+
+  <script src="./app.js?v=18"></script>
 </body>
 </html>
-

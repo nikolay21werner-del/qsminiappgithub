@@ -1,4534 +1,1137 @@
-/* =========================================================
-   QUANTSIGNAL AI — App-first mobile UI
-   Dark neon fintech, teal/orange, optimized for Telegram WebView
-   ========================================================= */
+/* =============================================
+   QUANTSIGNAL AI v18 — Professional Redesign
+   Palette: #1EC8DC (teal) + #FF8000 (orange)
+   Background: #050A12 (deep space black)
+   ============================================= */
+
+/* -------- Reset & Root -------- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
+  --teal:        #1EC8DC;
+  --teal-soft:   rgba(30, 200, 220, 0.12);
+  --teal-mid:    rgba(30, 200, 220, 0.25);
+  --teal-glow:   0 0 32px rgba(30, 200, 220, 0.4);
+  --orange:      #FF8000;
+  --orange-soft: rgba(255, 128, 0, 0.12);
+  --orange-mid:  rgba(255, 128, 0, 0.25);
+  --orange-glow: 0 0 32px rgba(255, 128, 0, 0.35);
+  --pos:         #00D890;
+  --neg:         #FF3060;
+  --pos-soft:    rgba(0, 216, 144, 0.12);
+  --neg-soft:    rgba(255, 48, 96, 0.12);
+
   --bg-0: #050A12;
   --bg-1: #070D18;
-  --bg-2: #09111E;
-  --ink-0: #FFFFFF;
-  --ink-1: #C8DDE8;
-  --ink-2: #7A9DB8;
-  --ink-3: #3A5868;
-  --teal: #1EC8DC;
-  --teal-soft: #40E8F8;
-  --teal-deep: #0E7A8A;
-  --warn: #FFB020;
-  --pos: #00D890;
-  --neg: #FF3060;
-  --orange: #FF8000;
-  --line: rgba(30, 200, 220, 0.10);
-  --line-strong: rgba(30, 200, 220, 0.22);
-  --panel: rgba(11, 18, 28, 0.78);
-  --panel-2: rgba(7, 12, 21, 0.85);
-  --glow-teal: 0 0 28px rgba(30, 200, 220, 0.55);
-  --glow-soft: 0 0 60px rgba(30, 200, 220, 0.12);
-  --radius-lg: 18px;
-  --radius-md: 12px;
-  --radius-sm: 8px;
-  --tab-h: 64px;
-  /* Stable measured height of the fixed bottom tab dock (icon stack +
-     internal padding). Used as the single source of truth for the
-     bottom clearance every scrollable screen reserves so the dock can
-     never overlap the final visible panel (e.g. AI Signal). */
-  --bottom-nav-height: 64px;
-  /* --app-height is set by app.js from Telegram.WebApp.viewportStableHeight /
-     visualViewport.height. It falls back to 100dvh / 100vh below so the page
-     still sizes correctly before JS runs. */
-  --app-height: 100vh;
-}
+  --bg-2: #0A1220;
+  --bg-card: rgba(8, 14, 24, 0.85);
+  --bg-card-border: rgba(30, 200, 220, 0.1);
 
-* { box-sizing: border-box; }
+  --text-0: #F0F4FF;
+  --text-1: #B0BFCC;
+  --text-2: #6A7D96;
+
+  --font-body:  'Space Grotesk', system-ui, sans-serif;
+  --font-mono:  'Space Mono', 'Courier New', monospace;
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+
+  --topbar-h: 56px;
+  --tabbar-h: 72px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bot: env(safe-area-inset-bottom, 0px);
+}
 
 html, body {
-  margin: 0;
-  padding: 0;
-  /* Opaque, near-black canvas pinned on BOTH html and body. This is the
-     bottom-most paint layer: even if every stylesheet/script after this
-     fails to load, the Telegram WebView can never show through to the
-     chat background or a foreign document/image behind the Mini App. */
-  background-color: #050A12;
-  background: var(--bg-0);
-  color: var(--ink-0);
-  font-family: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  /* Constrain html/body to the visible viewport so the Telegram WebView
-     cannot push the shell off-screen on iOS/Android. width:100% blocks
-     horizontal overflow from any descendant; min-height keeps the page
-     filling the visible area even before JS sets --app-height. */
-  width: 100%;
-  max-width: 100%;
-  min-height: 100%;
-  overflow-x: hidden;
-  overscroll-behavior-y: contain;
-}
-
-/* New stacking context on the root so descendant z-index can never escape
-   to composite behind the page and reveal the host background. */
-html { isolation: isolate; background-color: #050A12; }
-
-body {
-  background:
-    radial-gradient(1200px 800px at 80% -10%, rgba(0, 212, 232, 0.10), transparent 60%),
-    radial-gradient(900px 700px at -10% 30%, rgba(255, 140, 0, 0.06), transparent 60%),
-    radial-gradient(1000px 800px at 60% 110%, rgba(0, 212, 232, 0.06), transparent 60%),
-    var(--bg-0);
-  min-height: 100vh;
-  min-height: 100dvh;
-  min-height: var(--app-height, 100dvh);
-}
-
-button { font: inherit; cursor: pointer; }
-button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
-
-/* ========== Background atmospherics ========== */
-.bg-stack {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
+  height: 100%;
   overflow: hidden;
+  background: var(--bg-0);
+  color: var(--text-0);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
-.bg-grid {
-  position: absolute;
-  inset: -10vh -10vw;
-  background-image:
-    linear-gradient(rgba(0, 212, 232, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 212, 232, 0.05) 1px, transparent 1px);
-  background-size: 48px 48px;
-  mask-image: radial-gradient(ellipse at 50% 30%, black 35%, transparent 80%);
+
+button { cursor: pointer; border: none; background: none; font-family: inherit; color: inherit; }
+input, textarea { font-family: inherit; outline: none; border: none; background: none; color: inherit; }
+select { font-family: inherit; }
+a { color: inherit; text-decoration: none; }
+
+/* -------- BOOT SPLASH -------- */
+.splash {
+  position: fixed; inset: 0; z-index: 999;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg-0);
+  transition: opacity 0.6s ease, visibility 0.6s ease;
+}
+.splash.is-hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+.splash__canvas {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
   opacity: 0.6;
 }
-.bg-glow { position: absolute; border-radius: 50%; filter: blur(80px); }
-.bg-glow--teal {
-  width: 80vw; height: 80vw;
-  top: -30vw; right: -25vw;
-  background: radial-gradient(circle, rgba(0, 212, 232, 0.22), transparent 60%);
-}
-.bg-glow--violet {
-  width: 70vw; height: 70vw;
-  bottom: -25vw; left: -20vw;
-  background: radial-gradient(circle, rgba(255, 140, 0, 0.12), transparent 60%);
-}
-.bg-particles {
-  position: absolute;
-  inset: 0;
-  background-image:
-    radial-gradient(1.5px 1.5px at 20% 30%, rgba(255,255,255,.4), transparent 60%),
-    radial-gradient(1.5px 1.5px at 70% 80%, rgba(0,212,232,.5), transparent 60%),
-    radial-gradient(1px 1px at 40% 60%, rgba(255,255,255,.3), transparent 60%),
-    radial-gradient(1.5px 1.5px at 85% 20%, rgba(0,212,232,.35), transparent 60%);
-  opacity: 0.65;
-}
 
-/* ========== App shell (mobile-first) ========== */
-.app {
-  position: relative;
-  z-index: 1;
-  /* min(460px, 100%) keeps the shell narrower than the viewport on every
-     device; combined with html/body `overflow-x: hidden` this guarantees
-     the app cannot drift horizontally off-screen inside Telegram. */
-  width: 100%;
-  max-width: min(460px, 100%);
-  margin: 0 auto;
-  padding: 14px 14px calc(var(--tab-h) + 28px + env(safe-area-inset-bottom)) 14px;
-  padding-top: calc(14px + env(safe-area-inset-top));
-  /* Vertical sizing: prefer the JS-measured --app-height (Telegram's
-     viewportStableHeight or visualViewport.height) so we always fit
-     inside the visible Telegram viewport. Fall back to dvh, then vh. */
-  min-height: 100vh;
-  min-height: 100dvh;
-  min-height: var(--app-height, 100dvh);
-  /* Block horizontal overflow from any descendant — cards, matrices, the
-     ticker, the topbar label — so nothing pushes the shell sideways. */
-  overflow-x: hidden;
-}
-
-/* ===== Top bar ===== */
-.topbar {
-  display: grid;
-  grid-template-columns: 36px 1fr 36px;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 12px;
-}
-.topbar__btn {
-  width: 36px; height: 36px;
-  background: rgba(0, 212, 232, 0.08);
-  border: 1px solid var(--line-strong);
-  border-radius: 10px;
-  display: grid; place-items: center;
-  color: var(--teal);
-  padding: 0;
-  position: relative;
-}
-.topbar__btn span {
-  display: block;
-  width: 16px; height: 1.6px;
-  margin: 2px 0;
-  background: var(--teal);
-  border-radius: 2px;
-}
-.topbar__btn--bell { gap: 0; }
-.topbar__pulse {
-  position: absolute; top: 5px; right: 5px;
-  width: 7px; height: 7px; border-radius: 50%;
-  background: var(--neg);
-  box-shadow: 0 0 8px var(--neg);
-  animation: pulse 1.8s ease-in-out infinite;
-}
-@keyframes pulse {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.3); opacity: 0.7; }
-}
-.topbar__brand {
+.splash__content {
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 16px;
   text-align: center;
-  font-weight: 800;
-  font-size: 14px;
-  letter-spacing: 0.04em;
-  color: var(--ink-0);
-  cursor: pointer;
-  display: inline-flex; align-items: center; justify-content: center;
-  gap: 8px;
-  min-width: 0;
-}
-.topbar__brand b {
-  background: linear-gradient(180deg, #fff, var(--teal));
-  -webkit-background-clip: text; background-clip: text; color: transparent;
-}
-.topbar__label {
-  display: block;
-  height: 32px;
-  width: auto;
-  max-width: min(58vw, 220px);
-  border-radius: 8px;
-  object-fit: contain;
-  flex-shrink: 1;
-  box-shadow: 0 0 14px rgba(0,212,232,0.18);
-}
-.visually-hidden {
-  position: absolute !important;
-  width: 1px; height: 1px;
-  padding: 0; margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-.topbar__brand-text {
-  display: inline-flex; flex-direction: column; align-items: flex-start;
-  line-height: 1.05; min-width: 0;
-}
-.topbar__brand-line {
-  display: inline-flex; align-items: center; gap: 6px;
-  white-space: nowrap;
-}
-.topbar__brand-sub {
-  font-family: "JetBrains Mono", monospace;
-  font-weight: 600;
-  font-size: 9px;
-  letter-spacing: 0.14em;
-  text-transform: lowercase;
-  color: var(--ink-2);
-  margin-top: 2px;
+  padding: 0 32px;
 }
 
-/* Top section nav was removed by user request — bottom tabbar is the only nav. */
-.dot-live {
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  background: var(--pos);
-  box-shadow: 0 0 8px var(--pos);
-  animation: pulse 2s ease-in-out infinite;
+.splash__logo {
+  animation: pulse-logo 2s ease-in-out infinite;
 }
-.dot-live.is-rest { background: #f5b551; box-shadow: 0 0 8px #f5b551; }
-.dot-live.is-offline { background: var(--neg); box-shadow: 0 0 8px var(--neg); animation: none; }
-.conn-pill {
-  font-family: "JetBrains Mono", monospace;
-  font-weight: 600;
-  font-size: 9.5px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--ink-2);
-  padding: 2px 6px;
-  border-radius: 999px;
-  border: 1px solid var(--line);
-  background: rgba(11, 18, 28, 0.6);
-  margin-left: auto;
-  flex-shrink: 0;
-  white-space: nowrap;
-}
-.conn-pill.is-ws { color: var(--teal); border-color: rgba(0,212,232,.35); }
-.conn-pill.is-rest { color: #f5b551; border-color: rgba(245,181,81,.35); }
-.conn-pill.is-offline { color: var(--neg); border-color: rgba(255,85,119,.35); }
-.row-tick { animation: rowFlash 700ms ease-out 1; }
-@keyframes rowFlash {
-  0% { background: rgba(0,212,232,.18); }
-  100% { background: transparent; }
+@keyframes pulse-logo {
+  0%, 100% { filter: drop-shadow(0 0 12px rgba(30,200,220,0.6)); }
+  50% { filter: drop-shadow(0 0 28px rgba(30,200,220,0.9)); }
 }
 
-/* ===== Screens ===== */
-.screens { position: relative; }
-.screen {
-  display: none;
-  flex-direction: column;
-  gap: 14px;
-  animation: fadeIn .25s ease;
-}
-.screen.is-active { display: flex; }
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.screen__head {
-  display: flex; justify-content: space-between; align-items: center;
-  margin-bottom: 2px;
-}
-.screen__title { margin: 0; font-size: 18px; font-weight: 800; letter-spacing: -0.01em; }
-.screen--ai { gap: 10px; }
-
-/* ===== Cards ===== */
-.card {
-  background: var(--panel);
-  border: 1px solid rgba(0, 212, 232, 0.12);
-  border-radius: var(--radius-lg);
-  padding: 14px;
-  backdrop-filter: blur(8px);
-}
-.card__head {
-  display: flex; justify-content: space-between; align-items: center;
-  margin-bottom: 10px; gap: 8px;
-}
-.card__head h2 { margin: 0; font-size: 14px; font-weight: 700; letter-spacing: 0.02em; }
-
-/* ===== Hero (overview) ===== */
-.hero-card {
-  position: relative;
-  background:
-    radial-gradient(120% 60% at 50% 0%, rgba(0, 212, 232, 0.12), transparent 60%),
-    var(--panel);
-  border: 1px solid rgba(0, 212, 232, 0.14);
-  border-radius: var(--radius-lg);
-  padding: 14px;
-  backdrop-filter: blur(8px);
-  overflow: hidden;
-  transition: border-color .2s ease, background .2s ease;
-}
-.hero-card__top {
-  position: relative;
-  display: grid;
-  grid-template-columns: 38px 1fr auto;
-  gap: 10px;
-  align-items: center;
-  z-index: 1;
-}
-
-/* Per-coin hero banner strip behind the top row */
-.hero-card__banner {
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 88px;
-  pointer-events: none;
-  overflow: hidden;
-  opacity: 0.95;
-  z-index: 0;
-  border-top-left-radius: var(--radius-lg);
-  border-top-right-radius: var(--radius-lg);
-  background:
-    radial-gradient(120% 80% at 80% -20%, var(--coin-glow, rgba(0,212,232,.18)), transparent 60%),
-    linear-gradient(135deg, var(--coin-c1, rgba(247,163,48,.18)) 0%, var(--coin-c2, rgba(224,122,9,.04)) 70%, transparent 100%);
-  transition: background .35s ease;
-}
-.hero-card__banner::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    repeating-linear-gradient(135deg, rgba(255,255,255,.025) 0 1px, transparent 1px 14px),
-    linear-gradient(180deg, transparent 55%, var(--panel) 100%);
-}
-.hero-card__banner-glyph {
-  position: absolute;
-  right: 12px; top: 6px;
-  font-family: "JetBrains Mono", monospace;
-  font-weight: 800;
-  font-size: 56px;
-  line-height: 1;
-  color: var(--coin-ink, rgba(255,255,255,.10));
-  opacity: 0.55;
-  letter-spacing: -0.02em;
-  text-shadow: 0 4px 18px var(--coin-glow, rgba(0,212,232,.18));
-}
-.hero-card__banner-tag {
-  position: absolute;
-  left: 14px; top: 8px;
-  font-family: "JetBrains Mono", monospace;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--coin-tag, var(--ink-2));
-  padding: 2px 6px;
-  border-radius: 4px;
-  background: rgba(0,0,0,0.35);
-  border: 1px solid var(--coin-line, var(--line));
-}
-
-/* Coin identity mark (round chip in hero) */
-.coin-mark {
-  width: 36px; height: 36px;
-  border-radius: 50%;
-  background: var(--coin-mark-bg, linear-gradient(180deg, #f7a330, #e07a09));
-  color: var(--coin-mark-fg, #1a0f00);
-  font-weight: 800;
-  display: grid; place-items: center;
-  font-size: 18px;
-  box-shadow: 0 4px 14px var(--coin-glow, rgba(247, 163, 48, 0.4));
-  font-family: "JetBrains Mono", monospace;
-  transition: background .25s ease, box-shadow .25s ease;
-  overflow: hidden;
-}
-/* Inline SVG logo fills its parent chip; padding keeps the mark inside the
-   circular gradient. Works for .coin-mark, .row-coin, .coin-chip__mark and
-   the .last-signal__mark variant. */
-.coin-mark > svg.coin-logo,
-.row-coin > svg.coin-logo,
-.coin-chip__mark > svg.coin-logo {
-  width: 78%; height: 78%;
-  display: block;
-}
-/* Back-compat alias used elsewhere */
-.coin-btc { width: 36px; height: 36px; border-radius: 50%; }
-
-/* ===== Per-coin identity palettes =====
- * Used on .hero-card, .coin-mark, .row-coin, .matrix-cell when [data-coin] is set.
- * Variables: --coin-c1/c2 (banner gradient), --coin-glow, --coin-ink (big glyph),
- *            --coin-mark-bg, --coin-mark-fg, --coin-line, --coin-tag.
- */
-[data-coin="BTC"] {
-  --coin-c1: rgba(247,163,48,.32);
-  --coin-c2: rgba(224,122,9,.05);
-  --coin-glow: rgba(247,163,48,.45);
-  --coin-ink: rgba(247,163,48,.55);
-  --coin-mark-bg: linear-gradient(180deg, #f7a330, #e07a09);
-  --coin-mark-fg: #1a0f00;
-  --coin-line: rgba(247,163,48,.35);
-  --coin-tag: #ffcb7a;
-}
-[data-coin="ETH"] {
-  --coin-c1: rgba(30, 200, 220, .30);
-  --coin-c2: rgba(30, 200, 220, .05);
-  --coin-glow: rgba(30, 200, 220, .45);
-  --coin-ink: rgba(30, 200, 220, .55);
-  --coin-mark-bg: linear-gradient(180deg, #1EC8DC, #0E7A8A);
-  --coin-mark-fg: #0a0d24;
-  --coin-line: rgba(30, 200, 220, .35);
-  --coin-tag: #b8c0ff;
-}
-[data-coin="SOL"] {
-  --coin-c1: rgba(30, 200, 220, .28);
-  --coin-c2: rgba(20,241,149,.10);
-  --coin-glow: rgba(30, 200, 220, .45);
-  --coin-ink: rgba(30, 200, 220, .55);
-  --coin-mark-bg: linear-gradient(135deg, #1EC8DC 0%, #14f195 100%);
-  --coin-mark-fg: #0d0820;
-  --coin-line: rgba(30, 200, 220, .35);
-  --coin-tag: #d8b8ff;
-}
-[data-coin="TON"] {
-  --coin-c1: rgba(30, 200, 220, .32);
-  --coin-c2: rgba(30, 200, 220, .05);
-  --coin-glow: rgba(30, 200, 220, .45);
-  --coin-ink: rgba(30, 200, 220, .55);
-  --coin-mark-bg: linear-gradient(180deg, #38b6ff, #1EC8DC);
-  --coin-mark-fg: #001a2c;
-  --coin-line: rgba(30, 200, 220, .35);
-  --coin-tag: #b6e5ff;
-}
-[data-coin="BNB"] {
-  --coin-c1: rgba(243,186,47,.32);
-  --coin-c2: rgba(202,135,18,.05);
-  --coin-glow: rgba(243,186,47,.45);
-  --coin-ink: rgba(243,186,47,.55);
-  --coin-mark-bg: linear-gradient(135deg, #f3ba2f 0%, #b07c0a 100%);
-  --coin-mark-fg: #1a1100;
-  --coin-line: rgba(243,186,47,.35);
-  --coin-tag: #ffd97a;
-}
-[data-coin="XRP"] {
-  --coin-c1: rgba(120,140,160,.32);
-  --coin-c2: rgba(0,212,232,.10);
-  --coin-glow: rgba(0,212,232,.40);
-  --coin-ink: rgba(220,228,240,.55);
-  --coin-mark-bg: linear-gradient(180deg, #d6dde5, #50606e);
-  --coin-mark-fg: #06090f;
-  --coin-line: rgba(180,200,220,.35);
-  --coin-tag: #e3edf5;
-}
-[data-coin="DEFAULT"] {
-  --coin-c1: rgba(0,212,232,.22);
-  --coin-c2: rgba(0,50,80,.06);
-  --coin-glow: rgba(0,212,232,.35);
-  --coin-ink: rgba(180,220,240,.50);
-  --coin-mark-bg: linear-gradient(135deg, #00D4E8 0%, #070D18 100%);
-  --coin-mark-fg: #04070d;
-  --coin-line: rgba(0,212,232,.30);
-  --coin-tag: #b6f1f7;
-}
-[data-coin="DOGE"] {
-  --coin-c1: rgba(194,159,72,.32); --coin-c2: rgba(150,110,30,.06);
-  --coin-glow: rgba(212,180,90,.45); --coin-ink: rgba(232,200,130,.55);
-  --coin-mark-bg: linear-gradient(180deg, #e7c97a, #a07e2d);
-  --coin-mark-fg: #1a1100; --coin-line: rgba(212,180,90,.35); --coin-tag: #ffe39a;
-}
-[data-coin="ADA"] {
-  --coin-c1: rgba(30, 200, 220, .32); --coin-c2: rgba(30, 200, 220, .06);
-  --coin-glow: rgba(30, 200, 220, .45); --coin-ink: rgba(30, 200, 220, .55);
-  --coin-mark-bg: linear-gradient(180deg, #3cc8ff, #0E7A8A);
-  --coin-mark-fg: #001028; --coin-line: rgba(30, 200, 220, .35); --coin-tag: #b3d8ff;
-}
-[data-coin="AVAX"] {
-  --coin-c1: rgba(232,65,66,.32); --coin-c2: rgba(140,30,30,.06);
-  --coin-glow: rgba(232,65,66,.45); --coin-ink: rgba(255,140,140,.55);
-  --coin-mark-bg: linear-gradient(180deg, #ff6864, #a01e1f);
-  --coin-mark-fg: #20040a; --coin-line: rgba(232,65,66,.35); --coin-tag: #ffb3b3;
-}
-[data-coin="LINK"] {
-  --coin-c1: rgba(30, 200, 220, .32); --coin-c2: rgba(30, 200, 220, .06);
-  --coin-glow: rgba(30, 200, 220, .45); --coin-ink: rgba(30, 200, 220, .55);
-  --coin-mark-bg: linear-gradient(180deg, #40D0E8, #0E7A8A);
-  --coin-mark-fg: #04081f; --coin-line: rgba(30, 200, 220, .35); --coin-tag: #c8d6ff;
-}
-[data-coin="DOT"] {
-  --coin-c1: rgba(230,0,122,.30); --coin-c2: rgba(130,0,70,.06);
-  --coin-glow: rgba(230,0,122,.45); --coin-ink: rgba(255,140,200,.55);
-  --coin-mark-bg: linear-gradient(180deg, #ff5fb0, #b00060);
-  --coin-mark-fg: #20051a; --coin-line: rgba(230,0,122,.35); --coin-tag: #ffb6db;
-}
-[data-coin="POL"], [data-coin="MATIC"] {
-  --coin-c1: rgba(30, 200, 220, .32); --coin-c2: rgba(30, 200, 220, .06);
-  --coin-glow: rgba(30, 200, 220, .45); --coin-ink: rgba(30, 200, 220, .55);
-  --coin-mark-bg: linear-gradient(135deg, #40D0E8 0%, #0E7A8A 100%);
-  --coin-mark-fg: #100822; --coin-line: rgba(30, 200, 220, .35); --coin-tag: #d6c2ff;
-}
-[data-coin="LTC"] {
-  --coin-c1: rgba(180,200,220,.30); --coin-c2: rgba(30, 200, 220, .06);
-  --coin-glow: rgba(180,200,220,.40); --coin-ink: rgba(220,228,240,.55);
-  --coin-mark-bg: linear-gradient(180deg, #cad8e5, #6f7c8a);
-  --coin-mark-fg: #06090f; --coin-line: rgba(180,200,220,.35); --coin-tag: #e3edf5;
-}
-[data-coin="TRX"] {
-  --coin-c1: rgba(255,6,10,.30); --coin-c2: rgba(140,0,0,.06);
-  --coin-glow: rgba(255,40,40,.45); --coin-ink: rgba(255,160,160,.55);
-  --coin-mark-bg: linear-gradient(180deg, #ff5b5b, #b80000);
-  --coin-mark-fg: #20040a; --coin-line: rgba(255,40,40,.35); --coin-tag: #ffb3b3;
-}
-[data-coin="NEAR"] {
-  --coin-c1: rgba(60,200,140,.28); --coin-c2: rgba(10,10,10,.10);
-  --coin-glow: rgba(120,220,170,.45); --coin-ink: rgba(180,240,210,.55);
-  --coin-mark-bg: linear-gradient(180deg, #2dd690, #0e2a1e);
-  --coin-mark-fg: #04070d; --coin-line: rgba(120,220,170,.35); --coin-tag: #bff0d6;
-}
-[data-coin="ARB"] {
-  --coin-c1: rgba(30, 200, 220, .30); --coin-c2: rgba(30, 200, 220, .06);
-  --coin-glow: rgba(30, 200, 220, .45); --coin-ink: rgba(30, 200, 220, .55);
-  --coin-mark-bg: linear-gradient(180deg, #50b5ff, #0E7A8A);
-  --coin-mark-fg: #02101e; --coin-line: rgba(30, 200, 220, .35); --coin-tag: #b8e1ff;
-}
-[data-coin="OP"] {
-  --coin-c1: rgba(255,4,32,.30); --coin-c2: rgba(140,0,10,.06);
-  --coin-glow: rgba(255,40,80,.45); --coin-ink: rgba(255,160,180,.55);
-  --coin-mark-bg: linear-gradient(180deg, #ff5577, #b00020);
-  --coin-mark-fg: #20040a; --coin-line: rgba(255,40,80,.35); --coin-tag: #ffb6c2;
-}
-[data-coin="SUI"] {
-  --coin-c1: rgba(30, 200, 220, .30); --coin-c2: rgba(30, 200, 220, .06);
-  --coin-glow: rgba(30, 200, 220, .45); --coin-ink: rgba(30, 200, 220, .55);
-  --coin-mark-bg: linear-gradient(135deg, #6fbcf0 0%, #0E7A8A 100%);
-  --coin-mark-fg: #02141f; --coin-line: rgba(30, 200, 220, .35); --coin-tag: #c5e6ff;
-}
-[data-coin="APT"] {
-  --coin-c1: rgba(20,90,90,.30); --coin-c2: rgba(0,40,40,.06);
-  --coin-glow: rgba(40,160,160,.40); --coin-ink: rgba(140,220,220,.55);
-  --coin-mark-bg: linear-gradient(180deg, #2cb5b1, #0a3a3a);
-  --coin-mark-fg: #04070d; --coin-line: rgba(40,160,160,.35); --coin-tag: #b3eaea;
-}
-[data-coin="PEPE"], [data-coin="1000PEPE"] {
-  --coin-c1: rgba(70,200,80,.30); --coin-c2: rgba(20,80,30,.06);
-  --coin-glow: rgba(120,230,140,.45); --coin-ink: rgba(180,240,180,.55);
-  --coin-mark-bg: linear-gradient(135deg, #6dd56d 0%, #2a7f30 100%);
-  --coin-mark-fg: #04130a; --coin-line: rgba(120,230,140,.35); --coin-tag: #c6f0c6;
-}
-[data-coin="SHIB"], [data-coin="1000SHIB"] {
-  --coin-c1: rgba(255,138,53,.32); --coin-c2: rgba(140,60,10,.06);
-  --coin-glow: rgba(255,138,53,.45); --coin-ink: rgba(255,200,150,.55);
-  --coin-mark-bg: linear-gradient(180deg, #ffa45b, #b3531a);
-  --coin-mark-fg: #20100a; --coin-line: rgba(255,138,53,.35); --coin-tag: #ffd1a8;
-}
-[data-coin="BCH"] {
-  --coin-c1: rgba(110,200,80,.30); --coin-c2: rgba(40,100,30,.06);
-  --coin-glow: rgba(140,220,100,.45); --coin-ink: rgba(190,240,170,.55);
-  --coin-mark-bg: linear-gradient(180deg, #8edc69, #2c7b1f);
-  --coin-mark-fg: #04140a; --coin-line: rgba(140,220,100,.35); --coin-tag: #c8efb2;
-}
-[data-coin="UNI"] {
-  --coin-c1: rgba(255,90,180,.30); --coin-c2: rgba(140,30,90,.06);
-  --coin-glow: rgba(255,90,180,.45); --coin-ink: rgba(255,170,220,.55);
-  --coin-mark-bg: linear-gradient(135deg, #ff70bc 0%, #b22678 100%);
-  --coin-mark-fg: #20051a; --coin-line: rgba(255,90,180,.35); --coin-tag: #ffc0e0;
-}
-[data-coin="ATOM"] {
-  --coin-c1: rgba(30, 200, 220, .30); --coin-c2: rgba(30, 200, 220, .06);
-  --coin-glow: rgba(30, 200, 220, .45); --coin-ink: rgba(30, 200, 220, .55);
-  --coin-mark-bg: linear-gradient(180deg, #1EC8DC, #0A5060);
-  --coin-mark-fg: #04070d; --coin-line: rgba(30, 200, 220, .35); --coin-tag: #c5cbff;
-}
-[data-coin="ETC"] {
-  --coin-c1: rgba(60,160,90,.30); --coin-c2: rgba(20,70,30,.06);
-  --coin-glow: rgba(80,200,110,.40); --coin-ink: rgba(170,230,180,.55);
-  --coin-mark-bg: linear-gradient(180deg, #5fc97e, #1f5c2c);
-  --coin-mark-fg: #04140a; --coin-line: rgba(80,200,110,.35); --coin-tag: #b8e8c2;
-}
-[data-coin="FIL"] {
-  --coin-c1: rgba(38,180,200,.30); --coin-c2: rgba(20,80,90,.06);
-  --coin-glow: rgba(60,210,230,.40); --coin-ink: rgba(160,220,230,.55);
-  --coin-mark-bg: linear-gradient(135deg, #4dd3e2 0%, #0E7A8A 100%);
-  --coin-mark-fg: #03141a; --coin-line: rgba(60,210,230,.35); --coin-tag: #b6ecf3;
-}
-[data-coin="INJ"] {
-  --coin-c1: rgba(0,228,222,.30); --coin-c2: rgba(0,90,90,.06);
-  --coin-glow: rgba(0,228,222,.45); --coin-ink: rgba(140,240,235,.55);
-  --coin-mark-bg: linear-gradient(180deg, #2af1e8, #0E7A8A);
-  --coin-mark-fg: #02181a; --coin-line: rgba(0,228,222,.35); --coin-tag: #b0f3ef;
-}
-[data-coin="TIA"] {
-  --coin-c1: rgba(30, 200, 220, .30); --coin-c2: rgba(30, 200, 220, .06);
-  --coin-glow: rgba(30, 200, 220, .45); --coin-ink: rgba(30, 200, 220, .55);
-  --coin-mark-bg: linear-gradient(135deg, #40D0E8 0%, #0E7A8A 100%);
-  --coin-mark-fg: #100620; --coin-line: rgba(30, 200, 220, .35); --coin-tag: #d6c4ff;
-}
-[data-coin="WLD"] {
-  --coin-c1: rgba(180,180,180,.28); --coin-c2: rgba(60,60,60,.06);
-  --coin-glow: rgba(200,200,210,.40); --coin-ink: rgba(220,220,230,.55);
-  --coin-mark-bg: linear-gradient(180deg, #d6d6d6, #555555);
-  --coin-mark-fg: #07090d; --coin-line: rgba(200,200,210,.35); --coin-tag: #e3e3eb;
-}
-[data-coin="AAVE"] {
-  --coin-c1: rgba(30, 200, 220, .30); --coin-c2: rgba(30, 200, 220, .06);
-  --coin-glow: rgba(30, 200, 220, .45); --coin-ink: rgba(220,180,255,.55);
-  --coin-mark-bg: linear-gradient(135deg, #b6509e 0%, #0E7A8A 100%);
-  --coin-mark-fg: #160622; --coin-line: rgba(30, 200, 220, .35); --coin-tag: #e3c0ff;
-}
-[data-coin="RNDR"] {
-  --coin-c1: rgba(229,67,80,.30); --coin-c2: rgba(120,20,30,.06);
-  --coin-glow: rgba(229,67,80,.45); --coin-ink: rgba(255,160,170,.55);
-  --coin-mark-bg: linear-gradient(180deg, #ff6770, #9c1722);
-  --coin-mark-fg: #20040a; --coin-line: rgba(229,67,80,.35); --coin-tag: #ffb6bc;
-}
-[data-coin="FTM"] {
-  --coin-c1: rgba(30, 200, 220, .30); --coin-c2: rgba(30, 200, 220, .06);
-  --coin-glow: rgba(30, 200, 220, .45); --coin-ink: rgba(30, 200, 220, .55);
-  --coin-mark-bg: linear-gradient(180deg, #4bb6ff, #0E7A8A);
-  --coin-mark-fg: #021527; --coin-line: rgba(30, 200, 220, .35); --coin-tag: #b8dcff;
-}
-[data-coin="HBAR"] {
-  --coin-c1: rgba(100,100,100,.26); --coin-c2: rgba(30,30,30,.06);
-  --coin-glow: rgba(160,160,170,.35); --coin-ink: rgba(200,200,210,.50);
-  --coin-mark-bg: linear-gradient(180deg, #c0c0c8, #4a4a52);
-  --coin-mark-fg: #07090d; --coin-line: rgba(160,160,170,.30); --coin-tag: #d8d8e0;
-}
-[data-coin="ICP"] {
-  --coin-c1: rgba(255,100,90,.28); --coin-c2: rgba(100,30,140,.10);
-  --coin-glow: rgba(255,120,180,.45); --coin-ink: rgba(255,170,200,.55);
-  --coin-mark-bg: linear-gradient(135deg, #ff6e7b 0%, #0E7A8A 100%);
-  --coin-mark-fg: #20040a; --coin-line: rgba(255,120,180,.35); --coin-tag: #ffbacb;
-}
-[data-coin="ALGO"] {
-  --coin-c1: rgba(200,200,200,.26); --coin-c2: rgba(50,50,50,.06);
-  --coin-glow: rgba(220,220,220,.40); --coin-ink: rgba(230,230,235,.55);
-  --coin-mark-bg: linear-gradient(180deg, #d8d8d8, #444444);
-  --coin-mark-fg: #07090d; --coin-line: rgba(220,220,220,.30); --coin-tag: #ebebeb;
-}
-[data-coin="GALA"], [data-coin="SAND"], [data-coin="MANA"], [data-coin="AXS"] {
-  --coin-c1: rgba(232,80,140,.28); --coin-c2: rgba(110,30,70,.06);
-  --coin-glow: rgba(255,120,170,.45); --coin-ink: rgba(255,180,210,.55);
-  --coin-mark-bg: linear-gradient(135deg, #ff7aaf 0%, #b22678 100%);
-  --coin-mark-fg: #20051a; --coin-line: rgba(232,80,140,.35); --coin-tag: #ffc0d8;
-}
-[data-coin="STX"] {
-  --coin-c1: rgba(30, 200, 220, .30); --coin-c2: rgba(30, 200, 220, .06);
-  --coin-glow: rgba(30, 200, 220, .45); --coin-ink: rgba(30, 200, 220, .55);
-  --coin-mark-bg: linear-gradient(135deg, #1EC8DC 0%, #0E7A8A 100%);
-  --coin-mark-fg: #04070d; --coin-line: rgba(30, 200, 220, .35); --coin-tag: #c8c0ff;
-}
-[data-coin="SEI"] {
-  --coin-c1: rgba(150,30,90,.28); --coin-c2: rgba(60,10,40,.06);
-  --coin-glow: rgba(220,80,140,.40); --coin-ink: rgba(240,160,200,.55);
-  --coin-mark-bg: linear-gradient(180deg, #cc4b7e, #631b3a);
-  --coin-mark-fg: #20060f; --coin-line: rgba(220,80,140,.35); --coin-tag: #f2bdd1;
-}
-[data-coin="BLUR"] {
-  --coin-c1: rgba(255,150,50,.28); --coin-c2: rgba(80,40,10,.06);
-  --coin-glow: rgba(255,170,80,.45); --coin-ink: rgba(255,200,130,.55);
-  --coin-mark-bg: linear-gradient(180deg, #ffaa55, #8a4b14);
-  --coin-mark-fg: #20100a; --coin-line: rgba(255,170,80,.35); --coin-tag: #ffd9a8;
-}
-[data-coin="PYTH"], [data-coin="JTO"], [data-coin="JUP"] {
-  --coin-c1: rgba(30, 200, 220, .28); --coin-c2: rgba(30, 200, 220, .06);
-  --coin-glow: rgba(30, 200, 220, .45); --coin-ink: rgba(30, 200, 220, .55);
-  --coin-mark-bg: linear-gradient(135deg, #40D0E8 0%, #0E7A8A 100%);
-  --coin-mark-fg: #100622; --coin-line: rgba(30, 200, 220, .35); --coin-tag: #d8c2ff;
-}
-[data-coin="WIF"] {
-  --coin-c1: rgba(255,200,90,.30); --coin-c2: rgba(100,60,10,.06);
-  --coin-glow: rgba(255,210,110,.45); --coin-ink: rgba(255,230,170,.55);
-  --coin-mark-bg: linear-gradient(180deg, #ffce6e, #9c6a14);
-  --coin-mark-fg: #20140a; --coin-line: rgba(255,210,110,.35); --coin-tag: #ffe7b3;
-}
-[data-coin="ORDI"] {
-  --coin-c1: rgba(180,140,80,.30); --coin-c2: rgba(80,50,20,.06);
-  --coin-glow: rgba(220,180,120,.45); --coin-ink: rgba(240,210,160,.55);
-  --coin-mark-bg: linear-gradient(180deg, #d4ad6c, #6a4216);
-  --coin-mark-fg: #20140a; --coin-line: rgba(220,180,120,.35); --coin-tag: #f0d2a6;
-}
-[data-coin="BONK"] {
-  --coin-c1: rgba(255,170,40,.30); --coin-c2: rgba(120,60,10,.06);
-  --coin-glow: rgba(255,180,60,.45); --coin-ink: rgba(255,210,140,.55);
-  --coin-mark-bg: linear-gradient(180deg, #ffba48, #9a5a14);
-  --coin-mark-fg: #20100a; --coin-line: rgba(255,180,60,.35); --coin-tag: #ffd99c;
-}
-[data-coin="FLOKI"] {
-  --coin-c1: rgba(255,140,90,.28); --coin-c2: rgba(120,50,10,.06);
-  --coin-glow: rgba(255,160,100,.45); --coin-ink: rgba(255,200,160,.55);
-  --coin-mark-bg: linear-gradient(180deg, #ff9b65, #8e4119);
-  --coin-mark-fg: #20100a; --coin-line: rgba(255,160,100,.35); --coin-tag: #ffd0b3;
-}
-[data-coin="RUNE"] {
-  --coin-c1: rgba(48,255,164,.28); --coin-c2: rgba(0,80,50,.06);
-  --coin-glow: rgba(60,240,180,.45); --coin-ink: rgba(150,250,210,.55);
-  --coin-mark-bg: linear-gradient(180deg, #4ff0ac, #0c6a45);
-  --coin-mark-fg: #04140a; --coin-line: rgba(60,240,180,.35); --coin-tag: #b8f0d4;
-}
-[data-coin="GMX"], [data-coin="DYDX"], [data-coin="ENS"],
-[data-coin="CRV"], [data-coin="COMP"], [data-coin="MKR"],
-[data-coin="SNX"], [data-coin="LDO"] {
-  --coin-c1: rgba(30, 200, 220, .28); --coin-c2: rgba(30, 200, 220, .08);
-  --coin-glow: rgba(30, 200, 220, .40); --coin-ink: rgba(30, 200, 220, .55);
-  --coin-mark-bg: linear-gradient(135deg, #1EC8DC 0%, #1EC8DC 100%);
-  --coin-mark-fg: #02101e; --coin-line: rgba(30, 200, 220, .30); --coin-tag: #b8d8f5;
-}
-.hero-card__row { display: flex; align-items: center; gap: 8px; }
-.hero-card__row b { font-size: 15px; font-weight: 800; letter-spacing: 0.02em; }
-.badge {
-  font-size: 9px;
-  padding: 2px 6px;
-  border-radius: 4px;
-  letter-spacing: 0.05em;
-  font-weight: 600;
-  white-space: nowrap;
-}
-.badge--mute { background: rgba(124, 138, 163, 0.15); color: var(--ink-2); }
-.badge--beta { background: rgba(0, 212, 232, 0.15); color: var(--teal); }
-.hero-card__price {
-  font-family: "JetBrains Mono", monospace;
+.splash__title {
   font-size: 22px;
   font-weight: 700;
-  color: var(--ink-0);
-  display: flex; gap: 8px; align-items: baseline;
-  margin-top: 2px;
+  letter-spacing: 0.1em;
+  color: var(--text-0);
 }
-.hero-card__price em {
-  font-style: normal;
-  font-family: "Manrope", sans-serif;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--pos);
+.splash__ai {
+  background: linear-gradient(90deg, var(--teal), var(--orange));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
-.hero-card__price em.dn { color: var(--neg); }
-.hero-card__sub { font-size: 10.5px; color: var(--ink-2); margin-top: 2px; }
-.trend-up { color: var(--teal); }
 
-.tf-tabs {
-  display: flex; gap: 4px;
-  margin: 12px 0 8px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-}
-.tf-tabs::-webkit-scrollbar { display: none; }
-.tf-tabs button {
-  background: transparent;
-  border: 1px solid transparent;
-  color: var(--ink-2);
-  padding: 5px 10px;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: 600;
-  white-space: nowrap;
-  transition: background .15s ease, color .15s ease;
-}
-.tf-tabs button.is-active {
-  background: rgba(0, 212, 232, 0.15);
-  border-color: rgba(0, 212, 232, 0.35);
-  color: var(--ink-0);
-}
-.tf-tabs button:hover:not(.is-active) {
-  color: var(--ink-1);
-  background: rgba(0, 212, 232, 0.05);
-}
-.tf-tabs--row { margin: 0; padding-bottom: 4px; }
-
-.chart-wrap {
-  position: relative;
-  background: rgba(7, 12, 21, 0.55);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 8px 8px 22px 8px;
-  height: 150px;
-  overflow: hidden;
-}
-.chart-wrap svg { width: 100%; height: calc(100% - 14px); display: block; }
-.chart-tag {
-  position: absolute;
-  top: 8px; right: 8px;
-  background: rgba(0, 212, 232, 0.15);
-  border: 1px solid rgba(0, 212, 232, 0.45);
-  color: var(--teal);
-  font-family: "JetBrains Mono", monospace;
-  font-size: 10px;
-  font-weight: 600;
-  padding: 2px 6px;
-  border-radius: 4px;
-  line-height: 1.1;
-}
-.chart-axis {
-  position: absolute;
-  color: var(--ink-3);
-  font-family: "JetBrains Mono", monospace;
-}
-.chart-axis--x {
-  bottom: 4px; left: 8px; right: 8px;
-  display: flex; justify-content: space-between;
-  font-size: 8px;
-}
-.chart-axis--x i { font-style: normal; }
-
-.metric-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-  margin-top: 10px;
-}
-.metric {
-  background: rgba(7, 12, 21, 0.55);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 8px 8px 9px;
-}
-.metric__name { font-size: 9.5px; color: var(--ink-2); letter-spacing: 0.04em; }
-.metric__value {
-  font-family: "JetBrains Mono", monospace;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--ink-0);
-  margin: 2px 0 3px;
-}
-.metric__tag {
-  font-size: 9px;
-  display: inline-block;
-  padding: 1px 5px;
-  border-radius: 4px;
-  font-weight: 600;
-}
-.metric__tag--mute { color: var(--ink-2); background: rgba(124, 138, 163, 0.15); }
-.metric__tag--pos { color: var(--pos); background: rgba(45, 214, 144, 0.15); }
-.metric__bars { display: flex; gap: 2px; align-items: flex-end; height: 14px; margin-top: 3px; }
-.metric__bars i { width: 3px; background: linear-gradient(180deg, var(--teal-deep), var(--teal)); border-radius: 1px; opacity: 0.7; display:block; }
-.metric__bars i:nth-child(1){height: 30%}
-.metric__bars i:nth-child(2){height: 45%}
-.metric__bars i:nth-child(3){height: 35%}
-.metric__bars i:nth-child(4){height: 60%}
-.metric__bars i:nth-child(5){height: 50%}
-.metric__bars i:nth-child(6){height: 70%}
-.metric__bars i:nth-child(7){height: 55%}
-.metric__bars i:nth-child(8){height: 80%}
-.metric__bars i:nth-child(9){height: 65%}
-.metric__bars i:nth-child(10){height: 100%; opacity: 1;}
-
-/* ===== KPIs ===== */
-.kpis {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-}
-.kpi {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 10px 10px;
-}
-.kpi-label { font-size: 10px; color: var(--ink-2); letter-spacing: 0.02em; line-height: 1.2; }
-.kpi-value {
-  font-family: "JetBrains Mono", monospace;
-  font-size: 22px; font-weight: 700;
-  color: var(--ink-0);
-  margin: 4px 0 2px;
-  display: inline-flex; align-items: baseline; gap: 2px;
-}
-.kpi-unit { font-size: 12px; color: var(--teal); }
-.kpi-trend { font-size: 10px; }
-.kpi-trend.up { color: var(--pos); }
-.kpi-trend.flat { color: var(--ink-2); }
-.kpi-trend.dn { color: var(--neg); }
-
-/* ===== AI summary card ===== */
-.ai-summary__body { display: flex; gap: 12px; align-items: flex-start; }
-.ai-summary__icon { font-size: 26px; line-height: 1; }
-.ai-summary__body p { margin: 0; color: var(--ink-1); font-size: 13px; line-height: 1.5; }
-.chip {
-  font: inherit; font-size: 11px;
-  background: rgba(0, 212, 232, 0.08);
-  border: 1px solid rgba(0, 212, 232, 0.22);
-  color: var(--teal);
-  padding: 5px 10px; border-radius: 99px;
-}
-.chip--ghost { background: transparent; }
-.chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
-.chips span {
-  font-size: 11px;
-  background: rgba(0, 212, 232, 0.05);
-  border: 1px solid var(--line);
-  color: var(--ink-1);
-  padding: 4px 10px;
-  border-radius: 99px;
-}
-.chips b { color: var(--ink-2); font-weight: 600; }
-.chips em { color: var(--teal); font-style: normal; }
-
-/* ===== Market top rows (overview) ===== */
-.rows { display: flex; flex-direction: column; }
-.row-line {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px dashed var(--line);
+.splash__tagline {
   font-size: 13px;
-  color: var(--ink-1);
-}
-.row-line:last-child { border-bottom: none; }
-.row-line b { color: var(--ink-0); font-family: "JetBrains Mono", monospace; }
-.row-coin {
-  width: 30px; height: 30px;
-  border-radius: 50%;
-  display: grid; place-items: center;
-  font-weight: 800;
-  font-size: 11px;
-  color: var(--coin-mark-fg, var(--ink-0));
-  background: var(--coin-mark-bg, linear-gradient(180deg, rgba(0, 212, 232, 0.2), rgba(0, 212, 232, 0.05)));
-  border: 1px solid var(--coin-line, var(--line-strong));
-  box-shadow: 0 2px 8px var(--coin-glow, transparent);
-  font-family: "JetBrains Mono", monospace;
-  letter-spacing: 0.02em;
-}
-
-/* ===== Signals screen ===== */
-.signals-list { display: flex; flex-direction: column; gap: 10px; }
-.signal-card {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  padding: 14px;
-  position: relative;
-  overflow: hidden;
-  cursor: pointer;
-  transition: transform .15s ease, border-color .15s ease;
-}
-.signal-card:hover { border-color: var(--line-strong); transform: translateY(-1px); }
-.signal-card--long::before, .signal-card--short::before {
-  content: "";
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 3px;
-}
-.signal-card--long::before { background: linear-gradient(180deg, var(--teal), var(--pos)); }
-.signal-card--short::before { background: linear-gradient(180deg, var(--orange), var(--neg)); }
-.signal-card[data-coin]::after {
-  content: "";
-  position: absolute;
-  right: -20px; top: -20px;
-  width: 90px; height: 90px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 50% 50%, var(--coin-glow, transparent) 0%, transparent 65%);
-  pointer-events: none;
-  opacity: 0.6;
-}
-
-.signal-card__head {
-  display: flex; justify-content: space-between; align-items: center; gap: 10px;
-  margin-bottom: 8px;
-}
-.signal-card__sym {
-  display: inline-flex; align-items: center; gap: 8px;
-  font-weight: 800; font-size: 14px;
-}
-.signal-card__dir {
-  font-family: "JetBrains Mono", monospace;
-  font-weight: 800;
-  font-size: 11px;
-  padding: 3px 8px;
-  border-radius: 6px;
-  letter-spacing: 0.05em;
-}
-.signal-card__dir.up { background: rgba(45, 214, 144, 0.15); color: var(--pos); border: 1px solid rgba(45, 214, 144, 0.35); }
-.signal-card__dir.dn { background: rgba(255, 85, 119, 0.15); color: var(--neg); border: 1px solid rgba(255, 85, 119, 0.35); }
-.signal-card__grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 8px;
-  margin-top: 6px;
-}
-.signal-card__cell {
-  background: rgba(7, 12, 21, 0.5);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 6px 8px;
-}
-.signal-card__cell-label { font-size: 9px; color: var(--ink-2); letter-spacing: 0.04em; text-transform: uppercase; }
-.signal-card__cell-value {
-  font-family: "JetBrains Mono", monospace;
-  font-size: 13px; font-weight: 700;
-  color: var(--ink-0);
-  margin-top: 2px;
-}
-.signal-card__cell--danger .signal-card__cell-value { color: var(--neg); }
-.signal-card__foot {
-  display: flex; justify-content: space-between; align-items: center;
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px dashed var(--line);
-  font-size: 11px;
-  color: var(--ink-2);
-  gap: 8px;
-}
-.signal-card__foot b { color: var(--ink-0); margin-left: 4px; }
-.signal-card__conf {
-  display: inline-flex; align-items: center; gap: 6px;
-}
-.signal-card__conf-bar {
-  width: 60px; height: 4px;
-  background: rgba(124, 138, 163, 0.2);
-  border-radius: 99px;
-  overflow: hidden;
-}
-.signal-card__conf-bar i {
-  display: block; height: 100%;
-  background: linear-gradient(90deg, var(--teal-deep), var(--teal));
-  border-radius: 99px;
-}
-.signal-card__cta {
-  background: transparent;
-  border: 1px solid rgba(0, 212, 232, 0.3);
-  color: var(--teal);
-  padding: 4px 10px;
-  border-radius: 99px;
-  font-size: 11px;
-  font-weight: 600;
-}
-
-/* ===== Market search / chips ===== */
-.market-search {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 8px;
-  align-items: center;
-  background: rgba(6, 10, 15, 0.7);
-  border: 1px solid rgba(0, 212, 232, 0.12);
-  border-radius: 12px;
-  padding: 6px 10px;
-}
-.market-search__input {
-  background: transparent;
-  border: none;
-  outline: none;
-  color: var(--ink-0);
-  font: inherit;
-  font-size: 13px;
-  padding: 6px 0;
-  width: 100%;
-  min-width: 0;
-}
-.market-search__input::placeholder { color: var(--ink-3); }
-.market-search__count {
-  font-family: "JetBrains Mono", monospace;
-  font-size: 10.5px;
-  color: var(--ink-2);
-  padding: 2px 6px;
-  border-radius: 999px;
-  border: 1px solid var(--line);
-  background: rgba(8, 12, 20, 0.6);
-  white-space: nowrap;
-}
-.coin-chips {
-  display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  padding-bottom: 2px;
-}
-.coin-chips::-webkit-scrollbar { display: none; }
-.coin-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background:
-    linear-gradient(135deg, var(--coin-c1, rgba(0,212,232,.10)) 0%, transparent 70%),
-    rgba(7, 12, 21, 0.6);
-  border: 1px solid var(--coin-line, var(--line));
-  color: var(--ink-1);
-  padding: 5px 10px 5px 6px;
-  border-radius: 999px;
-  font-size: 11.5px;
-  font-weight: 600;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: transform .12s ease, border-color .12s ease;
-}
-.coin-chip:hover { transform: translateY(-1px); }
-.coin-chip.is-active {
-  color: var(--ink-0);
-  border-color: var(--coin-glow, rgba(0,212,232,.6));
-  box-shadow: 0 0 12px var(--coin-glow, rgba(0,212,232,.25));
-}
-.coin-chip__mark {
-  width: 20px; height: 20px;
-  border-radius: 50%;
-  display: grid; place-items: center;
-  font-size: 10px;
-  font-weight: 800;
-  background: var(--coin-mark-bg, linear-gradient(180deg, #00D4E8, #0E7A8A));
-  color: var(--coin-mark-fg, #04070d);
-  font-family: "JetBrains Mono", monospace;
-}
-.market-empty {
-  text-align: center;
-  margin: 12px 0;
-  color: var(--ink-2);
-}
-
-/* Chart loading / error overlays */
-.chart-status {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  pointer-events: none;
-  font-size: 12px;
-  color: var(--ink-2);
-  letter-spacing: 0.03em;
-  background: linear-gradient(180deg, rgba(7,12,21,0), rgba(7,12,21,0.45));
-}
-.chart-status.is-error { color: var(--neg); }
-
-/* ===== Market matrix ===== */
-.matrix {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-}
-.matrix-cell {
-  background:
-    linear-gradient(135deg, var(--coin-c1, transparent) 0%, transparent 55%),
-    var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 10px;
-  position: relative;
-  overflow: hidden;
-}
-.matrix-cell::before {
-  content: attr(data-glyph);
-  position: absolute;
-  right: 6px; bottom: -10px;
-  font-family: "JetBrains Mono", monospace;
-  font-size: 42px;
-  font-weight: 800;
-  color: var(--coin-ink, transparent);
-  opacity: 0.35;
-  pointer-events: none;
-  letter-spacing: -0.04em;
-  line-height: 1;
-}
-.matrix-cell::after {
-  content: "";
-  position: absolute;
-  right: 0; top: 0; bottom: 0;
-  width: 4px;
-  background: var(--line);
-}
-.matrix-cell.up::after { background: linear-gradient(180deg, var(--pos), var(--teal-deep)); }
-.matrix-cell.down::after { background: linear-gradient(180deg, var(--neg), var(--warn)); }
-.matrix-sym {
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  color: var(--ink-0);
-  display: flex; align-items: center; gap: 6px;
-}
-.matrix-strength {
-  font-size: 9px; padding: 2px 5px;
-  border-radius: 4px;
-  margin-left: auto;
-}
-.matrix-strength.high { background: rgba(0, 212, 232, 0.14); color: var(--teal); }
-.matrix-strength.mid  { background: rgba(255, 181, 71, 0.15); color: var(--warn); }
-.matrix-strength.low  { background: rgba(124, 138, 163, 0.15); color: var(--ink-2); }
-.matrix-price {
-  font-family: "JetBrains Mono", monospace;
-  font-size: 14px; font-weight: 700;
-  color: var(--ink-0);
-  margin-top: 4px;
-}
-.matrix-delta { font-size: 11px; font-weight: 600; margin-top: 2px; }
-.matrix-cell.up .matrix-delta { color: var(--pos); }
-.matrix-cell.down .matrix-delta { color: var(--neg); }
-.matrix-vol { font-size: 10px; color: var(--ink-2); margin-top: 4px; font-family: "JetBrains Mono", monospace; }
-
-/* ===== AI screen ===== */
-.ai-intro {
-  display: flex; gap: 10px; align-items: flex-start;
-  background: rgba(8, 12, 20, 0.72);
-  border: 1px solid rgba(0, 212, 232, 0.22);
-  border-radius: 14px;
-  padding: 10px 12px;
-}
-.ai-intro__bot {
-  width: 30px; height: 30px;
-  border-radius: 8px;
-  background: rgba(0, 212, 232, 0.10);
-  border: 1px solid rgba(0, 212, 232, 0.28);
-  display: grid; place-items: center;
-  flex-shrink: 0;
-}
-.ai-intro p { margin: 0; color: var(--ink-1); font-size: 12.5px; line-height: 1.45; }
-
-.ai-chat {
-  display: flex; flex-direction: column; gap: 8px;
-  min-height: 200px;
-  padding: 4px 0;
-}
-.ai-msg {
-  max-width: 84%;
-  padding: 9px 12px;
-  font-size: 13px;
-  line-height: 1.45;
-  word-wrap: break-word;
-  white-space: pre-wrap;
-}
-.ai-msg.user {
-  align-self: flex-end;
-  background: rgba(0, 212, 232, 0.12);
-  border: 1px solid rgba(0, 212, 232, 0.30);
-  color: var(--ink-0);
-  border-radius: 14px 14px 4px 14px;
-}
-.ai-msg.assistant {
-  align-self: flex-start;
-  background: rgba(11, 18, 28, 0.85);
-  border: 1px solid var(--line-strong);
-  color: var(--ink-1);
-  border-radius: 14px 14px 14px 4px;
-}
-.ai-msg.assistant b { color: var(--ink-0); }
-.ai-msg__thinking::after {
-  content: "";
-  display: inline-block;
-  width: 4px; height: 4px;
-  border-radius: 50%;
-  background: var(--teal);
-  margin-left: 6px;
-  animation: blink 1s infinite;
-}
-.ai-msg__error {
-  border-color: rgba(255, 85, 119, 0.55) !important;
-  background: rgba(40, 12, 20, 0.85) !important;
-  color: #ffd2dc !important;
-}
-@keyframes blink { 50% { opacity: 0.3; } }
-.ai-empty {
-  text-align: center;
-  color: var(--ink-2);
-  font-size: 12px;
-  padding: 24px 0;
-}
-
-.ai-suggest {
-  display: flex; gap: 6px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  padding-bottom: 2px;
-}
-.ai-suggest::-webkit-scrollbar { display: none; }
-.ai-suggest button {
-  background: rgba(0, 212, 232, 0.05);
-  border: 1px solid var(--line);
-  color: var(--ink-1);
-  padding: 6px 10px;
-  border-radius: 99px;
-  font-size: 11.5px;
-  white-space: nowrap;
-}
-.ai-suggest button:hover { color: var(--ink-0); border-color: var(--line-strong); }
-
-.ai-compose {
-  display: grid;
-  grid-template-columns: 28px 1fr 30px 30px;
-  gap: 6px;
-  align-items: center;
-  background: rgba(11, 18, 28, 0.85);
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  padding: 6px 8px;
-  position: sticky;
-  bottom: calc(var(--tab-h) + env(safe-area-inset-bottom));
-}
-.ai-compose input[type="text"] {
-  background: transparent;
-  border: none;
-  color: var(--ink-0);
-  font: inherit;
-  font-size: 13px;
-  padding: 6px 6px;
-  outline: none;
-  width: 100%;
-  min-width: 0;
-}
-.ai-compose input::placeholder { color: var(--ink-3); }
-.ai-compose__attach, .ai-compose__mic, .ai-compose__send {
-  width: 30px; height: 30px;
-  border-radius: 50%;
-  border: none;
-  display: grid; place-items: center;
-  flex-shrink: 0;
-  padding: 0;
-}
-.ai-compose__attach {
-  background: transparent;
-  color: var(--ink-2);
-  width: 28px;
-}
-.ai-compose__mic, .ai-compose__send {
-  background: linear-gradient(180deg, var(--teal-soft), var(--teal));
-  box-shadow: 0 0 12px rgba(0, 212, 232, 0.45);
-}
-.ai-compose__mic.is-recording {
-  background: linear-gradient(180deg, var(--warn), #ff5577);
-  animation: pulse 1s ease-in-out infinite;
-}
-
-/* ===== Profile ===== */
-.profile-card { padding: 14px; }
-.profile-id {
-  display: flex; gap: 12px; align-items: center;
-  padding-bottom: 12px;
-  border-bottom: 1px dashed var(--line);
-  margin-bottom: 10px;
-}
-.avatar {
-  width: 42px; height: 42px;
-  border-radius: 50%;
-  background: rgba(0, 212, 232, 0.10);
-  border: 1px solid rgba(0, 212, 232, 0.28);
-  display: grid; place-items: center;
-}
-.profile-id__name { font-weight: 700; font-size: 14px; color: var(--ink-0); }
-.profile-id__sub { font-size: 11px; color: var(--ink-2); margin-top: 2px; }
-.profile-rows { display: flex; flex-direction: column; }
-
-.lang-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-}
-.lang-chip {
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
-  background: rgba(7, 12, 21, 0.55);
-  border: 1px solid var(--line);
-  color: var(--ink-1);
-  padding: 10px 6px;
-  border-radius: 10px;
-}
-.lang-chip .flag { font-size: 20px; line-height: 1; }
-.lang-chip b { font-size: 10.5px; font-weight: 600; }
-.lang-chip.is-active {
-  background: rgba(0, 212, 232, 0.12);
-  border-color: rgba(0, 212, 232, 0.38);
-  color: var(--ink-0);
-  box-shadow: inset 0 0 12px rgba(0, 212, 232, 0.10);
-}
-
-.settings { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
-.settings li {
-  display: grid;
-  grid-template-columns: 24px 1fr auto;
-  gap: 10px; align-items: center;
-  background: rgba(7, 12, 21, 0.55);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 10px 12px;
-}
-.set-ico {
-  width: 24px; height: 24px; border-radius: 6px;
-  background: rgba(0, 212, 232, 0.08);
-  border: 1px solid rgba(0, 212, 232, 0.16);
-  display: grid; place-items: center;
-}
-.set-name { font-size: 12.5px; color: var(--ink-0); }
-.set-val { font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--teal); }
-.toggle {
-  width: 36px; height: 20px; border-radius: 99px;
-  background: rgba(124, 138, 163, 0.25);
-  position: relative;
-  transition: background .25s ease;
-  border: none;
-  padding: 0;
-}
-.toggle i {
-  position: absolute; top: 2px; left: 2px;
-  width: 16px; height: 16px; border-radius: 50%;
-  background: var(--ink-0);
-  transition: transform .25s ease;
-}
-.toggle.is-on { background: var(--teal); box-shadow: 0 0 12px rgba(0, 212, 232, 0.60); }
-.toggle.is-on i { transform: translateX(16px); }
-
-.muted { color: var(--ink-1); font-size: 12.5px; line-height: 1.5; margin: 0 0 10px; }
-.bullets { margin: 0 0 12px; padding-left: 18px; color: var(--ink-1); font-size: 12.5px; line-height: 1.55; }
-.bullets b { color: var(--teal); font-weight: 700; }
-
-.cta {
-  display: inline-flex;
-  align-items: center; justify-content: center;
-  width: 100%;
-  padding: 11px 14px;
-  border-radius: 12px;
-  border: 1px solid transparent;
-  font: inherit; font-weight: 700; font-size: 13px;
-}
-.cta--ghost {
-  background: transparent;
-  color: var(--teal);
-  border-color: rgba(0, 212, 232, 0.32);
-}
-.cta--ghost:hover { background: rgba(0, 212, 232, 0.08); }
-
-/* ===== Skeletons ===== */
-.skeleton {
-  height: 64px;
-  border-radius: 12px;
-  background: linear-gradient(90deg, rgba(8,12,20,.6), rgba(0,212,232,.06), rgba(8,12,20,.6));
-  background-size: 200% 100%;
-  animation: shimmer 1.6s linear infinite;
-  border: 1px solid var(--line);
-}
-@keyframes shimmer {
-  from { background-position: 200% 0; }
-  to { background-position: -200% 0; }
-}
-
-/* ===== Bottom tabbar ===== */
-.tabbar {
-  position: fixed;
-  bottom: 0; left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  max-width: min(460px, 100%);
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 2px;
-  padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
-  background: rgba(4, 6, 10, 0.96);
-  border-top: 1px solid var(--line);
-  backdrop-filter: blur(18px) saturate(1.15);
-  z-index: 10;
-}
-.tab {
-  background: none; border: none;
-  color: var(--ink-2);
-  font: inherit; font-size: 10.5px;
-  display: flex; flex-direction: column; align-items: center; gap: 3px;
-  padding: 6px 4px;
-  border-radius: 10px;
-  position: relative;
-  transition: color .15s ease;
-}
-.tab__ico { display: grid; place-items: center; color: currentColor; }
-.tab.is-active {
-  color: var(--teal);
-}
-.tab.is-active .tab__ico::after {
-  content: "";
-  position: absolute;
-  top: 2px; left: 50%;
-  transform: translateX(-50%);
-  width: 28px; height: 3px;
-  background: var(--teal);
-  border-radius: 99px;
-  box-shadow: 0 0 10px rgba(0, 212, 232, 0.80);
-}
-.tab:hover:not(.is-active) { color: var(--ink-1); }
-
-/* ===== Sheet (modal) ===== */
-.sheet {
-  position: fixed; inset: 0;
-  z-index: 50;
-  display: none;
-  align-items: flex-end; justify-content: center;
-}
-.sheet.is-open { display: flex; }
-.sheet__backdrop {
-  position: absolute; inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
-  animation: fadeIn .2s ease;
-}
-.sheet__panel {
-  position: relative;
-  width: 100%;
-  max-width: 460px;
-  background: linear-gradient(180deg, var(--bg-2), var(--bg-1));
-  border: 1px solid var(--line-strong);
-  border-radius: 22px 22px 0 0;
-  max-height: 86vh;
-  overflow-y: auto;
-  padding: 18px 16px 24px;
-  animation: slideUp .25s cubic-bezier(.2,.7,.2,1);
-}
-.sheet__panel--wide { max-width: 720px; }
-@keyframes slideUp {
-  from { transform: translateY(40px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-.sheet__close {
-  position: absolute;
-  top: 10px; right: 12px;
-  width: 32px; height: 32px;
-  background: rgba(7, 12, 21, 0.7);
-  border: 1px solid var(--line);
-  color: var(--ink-1);
-  border-radius: 50%;
-  font-size: 20px;
-  line-height: 1;
-}
-.sheet__body { color: var(--ink-1); }
-
-/* ===== Roadmap (in sheet) ===== */
-.roadmap__brand { text-align: center; margin-bottom: 18px; }
-.brand-title {
-  font-weight: 800;
-  font-size: 28px;
-  letter-spacing: -0.02em;
-  margin: 0;
-  color: var(--ink-0);
-}
-.brand-title__ai {
-  background: linear-gradient(180deg, #ffffff 10%, var(--teal-soft) 70%, var(--teal) 100%);
-  -webkit-background-clip: text; background-clip: text; color: transparent;
-  filter: drop-shadow(0 0 8px rgba(0, 212, 232, 0.55));
-}
-.brand-subtitle {
-  margin: 6px 0 0;
-  color: var(--ink-2);
-  font-size: 10px;
-  letter-spacing: 0.18em;
+  color: var(--text-2);
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
-.timeline {
-  list-style: none; margin: 0; padding: 4px 0 0;
-  position: relative;
-}
-.timeline::before {
-  content: "";
-  position: absolute;
-  left: 14px; top: 28px; bottom: 28px;
-  border-left: 2px dashed rgba(0, 212, 232, 0.32);
-}
-.timeline__step {
-  position: relative;
-  padding: 0 0 18px 46px;
-  min-height: 56px;
-}
-.timeline__step--last { padding-bottom: 0; }
-.timeline__num {
-  position: absolute; left: 0; top: 0;
-  width: 30px; height: 30px;
-  border-radius: 50%;
-  display: grid; place-items: center;
-  font-weight: 700;
-  font-size: 12px;
-  color: var(--ink-0);
-  background: radial-gradient(circle at 30% 30%, rgba(0, 212, 232, 0.35), rgba(6, 10, 15, 0.9) 65%);
-  border: 1.5px solid rgba(0, 212, 232, 0.55);
-  box-shadow: 0 0 0 3px rgba(0, 212, 232, 0.06), 0 0 16px rgba(0, 212, 232, 0.35);
-}
-.timeline__body h3 {
-  margin: 0 0 4px;
-  color: var(--teal);
-  font-size: 13px;
-  font-weight: 700;
-}
-.timeline__body p {
-  margin: 0;
-  color: var(--ink-1);
-  font-size: 12px;
-  line-height: 1.5;
-}
 
-/* ===== Signal detail (in sheet) ===== */
-.sheet-signal__head {
-  display: flex; justify-content: space-between; align-items: center;
-  margin-bottom: 12px;
+.splash__progress-wrap { width: 200px; }
+.splash__progress {
+  height: 2px; background: rgba(255,255,255,0.08);
+  border-radius: 2px; overflow: hidden; margin-bottom: 10px;
 }
-.sheet-signal__sym { font-size: 18px; font-weight: 800; }
-.sheet-signal__grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 12px;
+.splash__bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--teal), var(--orange));
+  border-radius: 2px;
+  width: 0%;
+  transition: width 0.4s ease;
 }
-.sheet-signal__cell {
-  background: rgba(7, 12, 21, 0.55);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 10px 12px;
-}
-.sheet-signal__cell-label { font-size: 10px; color: var(--ink-2); letter-spacing: 0.04em; }
-.sheet-signal__cell-value {
-  font-family: "JetBrains Mono", monospace;
-  font-size: 16px; font-weight: 700;
-  color: var(--ink-0);
-  margin-top: 4px;
-}
-.sheet-signal__cell--danger .sheet-signal__cell-value { color: var(--neg); }
-.sheet-signal__cell--pos .sheet-signal__cell-value { color: var(--pos); }
-.sheet-signal__rationale {
-  font-size: 13px; color: var(--ink-1); line-height: 1.55;
-  margin: 8px 0 12px;
-}
+.splash__status { font-size: 12px; color: var(--text-2); }
 
-/* ===== Responsive: a bit wider for tablets/web ===== */
-@media (min-width: 480px) {
-  .app { padding-left: 18px; padding-right: 18px; }
+/* -------- BACKGROUND -------- */
+.bg {
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 0;
 }
-
-@media (prefers-reduced-motion: reduce) {
-  .dot-live, .topbar__pulse, .ai-msg__thinking::after, .skeleton { animation: none; }
-  * { transition: none !important; }
+.bg__circuit {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  opacity: 0.4;
 }
-
-/* Telegram theme integration (lightweight) */
-body.tg-themed { }
-
-/* =========================================================
-   Boot splash (initial welcome / loading screen)
-   ========================================================= */
-.boot-splash {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  display: grid;
-  place-items: center;
-  background: radial-gradient(circle at 50% 25%, #0a1520 0%, #060A0F 65%, #030508 100%);
-  color: var(--ink-0);
-  padding: 24px 22px calc(28px + env(safe-area-inset-bottom)) 22px;
-  padding-top: calc(24px + env(safe-area-inset-top));
-  transition: opacity .55s ease, visibility .55s ease;
-  overflow: hidden;
-}
-body.boot-done .boot-splash {
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-}
-/* CSS-ONLY FALLBACK — the splash dismisses itself even if app.js never
-   loads or never adds `.boot-done`. Without this, a failed JS bundle left
-   the splash pinned forever (and the app shell hidden), which is exactly
-   how the host chat/background bled through. Now: the app shell is ALWAYS
-   visible underneath, and the splash fades out on its own after ~6s. JS,
-   when it works, still adds `.boot-done` to fade it faster. */
-.boot-splash {
-  animation: bootSplashAutoHide 0s linear 6s forwards;
-}
-@keyframes bootSplashAutoHide {
-  to { opacity: 0; visibility: hidden; pointer-events: none; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .boot-splash { animation-delay: 2s; }
-}
-/* The app shell and atmospheric background are NEVER gated on JS anymore.
-   They render immediately as an opaque dark blue-neon surface so the
-   viewport is always filled with our UI, splash or not. */
-
-.boot-splash__bg {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-}
-.boot-splash__grid {
-  position: absolute;
-  inset: -10vh -10vw;
-  background-image:
-    linear-gradient(rgba(0, 212, 232, 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 212, 232, 0.06) 1px, transparent 1px);
-  background-size: 48px 48px;
-  mask-image: radial-gradient(ellipse at 50% 35%, black 30%, transparent 75%);
-  opacity: 0.60;
-}
-.boot-splash__glow {
+.bg__glow {
   position: absolute;
   border-radius: 50%;
   filter: blur(80px);
+  opacity: 0.12;
 }
-.boot-splash__glow--teal {
-  width: 90vw; height: 90vw;
-  top: -40vw; right: -30vw;
-  background: radial-gradient(circle, rgba(0, 212, 232, 0.30), transparent 60%);
-}
-.boot-splash__glow--orange {
-  width: 70vw; height: 70vw;
-  bottom: -30vw; left: -20vw;
-  background: radial-gradient(circle, rgba(255, 140, 0, 0.22), transparent 60%);
-}
-
-.boot-splash__inner {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  max-width: 420px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 14px;
-}
-.boot-splash__mark {
-  position: relative;
-  width: min(86vw, 420px);
-  display: grid; place-items: center;
-  margin: 4px auto 10px;
-  animation: bootMarkIn .7s cubic-bezier(.2,.7,.2,1);
-}
-/* Exact user-provided QUANTSIGNAL AI label — canonical brand image on the
-   boot splash. The previous animated Q-mark glyph has been removed in
-   favour of the user-supplied label so the visible primary branding
-   matches the bot / channel everywhere. */
-.boot-splash__label {
-  position: relative;
-  display: block;
-  width: 100%;
-  height: auto;
-  max-height: 42vh;
-  border-radius: 18px;
-  box-shadow: 0 18px 48px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.04);
-  object-fit: contain;
-  animation: bootMarkFloat 4.5s ease-in-out infinite;
-}
-.boot-splash__halo {
-  position: absolute;
-  inset: -8%;
-  border-radius: 28px;
-  background: radial-gradient(60% 60% at 50% 50%, rgba(0, 212, 232, 0.22), transparent 70%);
-  filter: blur(14px);
-  animation: bootHaloPulse 3.5s ease-in-out infinite;
-  pointer-events: none;
-  z-index: 0;
-}
-@keyframes bootMarkIn {
-  from { opacity: 0; transform: translateY(10px) scale(.94); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-@keyframes bootMarkFloat {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
-}
-@keyframes bootHaloPulse {
-  0%, 100% { opacity: 0.6; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.08); }
-}
-
-.boot-splash__title {
-  margin: 0;
-  font-size: 28px;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  line-height: 1.1;
-  animation: bootFadeUp .6s ease .15s both;
-}
-.boot-splash__ai {
-  background: linear-gradient(180deg, #ffffff 5%, var(--teal-soft) 60%, var(--teal) 100%);
-  -webkit-background-clip: text; background-clip: text; color: transparent;
-  filter: drop-shadow(0 0 10px rgba(0, 212, 232, 0.50));
-}
-.boot-splash__tagline {
-  margin: 0;
-  color: var(--ink-1);
-  font-size: 14px;
-  letter-spacing: 0.01em;
-  animation: bootFadeUp .6s ease .25s both;
-}
-.boot-splash__tagline::after {
-  content: "";
-  display: inline-block;
-  width: 6px; height: 6px;
+.bg__glow--teal {
+  width: 60vw; height: 60vw;
+  top: -15vw; left: -15vw;
   background: var(--teal);
-  border-radius: 50%;
-  margin-left: 6px;
-  box-shadow: 0 0 10px rgba(0, 212, 232, 0.90);
-  transform: translateY(-2px);
+}
+.bg__glow--orange {
+  width: 50vw; height: 50vw;
+  bottom: -10vw; right: -10vw;
+  background: var(--orange);
+}
+.bg__vignette {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at center, transparent 30%, rgba(5,10,18,0.6) 100%);
 }
 
-.boot-splash__features {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 6px;
-  margin: 10px 0 4px;
-  width: 100%;
-  max-width: 360px;
-  animation: bootFadeUp .6s ease .35s both;
-}
-.boot-splash__feat {
-  display: flex; flex-direction: column; align-items: center; gap: 6px;
-  padding: 8px 4px;
-  border-radius: 12px;
-  background: rgba(11, 18, 28, 0.55);
-  border: 1px solid var(--line);
-  color: var(--ink-2);
-}
-.boot-splash__feat b {
-  font-size: 9.5px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: var(--ink-1);
-  text-align: center;
-  line-height: 1.2;
-}
-.boot-splash__feat-ico {
-  width: 22px; height: 22px;
-  border-radius: 50%;
-  background: rgba(0, 212, 232, 0.10);
-  border: 1px solid rgba(0, 212, 232, 0.22);
-  display: inline-block;
-  position: relative;
-  box-shadow: 0 0 8px rgba(0, 212, 232, 0.15);
-}
-.boot-splash__feat-ico::before {
-  content: "";
-  position: absolute;
-  inset: 4px;
-  border-radius: 50%;
-  background: var(--teal);
-  filter: blur(4px);
-  opacity: 0.55;
-}
-.boot-splash__feat-ico--target::after {
-  content: "◎"; position: absolute; inset: 0;
-  display: grid; place-items: center;
-  color: var(--teal); font-size: 12px; font-weight: 700;
-}
-.boot-splash__feat-ico--chart::after {
-  content: "▮▮▮"; position: absolute; inset: 0;
-  display: grid; place-items: center;
-  color: var(--teal); font-size: 7px; font-weight: 700;
-  letter-spacing: 1px;
-}
-.boot-splash__feat-ico--ai::after {
-  content: "AI"; position: absolute; inset: 0;
-  display: grid; place-items: center;
-  color: var(--teal); font-size: 9px; font-weight: 800;
-}
-.boot-splash__feat-ico--shield::after {
-  content: "✓"; position: absolute; inset: 0;
-  display: grid; place-items: center;
-  color: var(--teal); font-size: 12px; font-weight: 800;
-}
-
-.boot-splash__progress {
-  width: 100%;
-  max-width: 280px;
-  height: 4px;
-  border-radius: 99px;
-  background: rgba(0, 212, 232, 0.10);
+/* -------- APP SHELL -------- */
+.app {
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column;
+  height: 100vh; height: 100dvh;
   overflow: hidden;
+}
+
+/* -------- TOP BAR -------- */
+.topbar {
   position: relative;
-  margin-top: 4px;
-  animation: bootFadeUp .6s ease .45s both;
-}
-.boot-splash__progress-bar {
-  display: block;
-  width: 8%;
-  height: 100%;
-  background: linear-gradient(90deg, rgba(0, 212, 232, 0.5), var(--teal), rgba(0, 212, 232, 0.5));
-  background-size: 200% 100%;
-  border-radius: 99px;
-  box-shadow: 0 0 12px rgba(0, 212, 232, 0.65);
-  transition: width .35s ease;
-  animation: bootProgressShimmer 1.6s linear infinite;
-}
-@keyframes bootProgressShimmer {
-  from { background-position: 200% 0; }
-  to { background-position: 0 0; }
-}
-
-.boot-splash__status {
-  margin: 0;
-  font-family: "JetBrains Mono", monospace;
-  font-size: 11.5px;
-  letter-spacing: 0.05em;
-  color: var(--teal);
-  min-height: 1.2em;
-  animation: bootFadeUp .6s ease .55s both;
-}
-.boot-splash__hint {
-  margin: 8px 0 0;
-  font-size: 10.5px;
-  letter-spacing: 0.04em;
-  color: var(--ink-2);
-  animation: bootFadeUp .6s ease .65s both;
-}
-@keyframes bootFadeUp {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .boot-splash__label,
-  .boot-splash__halo,
-  .boot-splash__progress-bar {
-    animation: none;
-  }
-  .boot-splash__title,
-  .boot-splash__tagline,
-  .boot-splash__features,
-  .boot-splash__progress,
-  .boot-splash__status,
-  .boot-splash__hint {
-    animation: none;
-  }
-}
-
-/* =========================================================
-   Last-signal card (reference-style)
-   ========================================================= */
-.last-signal {
-  background:
-    radial-gradient(140% 70% at 100% 0%, rgba(0, 212, 232, 0.08), transparent 60%),
-    var(--panel);
-  border: 1px solid var(--line-strong);
-  border-radius: var(--radius-lg);
-  padding: 14px;
-  backdrop-filter: blur(8px);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.last-signal__head {
-  display: grid;
-  grid-template-columns: auto 28px auto 1fr auto;
-  align-items: center;
-  gap: 8px;
-}
-.last-signal__title {
-  grid-column: 1 / 2;
-  font-family: "JetBrains Mono", monospace;
-  font-size: 10px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--ink-2);
-  white-space: nowrap;
-}
-.last-signal__head .coin-mark.last-signal__mark {
-  width: 26px; height: 26px;
-  font-size: 14px;
-}
-.last-signal__pair {
-  font-weight: 800;
-  font-size: 14px;
-  letter-spacing: 0.01em;
-}
-.last-signal__side {
-  justify-self: end;
-  font-family: "JetBrains Mono", monospace;
-  font-weight: 700;
-  font-size: 10.5px;
-  letter-spacing: 0.14em;
-  padding: 3px 8px;
-  border-radius: 6px;
-  background: rgba(45, 214, 144, 0.12);
-  color: var(--pos);
-  border: 1px solid rgba(45, 214, 144, 0.35);
-}
-.last-signal__side--short {
-  background: rgba(255, 85, 119, 0.12);
-  color: var(--neg);
-  border-color: rgba(255, 85, 119, 0.35);
-}
-.last-signal__rows {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 6px;
-}
-.last-signal__rows li {
-  display: flex; justify-content: space-between; align-items: baseline;
-  font-size: 12.5px;
-}
-.last-signal__rows li span { color: var(--ink-2); }
-.last-signal__rows li b {
-  font-family: "JetBrains Mono", monospace;
-  font-weight: 700;
-  font-size: 13px;
-  color: var(--ink-0);
-}
-.last-signal__rows li.last-signal__danger span,
-.last-signal__rows li.last-signal__danger b {
-  color: var(--neg);
-}
-.cta.cta--strong {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  width: 100%;
-  padding: 10px 14px;
-  background: linear-gradient(180deg, rgba(255, 140, 0, 0.22), rgba(255, 140, 0, 0.08));
-  border: 1px solid rgba(255, 140, 0, 0.45);
-  color: #FF8C00;
-  font-weight: 800;
-  font-size: 12px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  border-radius: 12px;
-  box-shadow: 0 0 16px rgba(255, 140, 0, 0.22), inset 0 0 0 1px rgba(255, 255, 255, 0.04);
-  transition: transform .12s ease, box-shadow .15s ease, background .15s ease;
-}
-.cta.cta--strong:hover,
-.cta.cta--strong:focus-visible {
-  transform: translateY(-1px);
-  box-shadow: 0 0 22px rgba(255, 140, 0, 0.38), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
-  background: linear-gradient(180deg, rgba(255, 140, 0, 0.32), rgba(255, 140, 0, 0.14));
-}
-
-/* =========================================================
-   AI radar (reference-style circular AI motif)
-   ========================================================= */
-.ai-summary--radar .ai-summary__body {
-  display: grid;
-  grid-template-columns: 88px 1fr;
-  gap: 14px;
-  align-items: center;
-}
-.ai-radar {
-  position: relative;
-  width: 84px; height: 84px;
-  display: inline-grid;
-  place-items: center;
-  border-radius: 50%;
-  background: radial-gradient(circle at 50% 50%, rgba(0, 212, 232, 0.18), rgba(6, 10, 15, 0.9) 70%);
-  border: 1px solid rgba(0, 212, 232, 0.32);
-  box-shadow: 0 0 18px rgba(0, 212, 232, 0.25), inset 0 0 18px rgba(0, 212, 232, 0.14);
+  display: flex; align-items: center; justify-content: space-between;
+  height: var(--topbar-h);
+  padding: 0 16px;
+  padding-top: var(--safe-top);
+  background: rgba(5, 10, 18, 0.92);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid rgba(30, 200, 220, 0.08);
   flex-shrink: 0;
 }
-.ai-radar__ring,
-.ai-radar__ring--2 {
-  position: absolute;
-  inset: 8px;
-  border-radius: 50%;
-  border: 1px dashed rgba(0, 212, 232, 0.32);
-  animation: aiRadarSpin 12s linear infinite;
-}
-.ai-radar__ring--2 {
-  inset: 18px;
-  border-style: solid;
-  border-color: rgba(0, 212, 232, 0.18);
-  animation: aiRadarSpin 18s linear infinite reverse;
-}
-.ai-radar__sweep {
-  position: absolute;
-  inset: 8px;
-  border-radius: 50%;
-  background: conic-gradient(from 0deg, rgba(0, 212, 232, 0.35), transparent 35%);
-  mask: radial-gradient(circle, transparent 38%, black 39%);
-  -webkit-mask: radial-gradient(circle, transparent 38%, black 39%);
-  animation: aiRadarSpin 4s linear infinite;
-}
-.ai-radar__core {
-  position: relative;
-  font-family: "JetBrains Mono", monospace;
-  font-weight: 800;
-  font-size: 18px;
-  letter-spacing: 0.06em;
-  color: var(--teal-soft);
-  text-shadow: 0 0 10px rgba(0, 212, 232, 0.55);
-}
-@keyframes aiRadarSpin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-.ai-summary__col {
-  display: flex; flex-direction: column; gap: 6px;
-  min-width: 0;
-}
-.ai-summary__mood,
-.ai-summary__confidence {
-  display: flex; flex-direction: column; gap: 1px;
-}
-.ai-summary__mood span,
-.ai-summary__confidence span {
-  font-size: 10.5px;
-  letter-spacing: 0.04em;
-  color: var(--ink-2);
-}
-.ai-summary__mood b {
-  font-size: 17px;
-  color: var(--teal-soft);
-  font-weight: 800;
-  letter-spacing: 0.01em;
-}
-.ai-summary__confidence b {
-  font-size: 17px;
-  color: var(--ink-0);
-  font-family: "JetBrains Mono", monospace;
-  font-weight: 700;
-}
-.ai-summary__text {
-  margin: 8px 0 0;
-  color: var(--ink-1);
-  font-size: 12.5px;
-  line-height: 1.5;
-}
-@media (max-width: 360px) {
-  .ai-summary--radar .ai-summary__body { grid-template-columns: 72px 1fr; }
-  .ai-radar { width: 72px; height: 72px; }
-  .ai-radar__core { font-size: 15px; }
-}
 
-@media (prefers-reduced-motion: reduce) {
-  .ai-radar__ring,
-  .ai-radar__ring--2,
-  .ai-radar__sweep {
-    animation: none;
-  }
+.topbar__logo {
+  display: flex; align-items: center; gap: 10px;
 }
-
-/* =====================================================================
-   DESIGN SYSTEM v2 — premium polish layer
-   Refines spacing, hierarchy, glass surfaces, gradients, typography
-   and component rhythm without touching legacy selectors above.
-   Safe to load after the v1 styles: only adds or tightens visuals.
-   ===================================================================== */
-
-:root {
-  /* Extended palette */
-  --accent-1: #00D4E8;
-  --accent-2: #FF8C00;
-  --accent-3: #050A12;
-  --pos-soft: rgba(45, 214, 144, .14);
-  --neg-soft: rgba(255, 85, 119, .14);
-  --warn-soft: rgba(255, 181, 71, .14);
-  --teal-soft-bg: rgba(0, 212, 232, .10);
-
-  /* Glass / surface system */
-  --glass-1: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015));
-  --glass-2: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-  --glass-3: linear-gradient(180deg, rgba(0,212,232,.08), rgba(0,212,232,.015));
-  --surface-1: rgba(11, 18, 28, 0.72);
-  --surface-2: rgba(7, 12, 21, 0.82);
-  --border-soft: rgba(0, 212, 232, 0.12);
-  --border-strong: rgba(0, 212, 232, 0.24);
-
-  /* Shadows */
-  --shadow-card: 0 8px 24px rgba(0,0,0,.32), 0 1px 0 rgba(255,255,255,.04) inset;
-  --shadow-cta: 0 10px 28px rgba(255, 138, 43, .28), 0 1px 0 rgba(255,255,255,.18) inset;
-  --shadow-glow: 0 0 24px rgba(0,212,232,.30);
-
-  /* Type rhythm */
-  --tap-min: 44px;
-}
-
-/* Smoother base type & wider tracking on headings for a more premium feel */
-body { letter-spacing: 0.005em; }
-h1, h2, h3, .screen__title, .brand-title, .boot-splash__title {
-  letter-spacing: -0.012em;
-}
-.screen__title { font-weight: 800; }
-
-/* Touch-target safety net */
-.tab,  .cta,  .chip, 
-.topbar__btn,  .toggle,  .lang-grid > * {
-  min-height: var(--tap-min);
-}
-.chip { min-height: 32px; }   /* compact inline chips */
-
-/* ---------- Cards: subtle glass + hairline border ---------- */
-.card,  .hero-card,  .last-signal,  .signal-card,  .matrix-cell,
-.ai-summary,  .ai-intro,  .profile-card {
-  border-color: var(--border-soft);
-}
-.hero-card,  .last-signal,  .ai-summary,  .profile-card {
-  box-shadow: var(--shadow-card);
-}
-
-/* ---------- Bottom tabbar: deeper glass + active glow ---------- */
-.tabbar {
-  background: linear-gradient(180deg, rgba(4,6,10,.70), rgba(4,6,10,.95));
-  backdrop-filter: blur(18px) saturate(1.15);
-  -webkit-backdrop-filter: blur(18px) saturate(1.15);
-  border-top: 1px solid var(--border-soft);
-}
-.tab.is-active {
-  color: var(--accent-1);
-}
-.tab.is-active .tab__ico {
-  filter: drop-shadow(0 0 6px rgba(0,212,232,.60));
-}
-
-/* ---------- Topbar refinement ---------- */
-.topbar {
-  background: linear-gradient(180deg, rgba(7,12,21,.78), rgba(7,12,21,.0));
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-/* ---------- Buttons / CTAs ---------- */
-.cta {
-  transition: transform .15s ease, box-shadow .2s ease, background .2s ease;
-}
-.cta:active { transform: translateY(1px) scale(.985); }
-.cta--strong, .cta.cta--strong {
-  box-shadow: var(--shadow-cta);
-}
-
-/* ---------- Chips & badges harmonised ---------- */
-.chip {
-  border-color: var(--border-soft);
-}
-.chip:hover { border-color: var(--border-strong); }
-
-/* =====================================================================
-   Cross-screen polish — Market, Signals, AI, Profile
-   ===================================================================== */
-
-/* Hero card — slightly richer */
-.hero-card {
-  border-radius: 22px;
-  background:
-    radial-gradient(80% 60% at 0% 0%, rgba(0, 212, 232, .09), transparent 65%),
-    linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.012));
-}
-
-/* Last-signal card — accent edge */
-.last-signal {
-  border-radius: 18px;
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.012));
-}
-
-/* AI radar card — accent ring */
-.ai-summary--radar {
-  border-radius: 18px;
-}
-
-/* Market matrix cells — subtler border, glassier */
-.matrix-cell {
-  background: var(--glass-1);
-  border-radius: 14px;
-}
-.matrix-cell:hover { border-color: var(--border-strong); }
-
-/* Coin chips */
-.coin-chip {
-  border-radius: 999px;
-  border-color: var(--border-soft);
-}
-.coin-chip.is-active {
-  background: rgba(0,212,232,.10);
-  border-color: rgba(0,212,232,.35);
-}
-
-/* Market search */
-.market-search__input {
-  border-radius: 12px;
-  border-color: var(--border-soft);
-}
-.market-search__input:focus {
-  border-color: var(--border-strong);
-  box-shadow: 0 0 0 3px rgba(0,212,232,.10);
-}
-
-/* Signals list cards */
-.signal-card {
-  border-radius: 16px;
-  background: var(--glass-1);
-  border-color: var(--border-soft);
-  box-shadow: var(--shadow-card);
-}
-
-/* AI screen */
-.ai-intro {
-  border-radius: 16px;
-  background: var(--glass-1);
-  border: 1px solid var(--border-soft);
-}
-.ai-compose {
-  border-radius: 14px;
-  background: var(--surface-1);
-  border: 1px solid var(--border-soft);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-.ai-compose input {
-  background: transparent;
-}
-
-/* Profile */
-.profile-card {
-  border-radius: 18px;
-  background: var(--glass-1);
-}
-.row-line {
-  border-color: var(--border-soft);
-}
-
-/* KPI cards */
-.kpi {
-  border-radius: 16px;
-  background: var(--glass-1);
-  border: 1px solid var(--border-soft);
-  box-shadow: var(--shadow-card);
-}
-
-/* ============================================================
-   Sponsored partner module — Antarctic Wallet
-   Blends with the app's dark/glass system. Uses a cool
-   blue/cyan gradient that aligns with both the partner's
-   brand and QUANTSIGNAL's accent palette.
-   ============================================================ */
-.partner-card {
-  position: relative;
-  display: block;
-  margin: 10px 14px 0;
-  /* Hard cap so the card cannot exceed its parent column on any screen;
-     prevents the sponsored banner from pushing the app off-screen. */
-  max-width: calc(100% - 28px);
-  padding: 14px 14px 14px 14px;
-  border-radius: 18px;
-  text-decoration: none;
-  color: #f4faff;
-  /* Antarctic Wallet brand blue — bright royal/cyan, no dark overlay */
-  background:
-    linear-gradient(135deg, #1EC8DC 0%, #1EC8DC 45%, #3ec0ff 100%);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  box-shadow:
-    0 12px 28px rgba(30, 200, 220, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.18);
-  overflow: hidden;
-  isolation: isolate;
-  min-height: 88px;
-  -webkit-tap-highlight-color: transparent;
-  transition: transform 120ms ease, border-color 180ms ease, box-shadow 180ms ease;
-}
-.partner-card:hover,
-.partner-card:focus-visible {
-  border-color: rgba(255, 255, 255, 0.42);
-  box-shadow:
-    0 16px 34px rgba(30, 200, 220, 0.45),
-    inset 0 1px 0 rgba(255, 255, 255, 0.22);
-  outline: none;
-}
-.partner-card:active { transform: scale(0.995); }
-
-.partner-card__glow {
-  position: absolute;
-  inset: -1px;
-  z-index: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(120% 80% at 110% 0%, rgba(255, 255, 255, 0.22), transparent 60%),
-    radial-gradient(80% 80% at -10% 110%, rgba(30, 200, 220, 0.28), transparent 60%);
-}
-
-.partner-card__body {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  grid-template-columns: 44px 1fr auto;
-  align-items: center;
-  gap: 12px;
-  min-height: 60px;
-}
-
-.partner-card__mark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.14);
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
-}
-.partner-card__mark svg { display: block; }
-
-.partner-card__text {
-  min-width: 0;
-}
-.partner-card__title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 4px;
-  line-height: 1.2;
-}
-.partner-card__title b {
+.topbar__name {
   font-size: 15px;
-  font-weight: 800;
-  letter-spacing: 0.01em;
-  color: #ffffff;
-  text-shadow: 0 1px 0 rgba(30, 200, 220, 0.25);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--text-0);
 }
-.partner-card__chip {
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  color: #050A12;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #ffffff, #e4f3ff);
-  border: 1px solid rgba(255, 255, 255, 0.65);
-  white-space: nowrap;
-}
-.partner-card__lede {
-  font-size: 12.5px;
-  line-height: 1.4;
-  color: rgba(255, 255, 255, 0.92);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+.topbar__name b {
+  background: linear-gradient(90deg, var(--teal), var(--orange));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.partner-card__cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 44px;
-  padding: 0 14px;
-  border-radius: 12px;
-  font-size: 12.5px;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  color: #050A12;
-  background: linear-gradient(180deg, #ffffff 0%, #d8eeff 100%);
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  box-shadow: 0 6px 14px rgba(30, 200, 220, 0.28);
-  white-space: nowrap;
-  transition: background 160ms ease, transform 120ms ease;
-}
-.partner-card:hover .partner-card__cta,
-.partner-card:focus-visible .partner-card__cta {
-  background: linear-gradient(180deg, #ffffff 0%, #c0e3ff 100%);
-}
+.topbar__right { display: flex; align-items: center; gap: 12px; }
 
-@media (max-width: 360px) {
-  .partner-card__lede { -webkit-line-clamp: 3; }
-  .partner-card__cta { padding: 0 10px; font-size: 12px; }
+.topbar__conn {
+  display: flex; align-items: center; gap: 5px;
+  background: var(--teal-soft);
+  border: 1px solid rgba(30,200,220,0.2);
+  border-radius: 20px;
+  padding: 4px 10px;
 }
+.conn-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--teal);
+  animation: blink 1.5s ease infinite;
+}
+.conn-dot--active { background: var(--pos); }
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+.conn-label { font-size: 10px; font-weight: 600; color: var(--teal); letter-spacing: 0.08em; }
 
-@media (prefers-reduced-motion: reduce) {
-  .partner-card,
-  .partner-card__cta { transition: none; }
+.topbar__refresh {
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-2);
+  border-radius: 50%;
+  transition: color 0.2s, background 0.2s;
 }
+.topbar__refresh:hover { color: var(--teal); background: var(--teal-soft); }
+.topbar__refresh.spinning svg { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 
-/* Boot splash polish — slightly richer ambient */
-.boot-splash {
-  background:
-    radial-gradient(60% 40% at 50% 0%, rgba(0,212,232,.10), transparent 70%),
-    radial-gradient(60% 40% at 50% 100%, rgba(255,140,0,.10), transparent 70%),
-    #060A0F;
-}
-
-/* =====================================================================
-   STABILITY & PROFESSIONAL POLISH
-   -----------------------------------------------------------------
-   The mini app is rendered inside the Telegram WebView, where small
-   layout shifts feel disproportionately jarring (the user already
-   sees Telegram chrome shift on focus/scroll). The rules below stop
-   the most common "screen jump" patterns:
-     - taps that briefly relayout the page (active transforms,
-       hover shifts that promote on touchstart)
-     - tab switches that resize the visible area
-     - decorative animations that translate content on entry
-     - iOS double-tap zoom / tap highlight on interactive surfaces
-   They are intentionally scoped low in the cascade so they win over
-   the older rules above without surgery on the rest of the file.
-   ===================================================================== */
-
-/* Global: stop iOS tap highlight + bidirectional layout anchor on
-   long lists. `overflow-anchor: none` prevents the browser from
-   scroll-locking onto a tappable element that just had its border
-   colour change. */
-html, body, .app, .screens, .screen, .tabbar, .topbar {
-  -webkit-tap-highlight-color: transparent;
-  overflow-anchor: none;
-}
-
-/* =====================================================================
-   VIEWPORT FIT — keep the Mini App inside Telegram's visible area
-   -----------------------------------------------------------------
-   Telegram's WebView reports a viewport that can shrink (keyboard,
-   bottom bar) and the on-screen URL bar on iOS can change the visible
-   height mid-session. Without these rules, content can scroll the
-   whole shell (topbar + tabbar included) off-screen.
-   ===================================================================== */
-html, body {
-  /* Block any descendant from creating horizontal overflow that would
-     drag the shell sideways inside the Telegram WebView. */
-  overflow-x: hidden;
-}
-.app, .screens, .screen {
-  /* min-width: 0 is required on flex/grid descendants so that long
-     inline content (matrix prices, partner titles, ticker text) can
-     shrink instead of forcing the parent wider than the viewport. */
-  max-width: 100%;
-  min-width: 0;
-}
-/* Internal scroll containment: when content scrolls inside the app
-   area, do not propagate the scroll to Telegram's parent surface
-   (which is what makes the whole Mini App feel like it "leaves" the
-   screen on iOS rubber-band). */
-.app, .screens {
-  overscroll-behavior: contain;
-}
-/* Defensive min-width: 0 on the matrix grid + partner card text so
-   their inner content can shrink inside narrow Telegram WebViews
-   (e.g. small Androids in split-screen). */
-.matrix,
-.matrix-cell,
-.partner-card,
-.partner-card__body,
-.partner-card__text,
-.hero-card,
-.card {
-  min-width: 0;
-  max-width: 100%;
-}
-/* The topbar label is the most common source of horizontal overflow
-   because it's a raster image with an intrinsic width. Cap it firmly. */
-.topbar__label {
-  max-width: min(58vw, 220px);
-}
-
-/* Make every interactive surface advertise that double-tap zoom is
-   not wanted and that the user agent should not introduce gesture
-   latency. */
-button,
-a,
-.tab,
-.cta,
-.chip,
-.coin-chip,
-.matrix-cell,
-.signal-card,
-.partner-card,
-.topbar__btn,
-.topbar__brand,
-.toggle,
-[data-nav],
-[data-action],
-[data-tf],
-[data-mtf] {
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
-  -webkit-user-select: none;
-}
-
-/* Replace layout-affecting :active/:hover transforms with opacity +
-   filter so the press feedback never shifts surrounding content.
-   These selectors deliberately mirror the older rules above and win
-   by being later in the cascade. */
-.cta:active,
-.partner-card:active,
-.matrix-cell:active,
-.signal-card:active,
-.coin-chip:active,
-.chip:active,
-.tab:active,
-.topbar__btn:active {
-  transform: none !important;
-  filter: brightness(0.96);
-}
-.signal-card:hover,
-.coin-chip:hover {
-  transform: none;
-}
-
-/* Stable screen container: keep the visible area sized to the
-   viewport between tab switches so the page doesn't shrink/grow as
-   different screens mount. Combined with the JS change in
-   setScreen() (no forced smooth-scroll-to-top) this is what removes
-   the "screen jumps when I tap a tab" feeling. */
+/* -------- SCREENS -------- */
 .screens {
-  /* Reserve space below the topbar + ticker for the bottom tabbar +
-     safe-area, so an "empty" screen still fills the viewport instead
-     of collapsing and shifting the topbar. Use --app-height when JS
-     has measured the Telegram viewport, otherwise fall back to dvh/vh. */
-  min-height: calc(100vh - var(--tab-h) - 140px);
-  min-height: calc(100dvh - var(--tab-h) - 140px);
-  min-height: calc(var(--app-height, 100dvh) - var(--tab-h) - 140px);
+  flex: 1;
+  overflow: hidden;
+  position: relative;
 }
+
 .screen {
-  /* Same min-height for each individual screen — guarantees that the
-     intrinsic height does not change between active screens, so the
-     bottom tabbar (position:fixed) never appears to move and the
-     content area does not jump. */
-  min-height: calc(100vh - var(--tab-h) - 140px);
-  min-height: calc(100dvh - var(--tab-h) - 140px);
-  min-height: calc(var(--app-height, 100dvh) - var(--tab-h) - 140px);
-}
-
-/* Drop the entry translateY on screen switch — the slide is what
-   creates the "jump" feel. Keep a subtle opacity fade so the
-   transition still reads as intentional. */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-.screen { animation: fadeIn .18s ease-out; }
-
-/* Topbar height + position are stable: pin a real height so the
-   topbar never resizes when its inner label image swaps between the
-   eager preload and the cached state. */
-.topbar {
-  min-height: 48px;
-  /* Reserve a stable label slot — prevents the topbar from briefly
-     resizing as the label image decodes. */
-}
-.topbar__label {
-  /* width/height are also set as HTML attributes, which the browser
-     uses for aspect-ratio CLS-prevention; we re-assert them here for
-     engines that ignore HTML hints when CSS height is set. */
-  aspect-ratio: 140 / 32;
-}
-
-/* Bottom tabbar — guarantee >=44px tap targets (Apple HIG) without
-   resizing the bar between active/inactive states. */
-.tabbar .tab {
-  min-height: 48px;
-  min-width: 48px;
-  /* Keep the icon container at a fixed size so its active glow does
-     not push the label and shift sibling tabs. */
-}
-.tab__ico {
-  width: 24px;
-  height: 24px;
-  flex: 0 0 24px;
-}
-
-/* Loading / empty / error states — reserve space so async fills do
-   not push the page down. The selectors below match the live render
-   sites referenced by app.js. */
-#matrix,
-#coin-chips,
-#signals-list,
-.ai-thread {
-  min-height: 120px;
-}
-
-/* Focus rings are drawn as outline so they don't take part in
-   layout. This avoids the "press a button -> sibling shifts" pattern
-   the verifier guards against. */
-button:focus-visible,
-a:focus-visible {
-  outline: 2px solid var(--teal);
-  outline-offset: 2px;
-}
-
-/* Reduced motion: kill every decorative entrance/loop animation. */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
-/* Reduced motion safety net — disable decorative animations */
-
-/* =====================================================================
-   KEYBOARD-OPEN MODE — set by app.js when an editable element is
-   focused AND visualViewport has shrunk by ≥120px.
-   -----------------------------------------------------------------
-   Goals (from the on-device screenshot bug):
-     - Bottom tabbar must NOT sit between composer and keyboard.
-     - AI composer must remain visible above the keyboard.
-     - Content scrolls internally, not the whole shell.
-     - No layout drift of the topbar/brand.
-   ===================================================================== */
-body.keyboard-open .tabbar {
-  /* Hide the bottom navigation while typing. It re-appears on blur.
-     `pointer-events:none` is belt-and-braces in case the fade fails. */
-  transform: translate(-50%, 120%);
+  position: absolute; inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 12px 14px 0;
   opacity: 0;
-  pointer-events: none;
-  transition: transform .15s ease, opacity .15s ease;
+  visibility: hidden;
+  transform: translateY(8px);
+  transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s;
+  -webkit-overflow-scrolling: touch;
 }
-body.keyboard-open .app {
-  /* The keyboard takes the bottom; we no longer need to reserve room
-     for the tabbar below the content. Keep safe-area + a small gap. */
-  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+.screen::-webkit-scrollbar { display: none; }
+.screen.is-active {
+  opacity: 1; visibility: visible; transform: none;
 }
-body.keyboard-open .ai-compose {
-  /* Stick the composer to the very bottom of the visible (shrunken)
-     viewport. Without this it would float at the old tabbar offset and
-     end up below the keyboard. */
-  bottom: calc(8px + env(safe-area-inset-bottom));
-  z-index: 11; /* above the (now-hidden) tabbar layer */
-}
-body.keyboard-open .screen--ai {
-  /* Reserve enough scroll-padding so the focused composer stays in
-     view when the on-screen keyboard appears. */
-  scroll-padding-bottom: 88px;
-}
+.screen-pad { height: calc(var(--tabbar-h) + var(--safe-bot) + 12px); }
 
-/* Narrow phones */
+/* -------- TICKER TAPE -------- */
+.ticker-wrap {
+  overflow: hidden;
+  background: rgba(8, 14, 24, 0.6);
+  border: 1px solid rgba(30,200,220,0.08);
+  border-radius: var(--radius-sm);
+  margin-bottom: 12px;
+  padding: 7px 0;
+}
+.ticker {
+  display: flex; align-items: center; gap: 8px;
+  white-space: nowrap;
+  animation: scroll-ticker 20s linear infinite;
+  padding: 0 16px;
+}
+@keyframes scroll-ticker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.ticker__item {
+  font-size: 11px; font-weight: 600;
+  color: var(--text-1);
+  font-family: var(--font-mono);
+}
+.ticker__item em { font-style: normal; margin-left: 4px; }
+.ticker__sep { color: var(--text-2); opacity: 0.4; }
+.pos { color: var(--pos); }
+.neg { color: var(--neg); }
 
-/* Slightly wider phones — more breathing room */
+/* -------- HERO CARD -------- */
+.hero-wrap { margin-bottom: 16px; }
 
-/* =====================================================================
-   DESIGN SYSTEM v3 — Premium Wallet / AI-Terminal polish
-   ---------------------------------------------------------------------
-   Goal: bring the Mini App closer to a premium crypto-wallet / AI
-   trading dashboard look: deeper graphite background, glassy bevelled
-   cards, a clearer hero balance/status row, brighter cyan + warm
-   orange accents, and a floating glass dock at the bottom.
-
-   This layer is purely ADDITIVE — every selector targets existing
-   classes/IDs already in index.html so no DOM hooks change. The block
-   sits at the end of the file so it wins the cascade against the v1/v2
-   layers without surgery on the rest of the file.
-   ===================================================================== */
-
-:root {
-  /* v3 brand tokens — refined, warmer accent for the "premium" feel */
-  --qsi-graphite-0: #060A0F;
-  --qsi-graphite-1: #080C14;
-  --qsi-graphite-2: #0C1220;
-  --qsi-line-1: #1b2433;
-  --qsi-line-2: #2b3345;
-  --qsi-cyan: #00D4E8;
-  --qsi-cyan-2: #5EF5FF;
-  --qsi-orange: #FF8C00;
-  --qsi-orange-2: #FFB547;
-  --qsi-glass: linear-gradient(180deg, rgba(20,28,42,.78), rgba(10,16,24,.84));
-  --qsi-glass-hi: linear-gradient(180deg, rgba(0,212,232,.10), rgba(0,212,232,.02));
-  --qsi-shadow-hero:
-    0 24px 60px rgba(0,0,0,.55),
-    0 1px 0 rgba(255,255,255,.05) inset,
-    0 0 0 1px rgba(0,212,232,.10) inset;
-  --qsi-shadow-card:
-    0 12px 32px rgba(0,0,0,.42),
-    0 1px 0 rgba(255,255,255,.04) inset;
-  --qsi-shadow-dock:
-    0 -6px 24px rgba(0,0,0,.55),
-    0 1px 0 rgba(255,255,255,.05) inset;
-}
-
-/* ---- 1. Background: graphite + subtle circuit-grid wash ------------- */
-body {
-  background:
-    radial-gradient(1100px 720px at 80% -8%, rgba(0, 212, 232, .12), transparent 62%),
-    radial-gradient(900px 700px at -10% 28%, rgba(255, 140, 0, .06), transparent 62%),
-    var(--qsi-graphite-0);
-}
-.bg-grid {
-  background-image:
-    linear-gradient(rgba(0, 212, 232, .048) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 212, 232, .048) 1px, transparent 1px);
-  background-size: 52px 52px;
-  opacity: 0.60;
-}
-
-/* ---- 2. Topbar — polished app header (pill menu, centred brand) ----- */
-.topbar {
-  /* Pin a stable header height; combined with --tap-min keeps tap area >=44 */
-  min-height: 52px;
-  padding: 4px 2px;
-  background: linear-gradient(180deg, rgba(4,6,10,.88), rgba(4,6,10,0));
-  border-radius: 14px;
-}
-.topbar__btn {
-  width: 40px; height: 40px;
-  border-radius: 12px;
-  background: linear-gradient(180deg, rgba(0,212,232,.10), rgba(0,212,232,.03));
-  border: 1px solid var(--qsi-line-2);
-  box-shadow: 0 6px 14px rgba(0,0,0,.40), inset 0 1px 0 rgba(255,255,255,.05);
-}
-.topbar__btn--bell .topbar__pulse {
-  box-shadow: 0 0 8px var(--qsi-orange);
-  background: var(--qsi-orange);
-}
-.topbar__label {
-  height: 36px;
-  border-radius: 10px;
-  box-shadow:
-    0 0 0 1px rgba(0,212,232,.18),
-    0 6px 18px rgba(0,212,232,.18);
-}
-.conn-pill {
-  font-size: 10px;
-  padding: 3px 8px;
-  border-radius: 999px;
-  background: rgba(10,16,24,.6);
-  border: 1px solid var(--qsi-line-2);
-  color: var(--ink-2);
-  letter-spacing: 0.04em;
-}
-
-/* ---- 3. Hero card — wallet-style status card ------------------------ */
 .hero-card {
-  border-radius: 24px;
-  background:
-    radial-gradient(120% 80% at 0% 0%, rgba(0,212,232,.11), transparent 60%),
-    radial-gradient(120% 80% at 100% 100%, rgba(255,140,0,.07), transparent 65%),
-    var(--qsi-glass);
-  border: 1px solid var(--qsi-line-2);
-  box-shadow: var(--qsi-shadow-hero);
-  padding: 16px 14px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--bg-card-border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   position: relative;
   overflow: hidden;
 }
 .hero-card::before {
-  /* subtle circuit highlight in the top-right corner */
-  content: "";
+  content: '';
   position: absolute;
-  inset: -40% -40% auto auto;
-  width: 80%; height: 80%;
-  background:
-    radial-gradient(closest-side, rgba(0,212,232,.18), transparent 70%);
-  pointer-events: none;
-  filter: blur(2px);
-}
-.hero-card__price {
-  font-size: 28px;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  color: #f4faff;
-  text-shadow: 0 0 18px rgba(0,212,232,.18);
-}
-.hero-card__price em {
-  font-style: normal;
-  font-size: 12.5px;
-  font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 999px;
-  background: rgba(45, 214, 144, .14);
-  border: 1px solid rgba(45, 214, 144, .35);
-}
-.hero-card__price em.dn {
-  background: rgba(255, 85, 119, .14);
-  border-color: rgba(255, 85, 119, .35);
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--teal), var(--orange), transparent);
+  opacity: 0.4;
 }
 
-/* Wallet-style timeframe tabs row */
-.tf-tabs {
-  margin-top: 12px;
-  background: rgba(6,10,16,.58);
-  border: 1px solid var(--qsi-line-1);
-  border-radius: 14px;
-  padding: 4px;
-  gap: 2px;
+/* Coin selector */
+.coin-selector {
+  display: flex; gap: 6px;
+  margin-bottom: 14px;
 }
-.tf-tabs button {
-  border-radius: 10px;
-  padding: 6px 10px;
-  background: transparent;
-  border: 0;
-  color: var(--ink-2);
-  font-weight: 700;
-  font-size: 11px;
-  letter-spacing: 0.02em;
-}
-.tf-tabs button.is-active {
-  background: linear-gradient(180deg, rgba(0,212,232,.18), rgba(0,212,232,.05));
-  color: var(--qsi-cyan-2);
-  box-shadow: inset 0 0 0 1px rgba(0,212,232,.32), 0 0 14px rgba(0,212,232,.18);
-}
-
-/* Metric row — small KPI strip under chart */
-.metric-row { gap: 8px; }
-.metric {
-  background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
-  border: 1px solid var(--qsi-line-1);
-  border-radius: 14px;
-  padding: 8px 10px;
-}
-
-/* ---- 4. Generic cards — deeper glass bevel -------------------------- */
-.card,
-.last-signal,
-.signal-card,
-.matrix-cell,
-.ai-summary,
-.profile-card,
-.kpi,
-.ai-intro,
-.ai-compose {
-  background: var(--qsi-glass);
-  border-color: var(--qsi-line-2);
-  box-shadow: var(--qsi-shadow-card);
-}
-.card { border-radius: 18px; padding: 14px; }
-.card__head h2 {
-  font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: 0.10em;
-  color: var(--ink-1);
-}
-
-/* KPI strip — wallet-style chips */
-.kpis { gap: 8px; }
-.kpi {
-  padding: 12px 12px;
-  border-radius: 16px;
-}
-.kpi-label {
-  font-size: 10px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--ink-2);
-}
-.kpi-value {
-  font-size: 20px;
-  font-weight: 800;
-  margin-top: 4px;
-  background: linear-gradient(180deg, #fff, #9AEDF8);
-  -webkit-background-clip: text; background-clip: text; color: transparent;
-}
-.kpi-trend.up    { color: var(--pos); }
-.kpi-trend.flat  { color: var(--ink-2); }
-
-/* Last-signal — accented top edge */
-.last-signal {
-  border-radius: 20px;
-  position: relative;
-  padding-top: 14px;
-}
-.last-signal::before {
-  content: "";
-  position: absolute;
-  top: -1px; left: 16px; right: 16px;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--teal) 30%, var(--orange) 70%, transparent);
-  border-radius: 2px;
-  filter: blur(.4px);
-  opacity: .9;
-}
-.last-signal__title {
-  font-size: 10.5px;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: var(--ink-2);
-}
-
-/* Strong-signal CTA — premium pill */
-.cta.cta--strong {
-  border-radius: 14px;
-  background: linear-gradient(135deg, #FF8C00 0%, #CC6600 60%, #FF8C00 100%);
-  color: #1a0e02;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  box-shadow:
-    0 12px 28px rgba(255,140,0,.32),
-    inset 0 1px 0 rgba(255,255,255,.35);
-}
-
-/* ---- 5. Bottom dock — floating glass nav --------------------------- */
-.tabbar {
-  bottom: calc(8px + env(safe-area-inset-bottom));
-  width: calc(100% - 20px);
-  max-width: min(460px, calc(100% - 20px));
-  border-radius: 22px;
-  padding: 8px 10px;
-  background:
-    linear-gradient(180deg, rgba(8,12,18,.82), rgba(4,6,10,.96));
-  border: 1px solid var(--qsi-line-2);
-  box-shadow: var(--qsi-shadow-dock);
-  backdrop-filter: blur(18px) saturate(1.1);
-  -webkit-backdrop-filter: blur(18px) saturate(1.1);
-}
-.tab {
-  border-radius: 14px;
-  padding: 6px 4px 4px;
-  color: var(--ink-2);
-}
-.tab.is-active {
-  color: var(--qsi-cyan-2);
-  background: linear-gradient(180deg, rgba(0,212,232,.14), rgba(0,212,232,.04));
-  box-shadow:
-    inset 0 0 0 1px rgba(0,212,232,.30),
-    0 0 18px rgba(0,212,232,.22);
-}
-.tab.is-active .tab__ico {
-  filter: drop-shadow(0 0 8px rgba(0,212,232,.75));
-}
-.tab.is-active .tab__ico::after {
-  /* Replace top bar with a soft glow underline for a more premium look */
-  content: "";
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  top: auto;
-  bottom: -2px;
-  width: 18px;
-  height: 2px;
-  background: var(--teal);
-  border-radius: 99px;
-  box-shadow: 0 0 12px rgba(0,212,232,.90);
-}
-
-/* The app shell needs a bit more bottom room because the dock now floats
-   ~8px above safe-area. Keep this AFTER existing .app rule so we win. */
-.app {
-  padding-bottom: calc(var(--tab-h) + 36px + env(safe-area-inset-bottom));
-}
-/* But when the soft keyboard is open we don't want the tabbar-sized
-   reserve — the tabbar is hidden, the composer floats above the keyboard.
-   Re-assert the keyboard-open contract so the v3 padding doesn't win. */
-body.keyboard-open .app {
-  padding-bottom: calc(12px + env(safe-area-inset-bottom));
-}
-
-/* ---- 6. AI screen — premium chat composer -------------------------- */
-.ai-intro { border-radius: 18px; padding: 12px 14px; }
-.ai-compose {
-  border-radius: 16px;
-  padding: 6px 6px 6px 10px;
-  box-shadow:
-    0 12px 28px rgba(0,0,0,.42),
-    inset 0 0 0 1px rgba(0,212,232,.10);
-}
-.ai-compose input::placeholder { color: var(--ink-3); }
-.ai-compose__send {
-  background: linear-gradient(135deg, var(--teal) 0%, var(--teal-soft) 100%);
-  box-shadow: 0 8px 20px rgba(0,212,232,.35);
-}
-
-/* ---- 7. Market — premium chips + search ---------------------------- */
-.market-search__input {
-  background: rgba(10,16,24,.6);
-  border-radius: 14px;
-  border: 1px solid var(--qsi-line-2);
-  padding-left: 36px;
-}
-.coin-chip {
-  background: rgba(10,16,24,.55);
-  border-radius: 999px;
-  border: 1px solid var(--qsi-line-2);
-}
-.coin-chip.is-active {
-  background: linear-gradient(180deg, rgba(0,212,232,.18), rgba(0,212,232,.04));
-  border-color: rgba(0,212,232,.40);
-  box-shadow: 0 0 12px rgba(0,212,232,.22);
-}
-
-/* ---- 8. Profile screen polish -------------------------------------- */
-.profile-card { border-radius: 20px; padding: 16px; }
-.profile-id__name {
-  font-size: 16px; font-weight: 800;
-  background: linear-gradient(180deg, #fff, #9AEDF8);
-  -webkit-background-clip: text; background-clip: text; color: transparent;
-}
-
-/* ---- 9. Reduced motion respect ------------------------------------- */
-@media (prefers-reduced-motion: reduce) {
-  .hero-card::before,
-  .last-signal::before { animation: none; }
-}
-
-/* ---- 10. Wallet status pills (additive markup on hero card) -------- */
-.wallet-status {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin: 0 0 12px;
-  min-height: 26px;
-}
-.wallet-status__pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 24px;
-  padding: 0 10px;
-  border-radius: 999px;
-  font-size: 10.5px;
-  font-weight: 800;
-  letter-spacing: 0.10em;
-  text-transform: uppercase;
-  background: rgba(10,16,24,.6);
-  border: 1px solid var(--qsi-line-2);
-  color: var(--ink-1);
-  white-space: nowrap;
-}
-.wallet-status__pill--live {
-  color: var(--pos);
-  border-color: rgba(45, 214, 144, .35);
-  background: rgba(45, 214, 144, .10);
-}
-.wallet-status__pill--ai {
-  color: var(--orange);
-  border-color: rgba(255, 140, 0, .35);
-  background: rgba(255, 140, 0, .08);
-}
-.wallet-status__pill--brand {
-  margin-left: auto;
-  color: var(--teal);
-  border-color: rgba(0, 212, 232, .35);
-  background: rgba(0, 212, 232, .08);
-  letter-spacing: 0.22em;
-}
-.wallet-status__dot {
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: var(--pos);
-  box-shadow: 0 0 8px var(--pos);
-  animation: pulse 1.8s ease-in-out infinite;
-}
-
-/* ---- 11. Defensive: keep brand pure (no external trade-dress) ----- */
-/* (No selectors needed — verifier asserts absence; this comment is a
-   pointer for future maintainers.) */
-
-
-/* =====================================================================
-   DESIGN SYSTEM v4 — Promo Wallet → App Dashboard
-   ---------------------------------------------------------------------
-   Reframes the Overview away from a poster/promo composition toward a
-   compact, professional Telegram Mini App dashboard:
-   deep near-black canvas with a subtle cyan glow, a compact brand strip
-   (small QSI mark + QUANTSIGNAL AI label + LIVE status), and an inline
-   row of live KPI chips (Market / Signals / AI Score). No tilted device
-   mockups, no oversized hero badge, no decorative star sparkles.
-
-   Additive only — DOM hooks (#promo-balance / #promo-signals /
-   #promo-ai-score, data-action=open-market/open-signals/open-ai,
-   data-testid=promo-card-*) are preserved so JS + verifiers keep working.
-   New tokens: --qsi-ink-black.
-   ===================================================================== */
-
-:root {
-  --qsi-ink-black: #02050b;
-}
-
-/* Deep black canvas — pure black with a subtle cyan glow only (no
-   orange/violet wash, no poster gradients). App-like, not promo. */
-body {
-  background:
-    radial-gradient(820px 520px at 50% -12%, rgba(0, 212, 232, .10), transparent 64%),
-    radial-gradient(640px 560px at 0% 88%, rgba(0, 212, 232, .04), transparent 66%),
-    var(--qsi-ink-black);
-}
-
-/* ---- Brand strip (Overview header) — compact app composition -------- */
-.brand-strip {
-  position: relative;
-  margin: 2px 0 14px;
-  padding: 0;
-  background: transparent;
-  border: 0;
-  box-shadow: none;
-}
-.brand-strip__head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 2px 2px 12px;
-}
-.brand-strip__mark {
-  flex: 0 0 auto;
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow:
-    0 0 0 1px rgba(0, 212, 232, .28),
-    0 0 18px rgba(0, 212, 232, .22);
-}
-.brand-strip__mark-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  border-radius: 12px;
-}
-.brand-strip__title {
-  flex: 1 1 auto;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-.brand-strip__name {
-  margin: 0;
-  font-size: clamp(15px, 4.6vw, 18px);
-  line-height: 1.1;
-  font-weight: 800;
-  letter-spacing: -0.005em;
-  color: #f4faff;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.brand-strip__name b { color: var(--qsi-cyan-2); font-weight: 800; }
-.brand-strip__eyebrow {
-  margin: 0;
-  font-size: 10px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ink-2);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.brand-strip__status {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+.coin-btn {
+  display: flex; align-items: center; gap: 5px;
   padding: 5px 10px;
-  border-radius: 999px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  color: var(--qsi-cyan-2);
-  background: rgba(0, 212, 232, .08);
-  border: 1px solid rgba(0, 212, 232, .26);
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-2);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid transparent;
+  transition: all 0.2s;
 }
-.brand-strip__dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--teal);
-  box-shadow: 0 0 8px rgba(0, 212, 232, .90);
-  animation: pulse 1.8s ease-in-out infinite;
+.coin-btn__sym { font-size: 14px; }
+.coin-btn:hover { color: var(--text-0); background: rgba(255,255,255,0.08); }
+.coin-btn.is-active {
+  color: var(--teal);
+  background: var(--teal-soft);
+  border-color: rgba(30,200,220,0.3);
 }
 
-/* ---- KPI strip — inline live chips (Market / Signals / AI) ---------- */
-.kpi-strip {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  width: 100%;
-}
-.kpi-chip {
-  position: relative;
-  appearance: none;
-  -webkit-appearance: none;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  text-align: left;
-  padding: 11px 12px;
-  border-radius: 16px;
-  color: var(--ink-0);
-  background:
-    radial-gradient(140% 100% at 0% 0%, rgba(0, 212, 232, .07), transparent 60%),
-    var(--qsi-glass);
-  border: 1px solid var(--qsi-line-2);
-  box-shadow:
-    0 10px 22px rgba(0, 0, 0, .42),
-    inset 0 1px 0 rgba(255, 255, 255, .04);
-  cursor: pointer;
-  transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease;
-}
-.kpi-chip:focus-visible {
-  outline: 2px solid var(--qsi-cyan);
-  outline-offset: 2px;
-}
-.kpi-chip:active { transform: scale(.97); }
-.kpi-chip__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 9px;
+/* Price block */
+.price-block { margin-bottom: 12px; }
+.price-block__pair {
+  font-size: 11px; font-weight: 600;
+  color: var(--text-2);
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--ink-2);
+  margin-bottom: 4px;
 }
-.kpi-chip__head i {
+.price-block__price {
+  font-family: var(--font-mono);
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--text-0);
+  letter-spacing: -0.02em;
+  line-height: 1;
+  margin-bottom: 6px;
+  transition: color 0.3s;
+}
+.price-block__price.flash-up { color: var(--pos); }
+.price-block__price.flash-dn { color: var(--neg); }
+.price-block__change { display: flex; align-items: center; gap: 8px; }
+.price-block__delta {
+  font-size: 14px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+.price-block__label { font-size: 11px; color: var(--text-2); }
+
+/* Mini chart */
+.mini-chart-wrap { position: relative; margin-bottom: 14px; }
+.mini-chart {
+  width: 100%; height: 80px;
+  display: block;
+}
+.chart-area { opacity: 0.7; }
+.chart-line { filter: drop-shadow(0 0 4px rgba(30,200,220,0.6)); }
+
+.chart-tfs {
+  display: flex; gap: 6px;
+  margin-top: 8px;
+}
+.tf-btn {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-2);
+  background: rgba(255,255,255,0.04);
+  transition: all 0.18s;
+}
+.tf-btn:hover { color: var(--text-0); }
+.tf-btn.is-active {
+  color: var(--teal);
+  background: var(--teal-soft);
+}
+
+/* Stats row */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.stat { text-align: center; }
+.stat__label {
+  font-size: 9px;
+  color: var(--text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 3px;
+}
+.stat__val {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-0);
+}
+.stat__val--pos { color: var(--pos); }
+.stat__val--neg { color: var(--neg); }
+
+/* -------- SECTION LABELS -------- */
+.section-label {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 8px;
+}
+.section-label__dot {
   width: 6px; height: 6px;
   border-radius: 50%;
   background: var(--teal);
-  box-shadow: 0 0 6px rgba(0, 212, 232, .90);
 }
-.kpi-chip__val {
-  font-size: clamp(14px, 4vw, 17px);
-  font-weight: 800;
-  color: #f4faff;
-  line-height: 1.1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.kpi-chip__sub {
+.section-label__dot--orange { background: var(--orange); }
+.section-label__badge {
+  background: var(--teal-soft);
+  border: 1px solid rgba(30,200,220,0.25);
+  border-radius: 4px;
+  padding: 1px 5px;
   font-size: 9px;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--ink-2);
-  opacity: .85;
-}
-.kpi-chip--accent {
-  background:
-    radial-gradient(140% 100% at 0% 0%, rgba(255, 140, 0, .14), transparent 60%),
-    var(--qsi-glass);
-  border-color: rgba(255, 140, 0, .35);
-}
-.kpi-chip--accent .kpi-chip__val {
-  color: #fff8f0;
-  text-shadow: 0 0 16px rgba(255, 140, 0, .35);
-}
-
-/* ---- Section: brand-accented panel headers in app style ------------- */
-.card.card--promo {
-  background:
-    radial-gradient(120% 100% at 0% 0%, rgba(0, 212, 232, .08), transparent 60%),
-    var(--qsi-glass);
-  border-radius: 20px;
-  border: 1px solid var(--qsi-line-2);
-}
-
-/* Hero card glow upgrade: wallet/terminal style accent */
-.hero-card {
-  box-shadow:
-    0 28px 70px rgba(0, 0, 0, .60),
-    0 0 0 1px rgba(0, 212, 232, .14) inset,
-    0 1px 0 rgba(255, 255, 255, .05) inset;
-}
-
-/* ---- Tabbar tweak: small dock pad indicator for premium feel -------- */
-.tabbar::before {
-  content: "";
-  position: absolute;
-  top: 6px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 44px;
-  height: 3px;
-  border-radius: 99px;
-  background: linear-gradient(90deg, transparent, rgba(0, 212, 232, .45), transparent);
-  opacity: .7;
-  pointer-events: none;
-}
-
-/* ---- Re-assert keyboard-open contract (must stay last) -------------- */
-body.keyboard-open .tabbar {
-  transform: translate(-50%, 120%);
-  opacity: 0;
-  pointer-events: none;
-}
-body.keyboard-open .app {
-  padding-bottom: calc(12px + env(safe-area-inset-bottom));
-}
-
-/* ---- Narrow phones: keep brand strip + KPI chips readable ----------- */
-@media (max-width: 360px) {
-  .brand-strip__name { font-size: 15px; }
-  .kpi-strip { gap: 6px; }
-  .kpi-chip { padding: 10px 9px; border-radius: 14px; }
-  .kpi-chip__val { font-size: 13.5px; }
-  .kpi-chip__head, .kpi-chip__sub { font-size: 8.5px; }
-}
-
-/* =====================================================================
-   DESIGN SYSTEM v5 — Cryptex-style Finance Dashboard
-   ---------------------------------------------------------------------
-   Aligns the Overview with the Dribbble "AI-Powered Crypto Finance
-   Investment App" reference while keeping the QUANTSIGNAL AI brand and
-   all live-data hooks intact. Two new structural blocks:
-     1. Total Balance hero (Total Balance / big amount / BTC equiv / LIVE)
-     2. Action bar (4 round icon buttons: Market / Signals / AI / More)
-   Palette is pulled toward the brief: near-black #0A0A0F canvas,
-   #111520 / #141926 cards, #1E2535 borders, cyan/teal #00E5D8 accent
-   used softly. The existing --qsi-cyan (#00D4E8) signature teal is kept
-   as the named token so the design stays coherent.
-   Additive only — no DOM hook is renamed.
-   ===================================================================== */
-
-:root {
-  --qsi-canvas: #0a0a0f;
-  --qsi-canvas-2: #080b12;
-  --qsi-card: #111520;
-  --qsi-card-2: #141926;
-  --qsi-border: #1e2535;
-  --qsi-teal: #00D4E8;
-  --qsi-teal-soft: rgba(0, 212, 232, .14);
-}
-
-/* Canvas — absolute dark, soft cyan/teal glow + faint grid overlay,
-   no orange/violet wash. */
-body {
-  background:
-    radial-gradient(780px 480px at 50% -14%, rgba(0, 212, 232, .10), transparent 62%),
-    radial-gradient(620px 540px at 100% 92%, rgba(255, 140, 0, .05), transparent 66%),
-    var(--qsi-canvas);
-}
-.bg-grid {
-  background-image:
-    linear-gradient(rgba(0, 212, 232, .05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 212, 232, .05) 1px, transparent 1px);
-}
-
-/* =====================================================================
-   DESIGN SYSTEM v6 — Native Phone App Shell
-   ---------------------------------------------------------------------
-   Final polish layer that makes the Mini App read like a real phone
-   app instead of a web page / landing. Goals:
-     • App-shell: pinned native header (sticky, blurred dark surface),
-       single vertical scroll body, fixed bottom tab bar, no horizontal
-       overflow on 375–430px.
-     • Card stack rhythm: consistent 16px gutters, tighter inter-card
-       gaps, lightweight section labels so the Overview reads as a
-       stacked mobile feed (market card → AI → KPIs → partner → signal).
-     • Native tab bar feel: soft blurred dark surface, cyan active state,
-       stable icon/label sizing, content never hidden behind it.
-     • Stability: taps move only transform/opacity, dynamic data slots
-       reserve height, grids/cards keep min-width:0.
-   Additive only — every selector targets existing classes/IDs. No DOM
-   hook, testid, or data-action is renamed. Removed Overview blocks
-   (Total Balance / ticker / action bar / Top Coins) stay removed.
-   ===================================================================== */
-
-:root {
-  /* App-shell rhythm tokens */
-  --qsi-gutter: 16px;
-  --qsi-stack-gap: 14px;
-  --qsi-header-h: 56px;
-  --qsi-shell: rgba(8, 11, 18, .82);
-}
-
-/* ---- 1. App-shell gutters — 16px native side padding ---------------- */
-.app {
-  padding-left: var(--qsi-gutter);
-  padding-right: var(--qsi-gutter);
-  /* No native top padding here — the sticky header owns the top inset. */
-  padding-top: 0;
-}
-
-/* ---- 2. Pinned native header — sticky blurred app bar --------------- */
-.topbar {
-  position: sticky;
-  top: 0;
-  z-index: 40;
-  min-height: var(--qsi-header-h);
-  margin: 0 calc(-1 * var(--qsi-gutter)) 12px;
-  padding: calc(6px + env(safe-area-inset-top)) var(--qsi-gutter) 8px;
-  border-radius: 0;
-  background: var(--qsi-shell);
-  border-bottom: 1px solid rgba(0, 212, 232, .10);
-  backdrop-filter: blur(18px) saturate(1.15);
-  -webkit-backdrop-filter: blur(18px) saturate(1.15);
-}
-
-/* ---- 3. Scroll body — single vertical app feed ---------------------- */
-.screen {
-  /* Tighter, even card-stack rhythm — native feed, not page sections. */
-  gap: var(--qsi-stack-gap);
-  padding-bottom: 4px;
-}
-
-/* Lightweight section labels: a small uppercase eyebrow before grouped
-   blocks so the stack reads like app sections, not loose page blocks. */
-.stack-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 6px 2px -4px;
-  font-size: 10.5px;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ink-2);
-  min-height: 14px;
-}
-.stack-label::after {
-  content: "";
-  flex: 1 1 auto;
-  height: 1px;
-  background: linear-gradient(90deg, rgba(0, 212, 232, .22), transparent);
-}
-
-/* ---- 4. Card stack — unified mobile surface rhythm ------------------ */
-/* Slightly larger native radii + consistent inner padding so the stack
-   reads as one continuous app surface rather than mixed web cards. */
-.hero-card { border-radius: 22px; padding: 16px 14px 14px; margin-top: 2px; }
-.card,
-.last-signal,
-.partner-card,
-.ai-summary { border-radius: 20px; }
-
-/* ---- 5. Native bottom tab bar — stable, blurred, cyan active ------- */
-.tabbar {
-  /* Sit close to the bottom like a real tab bar (not a floating pill
-     far above the edge), but still clear the home indicator. */
-  bottom: calc(6px + env(safe-area-inset-bottom));
-  background:
-    linear-gradient(180deg, rgba(8, 11, 18, .84), rgba(4, 6, 10, .97));
-  backdrop-filter: blur(22px) saturate(1.2);
-  -webkit-backdrop-filter: blur(22px) saturate(1.2);
-}
-/* Stable tab geometry — icon + label never reflow on active toggle. */
-.tabbar .tab {
-  min-height: 50px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-}
-.tabbar .tab > span:last-child {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  line-height: 1;
-}
-.tabbar .tab__ico {
-  width: 22px;
-  height: 22px;
-  display: grid;
-  place-items: center;
-}
-
-/* ---- 6. Content never hidden behind the fixed tab bar -------------- */
-.app {
-  padding-bottom: calc(var(--tab-h) + 32px + env(safe-area-inset-bottom));
-}
-
-/* ---- 7. Overflow guards (375–430px) — nothing widens the shell ----- */
-.kpi-strip,
-.kpis,
-.metric-row,
-.tf-tabs {
-  min-width: 0;
-  max-width: 100%;
-}
-.kpi-chip,
-.kpi,
-.metric { min-width: 0; }
-
-/* ---- 8. Press feedback stays transform/opacity only ---------------- */
-.kpi-chip:active,
-.stack-label:active { filter: brightness(.97); }
-
-/* ---- 9. Narrow phones (≤375px) — keep the stack tight -------------- */
-@media (max-width: 375px) {
-  :root { --qsi-gutter: 14px; }
-  .stack-label { font-size: 10px; letter-spacing: 0.12em; }
-}
-
-/* ---- 10. Re-assert keyboard-open contract (must stay last) --------- */
-body.keyboard-open .tabbar {
-  transform: translate(-50%, 120%);
-  opacity: 0;
-  pointer-events: none;
-}
-body.keyboard-open .app {
-  padding-bottom: calc(12px + env(safe-area-inset-bottom));
-}
-/* Sticky header keeps pinned but flattens its top inset when typing. */
-body.keyboard-open .topbar {
-  padding-top: 6px;
-}
-
-/* ====================================================================
-   DESIGN SYSTEM v7 — Functional Panels (every panel is an action)
-   Additive only. Makes the Overview panels read+behave like real app
-   modules: each is a tap target that routes to its module, with
-   transform/opacity press feedback (no layout shift) and visible focus.
-   ==================================================================== */
-
-/* --- Interactive container panels: pointer + neutral active feedback -- */
-.hero-card[data-action],
-.ai-summary[data-action],
-.last-signal[data-action],
-.health-card[data-action] {
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-  transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
-}
-.hero-card[data-action]:active,
-.ai-summary[data-action]:active,
-.last-signal[data-action]:active,
-.health-card[data-action]:active {
-  transform: scale(.99);
-}
-.hero-card[data-action]:focus-visible,
-.ai-summary[data-action]:focus-visible,
-.last-signal[data-action]:focus-visible,
-.health-card[data-action]:focus-visible,
-.kpi[data-action]:focus-visible {
-  outline: 2px solid rgba(0, 212, 232, .65);
-  outline-offset: 2px;
-}
-/* Inner controls inside tappable panels keep their own hit area on top. */
-.hero-card .tf-tabs button,
-.last-signal .cta { position: relative; z-index: 2; }
-
-/* --- KPI cards promoted to <button>: strip native chrome ------------- */
-.kpi[data-action] {
-  appearance: none;
-  -webkit-appearance: none;
-  font: inherit;
-  text-align: left;
-  color: inherit;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-  width: 100%;
-  display: block;
-  transition: transform .12s ease, border-color .12s ease;
-}
-.kpi[data-action]:active { transform: scale(.97); }
-
-/* --- System Health card (overview module) ---------------------------- */
-.health-card {
-  appearance: none;
-  -webkit-appearance: none;
-  font: inherit;
-  color: inherit;
-  text-align: left;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  border-radius: 16px;
-}
-.health-card__icon {
-  flex: 0 0 auto;
-  width: 38px; height: 38px;
-  display: grid; place-items: center;
-  border-radius: 12px;
-  background: rgba(0, 212, 232, .10);
-  border: 1px solid rgba(0, 212, 232, .22);
-}
-.health-card__text { display: flex; flex-direction: column; min-width: 0; flex: 1 1 auto; }
-.health-card__text b { font-size: 13px; color: var(--ink-1); }
-.health-card__text em { font-style: normal; font-size: 10.5px; color: var(--ink-2); }
-.health-card__dots { display: inline-flex; gap: 5px; flex: 0 0 auto; }
-.health-card__dot {
-  width: 8px; height: 8px; border-radius: 999px;
-  background: var(--ink-2);
-  box-shadow: 0 0 0 0 rgba(0,0,0,0);
-}
-.health-card__dot.is-ok   { background: #2bd47a; box-shadow: 0 0 8px rgba(43,212,122,.6); }
-.health-card__dot.is-warn { background: #ffb24a; box-shadow: 0 0 8px rgba(255,178,74,.55); }
-.health-card__dot.is-off  { background: #ff5d6c; box-shadow: 0 0 8px rgba(255,93,108,.5); }
-.health-card__cta {
-  flex: 0 0 auto;
-  display: inline-flex; align-items: center; gap: 4px;
-  font-size: 11px; font-weight: 700;
-  color: var(--qsi-teal, #00D4E8);
-}
-
-/* --- System Health diagnostics sheet body ---------------------------- */
-.health__head { margin-bottom: 12px; }
-.health__head h2 {
-  font-size: 16px; font-weight: 800; color: var(--ink-1);
-  text-transform: uppercase; letter-spacing: 0.08em;
-}
-.health__sub { display: block; font-size: 11px; color: var(--ink-2); margin-top: 2px; }
-.health-list { list-style: none; margin: 0 0 14px; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-.health-row {
-  display: flex; align-items: center; gap: 10px;
-  padding: 12px; border-radius: 14px;
-  background: var(--qsi-glass, rgba(255,255,255,.03));
-  border: 1px solid var(--qsi-line-2, rgba(255,255,255,.08));
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-  transition: transform .12s ease, border-color .12s ease;
-}
-.health-row:active { transform: scale(.98); }
-.health-row:focus-visible { outline: 2px solid rgba(0,212,232,.65); outline-offset: 2px; }
-.health-row__dot { width: 10px; height: 10px; border-radius: 999px; flex: 0 0 auto; }
-.health-row__dot--ok   { background: #2bd47a; box-shadow: 0 0 8px rgba(43,212,122,.6); }
-.health-row__dot--warn { background: #ffb24a; box-shadow: 0 0 8px rgba(255,178,74,.55); }
-.health-row__dot--off  { background: #ff5d6c; box-shadow: 0 0 8px rgba(255,93,108,.5); }
-.health-row__name { flex: 1 1 auto; font-size: 13px; color: var(--ink-1); }
-.health-row__val { font-size: 12px; font-weight: 700; }
-.health-row__val--ok   { color: #2bd47a; }
-.health-row__val--warn { color: #ffb24a; }
-.health-row__val--off  { color: #ff5d6c; }
-.health-meta { display: flex; flex-direction: column; gap: 2px; margin-bottom: 10px; }
-.health-hint { font-size: 11px; color: var(--ink-2); margin: 0; }
-
-/* --- Signals: transient highlight when arrived via Activity tap ------ */
-.signal-card--focus {
-  border-color: rgba(0, 212, 232, .8) !important;
-  box-shadow: 0 0 0 2px rgba(0, 212, 232, .35), 0 0 24px rgba(0, 212, 232, .25);
-  animation: signalFocusPulse 1.6s ease;
-}
-@keyframes signalFocusPulse {
-  0%   { box-shadow: 0 0 0 2px rgba(0,212,232,.55), 0 0 28px rgba(0,212,232,.4); }
-  100% { box-shadow: 0 0 0 2px rgba(0,212,232,0),   0 0 24px rgba(0,212,232,0); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .signal-card--focus { animation: none; }
-}
-
-/* ====================================================================
-   DESIGN SYSTEM v8 — App Panels (self-contained dashboard modules)
-   Additive only. Gives every Overview module a shared "panel chrome":
-   a header row (uppercase label + status badge + chevron affordance)
-   over glass card body. Three new live modules — AI Signal, Market
-   Matrix preview, Activity Feed — share this chrome. All press states
-   are transform/opacity only (no layout shift); grids stay min-width:0
-   and reserve min-heights so live data never reflows the feed.
-   ==================================================================== */
-
-.app-panel {
-  position: relative;
-  display: block;
-  width: 100%;
-  min-width: 0;
-  text-align: left;
-  box-sizing: border-box;
-  padding: 12px 14px 14px;
-  border: 1px solid var(--qsi-border, #1e2535);
-  border-radius: 20px;
-  background:
-    radial-gradient(120% 140% at 0% 0%, rgba(0,212,232,.06), transparent 55%),
-    var(--qsi-card, #111520);
-  box-shadow: 0 10px 26px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.03);
-  color: var(--ink-1, #b9c6d8);
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-  transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
-}
-.app-panel:active { transform: scale(.985); }
-.app-panel:focus-visible {
-  outline: 2px solid rgba(0,229,216,.65);
-  outline-offset: 2px;
-}
-
-/* --- Shared panel header chrome ------------------------------------- */
-.app-panel__head {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  margin-bottom: 10px;
-}
-.app-panel__label {
-  flex: 1 1 auto;
-  min-width: 0;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  color: var(--ink-2, #7A9DB8);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.app-panel__badge {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 9px;
-  border-radius: 999px;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: .04em;
-  color: var(--ink-1, #b9c6d8);
-  background: rgba(255,255,255,.05);
-  border: 1px solid var(--qsi-border, #1e2535);
-}
-.app-panel__badge--live {
   color: var(--teal);
-  background: rgba(0,212,232,.10);
-  border-color: rgba(0,212,232,.28);
-}
-.app-panel__dot {
-  width: 6px; height: 6px;
-  border-radius: 999px;
-  background: var(--teal);
-  box-shadow: 0 0 8px rgba(0,212,232,.90);
-  animation: pulse 1.8s ease-in-out infinite;
-}
-.app-panel__chevron {
-  flex: 0 0 auto;
-  display: inline-flex;
-  color: var(--ink-2, #7A9DB8);
+  margin-left: 2px;
 }
 
-/* --- AI Signal Panel ------------------------------------------------ */
-.sig-panel__body {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  min-width: 0;
-}
-.sig-ring {
+/* -------- SIGNAL CARD -------- */
+.signal-card {
+  display: flex; align-items: center;
+  gap: 12px;
+  background: var(--bg-card);
+  border: 1px solid rgba(30,200,220,0.15);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  margin-bottom: 16px;
+  cursor: pointer;
   position: relative;
-  flex: 0 0 auto;
-  width: 72px; height: 72px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
-.sig-ring__val {
+.signal-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--teal), var(--orange));
+  border-radius: 3px 0 0 3px;
+}
+.signal-card:hover {
+  border-color: rgba(30,200,220,0.3);
+  box-shadow: var(--teal-glow);
+}
+.signal-card:active { transform: scale(0.99); }
+
+.signal-ring {
+  position: relative;
+  width: 64px; height: 64px;
+  flex-shrink: 0;
+}
+.signal-ring__val {
   position: absolute;
   inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 17px;
-  font-weight: 800;
-  color: #eafcff;
-}
-#sig-ring-arc { transition: stroke-dashoffset .5s ease, stroke .3s ease; }
-.sig-panel__col { flex: 1 1 auto; min-width: 0; }
-.sig-panel__top {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-  min-width: 0;
-}
-.sig-panel__mark { flex: 0 0 auto; }
-.sig-panel__pair {
-  flex: 1 1 auto;
-  min-width: 0;
-  font-size: 15px;
-  font-weight: 800;
-  color: #eaf2ff;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.sig-panel__side {
-  flex: 0 0 auto;
-  padding: 3px 10px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: .04em;
-}
-.sig-panel__side--long  { color: #04140f; background: #2bd47a; }
-.sig-panel__side--short { color: #1a0608; background: #ff5d6c; }
-.sig-panel__side--wait  { color: #14110a; background: #ffb24a; }
-.sig-panel__legs {
-  list-style: none;
-  margin: 0; padding: 0;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  min-width: 0;
-}
-.sig-panel__legs li {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-  padding: 7px 8px;
-  border-radius: 12px;
-  background: var(--qsi-card-2, #141926);
-  border: 1px solid var(--qsi-border, #1e2535);
-}
-.sig-panel__legs span {
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-  color: var(--ink-2, #7A9DB8);
-}
-.sig-panel__legs b {
-  font-size: 12.5px;
-  font-weight: 800;
-  color: #eaf2ff;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.sig-panel__leg--danger b { color: #ff8a96; }
-
-/* --- Market Matrix preview panel ------------------------------------ */
-.matrix-panel__grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-  min-width: 0;
-  min-height: 132px;
-}
-.mp-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-  padding: 9px 10px;
-  border-radius: 13px;
-  border: 1px solid var(--qsi-border, #1e2535);
-  background: var(--qsi-card-2, #141926);
-  overflow: hidden;
-}
-.mp-cell--up   { box-shadow: inset 3px 0 0 #2bd47a; }
-.mp-cell--down { box-shadow: inset 3px 0 0 #ff5d6c; }
-.mp-cell__row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-}
-.mp-cell__sym {
-  flex: 1 1 auto;
-  min-width: 0;
-  font-size: 12.5px;
-  font-weight: 800;
-  color: #eaf2ff;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.mp-cell__chg {
-  flex: 0 0 auto;
-  font-size: 11.5px;
-  font-weight: 800;
-}
-.mp-cell__chg--up   { color: #2bd47a; }
-.mp-cell__chg--down { color: #ff5d6c; }
-.mp-cell__price {
-  font-size: 11px;
-  color: var(--ink-1, #b9c6d8);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.mp-cell__heat {
-  height: 4px;
-  border-radius: 999px;
-  background: rgba(255,255,255,.06);
-  overflow: hidden;
-}
-.mp-cell__heat i {
-  display: block;
-  height: 100%;
-  border-radius: 999px;
-}
-.mp-cell--up .mp-cell__heat i   { background: linear-gradient(90deg,#0fae6e,#2bd47a); }
-.mp-cell--down .mp-cell__heat i { background: linear-gradient(90deg,#c23b48,#ff5d6c); }
-
-/* --- Activity Feed panel -------------------------------------------- */
-.feed-panel__list {
-  list-style: none;
-  margin: 0; padding: 0;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  min-height: 120px;
-}
-.feed-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-  padding: 8px 0;
-  border-bottom: 1px solid rgba(255,255,255,.05);
-}
-.feed-row:last-child { border-bottom: 0; }
-.feed-row__ico {
-  flex: 0 0 auto;
-  width: 26px; height: 26px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 9px;
-  background: rgba(0,212,232,.10);
-  border: 1px solid rgba(0,212,232,.22);
-}
-.feed-row__ico--up   { background: rgba(43,212,122,.12); border-color: rgba(43,212,122,.3); }
-.feed-row__ico--down { background: rgba(255,93,108,.12); border-color: rgba(255,93,108,.3); }
-.feed-row__body { flex: 1 1 auto; min-width: 0; }
-.feed-row__title {
-  display: block;
-  font-size: 12.5px;
-  font-weight: 700;
-  color: #eaf2ff;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.feed-row__sub {
-  display: block;
-  font-size: 10.5px;
-  color: var(--ink-2, #7A9DB8);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.feed-row__time {
-  flex: 0 0 auto;
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--ink-2, #7A9DB8);
-}
-.feed-panel__empty {
-  display: flex;
-  align-items: center;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono);
   font-size: 12px;
-  color: var(--ink-2, #7A9DB8);
+  font-weight: 700;
+  color: var(--teal);
 }
 
-/* --- Overflow guards: new panel grids never push the viewport ------- */
-.sig-panel__legs,
-.matrix-panel__grid,
-.feed-panel__list { min-width: 0; }
-
-@media (prefers-reduced-motion: reduce) {
-  .app-panel__dot { animation: none; }
-  #sig-ring-arc { transition: none; }
+.signal-card__left {
+  display: flex; align-items: center; gap: 12px;
+  flex: 1;
 }
+.signal-card__info {}
+.signal-card__pair {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+.signal-card__side {}
 
-/* =====================================================================
-   DESIGN SYSTEM v9 — Blue-Neon Crypto AI Terminal
-   ---------------------------------------------------------------------
-   A deliberately RADICAL, visually obvious re-skin so the Mini App reads
-   as an electric blue-neon crypto AI dashboard (the approved reference):
-     • Deep navy/black canvas with an animated data-grid + cyan glow.
-     • Electric blue / cyan neon everywhere: glowing panel borders, lit
-       panel headers, glassmorphism surfaces, neon active states.
-     • Main Market card = crypto-terminal centerpiece (blue-glow chart,
-       metric strips, selected BTC/USDT styling).
-     • AI Signal panel = confidence ring + strong LONG/SHORT neon accents.
-     • Market Matrix / Activity / System Health get distinct neon blocks.
-     • Bottom nav = native neon dock with a glow under the active icon.
-     • Header = QUANTSIGNAL AI mark + live dot + data-source status.
-   Additive only. Every selector targets EXISTING classes/IDs — no markup,
-   testid, data-action, or live hook is renamed. Removed Overview blocks
-   (Total Balance / ticker / action bar / Top Coins) stay removed.
-   ===================================================================== */
-
-:root {
-  --qsn-navy-0: #060A0F;          /* absolute base */
-  --qsn-navy-1: #080C14;          /* panel base navy */
-  --qsn-navy-2: #0C1420;          /* raised navy */
-  --qsn-blue: #00D4E8;            /* teal accent */
-  --qsn-blue-deep: #0E7A8A;       /* deep teal */
-  --qsn-cyan: #00D4E8;            /* neon teal */
-  --qsn-cyan-soft: #5EF5FF;
-  --qsn-edge: rgba(0, 212, 232, .38);      /* glowing border */
-  --qsn-edge-soft: rgba(0, 212, 232, .18);
-  --qsn-glass: rgba(6, 10, 15, .70);
-  --qsn-glass-2: rgba(8, 12, 20, .62);
-  --qsn-glow-cyan: 0 0 0 1px rgba(0, 212, 232, .35),
-                   0 0 22px rgba(0, 212, 232, .30),
-                   0 0 60px rgba(30, 200, 220, .18);
-  --qsn-glow-soft: 0 0 24px rgba(0, 212, 232, .18);
-  --qsn-pos: #00D68F;
-  --qsn-neg: #FF3B5C;
+.side-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 4px;
+  letter-spacing: 0.08em;
+}
+.side-badge--long {
+  background: rgba(0, 216, 144, 0.15);
+  color: var(--pos);
+  border: 1px solid rgba(0, 216, 144, 0.3);
+}
+.side-badge--short {
+  background: rgba(255, 48, 96, 0.15);
+  color: var(--neg);
+  border: 1px solid rgba(255, 48, 96, 0.3);
 }
 
-/* ---- 1. Canvas — deep navy/black + animated data grid + cyan glow ---
-   Keeps the v5 palette tokens (--qsi-canvas near-black + cyan/teal glow,
-   no orange/violet) layered under the navy gradient so the design stays
-   coherent and earlier palette guards hold. */
-body {
-  background:
-    radial-gradient(900px 560px at 50% -16%, rgba(0, 212, 232, .14), transparent 60%),
-    radial-gradient(700px 600px at 100% 8%, rgba(0, 212, 232, .08), transparent 62%),
-    radial-gradient(620px 540px at 0% 96%, rgba(255, 140, 0, .06), transparent 66%),
-    radial-gradient(820px 680px at 0% 96%, rgba(0, 80, 100, .12), transparent 66%),
-    linear-gradient(180deg, var(--qsn-navy-1) 0%, var(--qsn-navy-0) 100%),
-    var(--qsi-canvas);
-  background-attachment: fixed;
+.signal-card__right {
+  display: flex; flex-direction: column; gap: 6px;
 }
-.bg-grid {
-  background-image:
-    linear-gradient(rgba(0, 212, 232, .08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 212, 232, .08) 1px, transparent 1px);
-  background-size: 40px 40px;
-  opacity: .75;
-  animation: qsnGridDrift 24s linear infinite;
-}
-.bg-glow--teal   { background: rgba(0, 212, 232, .22) !important; }
-.bg-glow--violet { background: rgba(255, 140, 0, .14) !important; }
-@keyframes qsnGridDrift {
-  from { background-position: 0 0, 0 0; }
-  to   { background-position: 40px 40px, 40px 40px; }
-}
-
-/* ---- 2. Header — illuminated QUANTSIGNAL AI app bar ----------------- */
-.topbar {
-  background:
-    linear-gradient(180deg, rgba(4, 6, 10, .94), rgba(3, 6, 12, .80)) !important;
-  border-bottom: 1px solid var(--qsn-edge) !important;
-  box-shadow: 0 1px 0 rgba(0, 212, 232, .14), 0 14px 30px -18px rgba(30, 200, 220, .5);
-}
-.topbar::after {
-  content: "";
-  position: absolute;
-  left: 0; right: 0; bottom: -1px;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--teal), transparent);
-  opacity: .7;
-  pointer-events: none;
-}
-.topbar__btn {
-  border: 1px solid var(--qsn-edge-soft) !important;
-  background: rgba(6, 10, 15, .6) !important;
-  color: var(--qsn-cyan-soft) !important;
-  box-shadow: inset 0 0 12px rgba(0, 212, 232, .12);
-}
-.conn-pill {
-  border: 1px solid var(--qsn-edge) !important;
-  background: rgba(0, 60, 80, .18) !important;
-  color: var(--qsn-cyan-soft) !important;
-  text-shadow: 0 0 10px rgba(0, 212, 232, .5);
-  letter-spacing: .04em;
-}
-.dot-live, .brand-strip__dot, .wallet-status__dot, .app-panel__dot {
-  background: var(--teal) !important;
-  box-shadow: 0 0 8px var(--teal), 0 0 16px rgba(0, 212, 232, .7) !important;
-}
-
-/* ---- 3. Section eyebrow labels — neon underline -------------------- */
-.stack-label {
-  color: var(--qsn-cyan-soft);
-  text-shadow: 0 0 12px rgba(0, 212, 232, .35);
-}
-.stack-label::after {
-  background: linear-gradient(90deg, var(--teal), transparent) !important;
-  box-shadow: 0 0 10px rgba(0, 212, 232, .4);
-}
-
-/* ---- 4. Brand strip + KPI chips — neon glass ----------------------- */
-.brand-strip__name { text-shadow: 0 0 16px rgba(0, 212, 232, .45); }
-.brand-strip__name b { color: var(--teal) !important; }
-.brand-strip__status {
-  border: 1px solid var(--qsn-edge) !important;
-  background: rgba(0, 60, 80, .18) !important;
-  color: var(--qsn-cyan-soft) !important;
-  box-shadow: var(--qsn-glow-soft);
-}
-.kpi-chip {
-  border: 1px solid var(--qsn-edge-soft) !important;
-  background:
-    radial-gradient(120% 130% at 0% 0%, rgba(0, 212, 232, .10), transparent 55%),
-    var(--qsn-glass) !important;
-  box-shadow: var(--qsn-glow-soft), inset 0 1px 0 rgba(0, 212, 232, .08);
-}
-.kpi-chip--accent {
-  border-color: rgba(255, 140, 0, .42) !important;
-  box-shadow: 0 0 20px rgba(255, 140, 0, .22) !important;
-}
-.kpi-chip__val { color: var(--qsn-cyan-soft) !important; text-shadow: 0 0 12px rgba(0, 212, 232, .35); }
-
-/* ---- 5. Main Market card — crypto-terminal centerpiece ------------- */
-.hero-card {
-  border: 1px solid var(--qsn-edge) !important;
-  background:
-    radial-gradient(140% 120% at 12% -10%, rgba(0, 212, 232, .14), transparent 55%),
-    radial-gradient(120% 140% at 100% 0%, rgba(0, 212, 232, .09), transparent 60%),
-    linear-gradient(180deg, var(--qsn-navy-2), var(--qsn-navy-1)) !important;
-  box-shadow:
-    var(--qsn-glow-cyan),
-    0 24px 60px -24px rgba(30, 200, 220, .5) !important;
-}
-.hero-card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(135deg, rgba(0, 212, 232, .55), transparent 40%, rgba(0, 80, 100, .50));
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-          mask-composite: exclude;
-  pointer-events: none;
-  opacity: .8;
-}
-.hero-card__price, #hero-price {
-  color: #f3f9ff !important;
-  text-shadow: 0 0 18px rgba(0, 212, 232, .45);
-}
-.hero-card__row b, #hero-pair {
-  color: var(--teal) !important;
-  letter-spacing: .02em;
-}
-/* Selected BTC/USDT terminal styling on the pair badge */
-.hero-card .badge--mute {
-  border: 1px solid var(--qsn-edge) !important;
-  background: rgba(0, 60, 80, .20) !important;
-  color: var(--qsn-cyan-soft) !important;
-}
-.coin-mark {
-  border: 1px solid var(--coin-line, var(--qsn-edge)) !important;
-  background: var(--coin-mark-bg, rgba(6, 10, 15, .7)) !important;
-  color: var(--coin-mark-fg, var(--teal)) !important;
-  box-shadow: 0 0 18px var(--coin-glow, rgba(0, 212, 232, .35)), inset 0 0 14px rgba(0, 212, 232, .14);
-}
-/* Timeframe tabs — neon pill row */
-.tf-tabs { border: 1px solid var(--qsn-edge-soft) !important; background: rgba(4, 6, 12, .55) !important; }
-.tf-tabs button.is-active {
-  background: linear-gradient(180deg, rgba(0, 212, 232, .30), rgba(30, 200, 220, .20)) !important;
-  color: #f1faff !important;
-  box-shadow: 0 0 16px rgba(0, 212, 232, .45);
-  border: 1px solid var(--qsn-edge) !important;
-}
-/* Chart well — blue-glow data surface */
-.chart-wrap {
-  border: 1px solid var(--qsn-edge-soft) !important;
-  background:
-    radial-gradient(120% 120% at 50% 0%, rgba(0, 212, 232, .12), transparent 60%),
-    rgba(3, 6, 12, .6) !important;
-  box-shadow: inset 0 0 40px rgba(30, 200, 220, .18);
-}
-.chart-tag {
-  border: 1px solid var(--qsn-edge) !important;
-  background: rgba(0, 60, 80, .25) !important;
-  color: var(--qsn-cyan-soft) !important;
-}
-/* Metric strips */
-.metric {
-  border: 1px solid var(--qsn-edge-soft) !important;
-  background: var(--qsn-glass-2) !important;
-  box-shadow: inset 0 1px 0 rgba(0, 212, 232, .06);
-}
-.metric__value { color: #eef6ff !important; text-shadow: 0 0 10px rgba(0, 212, 232, .28); }
-.metric__bars i { background: var(--teal) !important; box-shadow: 0 0 6px rgba(0, 212, 232, .70); }
-.wallet-status__pill {
-  border: 1px solid var(--qsn-edge) !important;
-  background: rgba(4, 8, 14, .72) !important;
-  color: var(--qsn-cyan-soft) !important;
-  box-shadow: var(--qsn-glow-soft);
-}
-.wallet-status__pill--brand { color: #fff !important; background: rgba(0, 60, 80, .35) !important; }
-
-/* ---- 6. Shared app-panel chrome — neon glass blocks ---------------- */
-.app-panel {
-  border: 1px solid var(--qsn-edge) !important;
-  background:
-    radial-gradient(120% 140% at 0% 0%, rgba(0, 212, 232, .09), transparent 55%),
-    var(--qsn-glass) !important;
-  box-shadow: var(--qsn-glow-soft), 0 16px 40px -22px rgba(0, 80, 100, .5) !important;
-}
-.app-panel:focus-visible { outline: 2px solid var(--teal) !important; }
-.app-panel__head {
-  position: relative;
-  padding-bottom: 8px;
-  border-bottom: 1px solid rgba(0, 212, 232, .14);
-}
-.app-panel__label {
-  color: var(--qsn-cyan-soft) !important;
-  text-shadow: 0 0 12px rgba(0, 212, 232, .40);
-}
-.app-panel__badge {
-  border: 1px solid var(--qsn-edge) !important;
-  background: rgba(0, 50, 70, .20) !important;
-  color: var(--qsn-cyan-soft) !important;
-}
-.app-panel__chevron { color: var(--teal) !important; }
-
-/* ---- 7. AI Signal panel — neon confidence + LONG/SHORT accents ----- */
-#sig-ring-arc { stroke: var(--teal) !important; filter: drop-shadow(0 0 6px rgba(0, 212, 232, .85)); }
-.sig-ring__val, #sig-conf { color: var(--qsn-cyan-soft) !important; text-shadow: 0 0 12px rgba(0, 212, 232, .55); }
-.sig-panel__pair { color: #eef6ff !important; }
-.sig-panel__side--long {
-  background: linear-gradient(180deg, rgba(0, 214, 143, .26), rgba(0, 214, 143, .12)) !important;
-  color: var(--pos) !important;
-  border: 1px solid rgba(0, 214, 143, .5) !important;
-  box-shadow: 0 0 16px rgba(0, 214, 143, .4);
-  text-shadow: 0 0 10px rgba(0, 214, 143, .6);
-}
-.sig-panel__side--short {
-  background: linear-gradient(180deg, rgba(255, 59, 92, .26), rgba(255, 59, 92, .12)) !important;
-  color: var(--neg) !important;
-  border: 1px solid rgba(255, 59, 92, .5) !important;
-  box-shadow: 0 0 16px rgba(255, 59, 92, .4);
-}
-.sig-panel__legs b { color: #eef6ff !important; }
-.sig-panel__leg--danger b { color: var(--neg) !important; }
-
-/* ---- 8. Market Matrix preview — neon heat cells -------------------- */
-.mp-cell {
-  border: 1px solid rgba(0, 212, 232, .14) !important;
-  background: var(--qsn-glass-2) !important;
-}
-.mp-cell--up   { box-shadow: inset 0 0 18px rgba(0, 214, 143, .22), 0 0 0 1px rgba(0, 214, 143, .28); }
-.mp-cell--down { box-shadow: inset 0 0 18px rgba(255, 59, 92, .22), 0 0 0 1px rgba(255, 59, 92, .28); }
-
-/* ---- 9. Activity feed rows — neon dividers ------------------------- */
-.feed-row { border-bottom: 1px solid rgba(0, 212, 232, .10) !important; }
-.feed-row__title { color: #eef6ff !important; }
-
-/* ---- 10. Last-signal + System Health blocks — distinct neon -------- */
-.last-signal, .health-card {
-  border: 1px solid var(--qsn-edge) !important;
-  background:
-    radial-gradient(120% 130% at 100% 0%, rgba(0, 212, 232, .09), transparent 55%),
-    var(--qsn-glass) !important;
-  box-shadow: var(--qsn-glow-soft);
-}
-.cta--strong {
-  background: linear-gradient(180deg, rgba(255, 140, 0, 0.22), rgba(255, 140, 0, 0.08)) !important;
-  color: #FF8C00 !important;
-  border-color: rgba(255, 140, 0, 0.45) !important;
-  box-shadow: 0 0 22px rgba(255, 140, 0, .30), inset 0 1px 0 rgba(255,255,255,.10) !important;
-  text-shadow: none;
-}
-
-/* ---- 11. AI summary radar — cyan core ------------------------------ */
-.ai-radar__core { color: var(--teal) !important; text-shadow: 0 0 14px rgba(0, 212, 232, .75); }
-.ai-radar__ring, .ai-radar__ring--2 { border-color: rgba(0, 212, 232, .35) !important; }
-.ai-radar__sweep { background: conic-gradient(from 0deg, transparent, rgba(0, 212, 232, .50)) !important; }
-#ai-confidence { color: var(--teal) !important; }
-
-/* ---- 12. KPI cards — neon ------------------------------------------ */
-.kpi {
-  border: 1px solid var(--qsn-edge-soft) !important;
-  background: var(--qsn-glass-2) !important;
-  box-shadow: var(--qsn-glow-soft);
-}
-.kpi-value { color: var(--qsn-cyan-soft) !important; text-shadow: 0 0 12px rgba(0, 212, 232, .32); }
-
-/* ---- 13. Bottom nav — native neon dock ----------------------------- */
-.tabbar {
-  border: 1px solid var(--qsn-edge) !important;
-  background: linear-gradient(180deg, rgba(4, 6, 10, .92), rgba(3, 5, 10, .96)) !important;
-  box-shadow:
-    0 0 0 1px rgba(0, 212, 232, .12),
-    0 -2px 30px rgba(30, 200, 220, .22),
-    0 18px 40px -18px rgba(0, 0, 0, .9) !important;
-  backdrop-filter: blur(22px) saturate(1.3) !important;
-  -webkit-backdrop-filter: blur(22px) saturate(1.3) !important;
-}
-.tabbar .tab { color: var(--ink-2, #7A9DB8); }
-.tabbar .tab.is-active {
-  color: var(--qsn-cyan-soft) !important;
-  text-shadow: 0 0 12px rgba(0, 212, 232, .65);
-}
-/* Neon glow under the active tab icon */
-.tabbar .tab.is-active .tab__ico {
-  color: var(--teal) !important;
-  filter: drop-shadow(0 0 8px rgba(0, 212, 232, .90));
-}
-.tabbar .tab.is-active::before {
-  content: "";
-  position: absolute;
-  top: 4px;
-  left: 50%;
-  width: 34px;
-  height: 26px;
-  transform: translateX(-50%);
-  border-radius: 14px;
-  background: radial-gradient(60% 70% at 50% 40%, rgba(0, 212, 232, .45), transparent 75%);
-  filter: blur(2px);
-  pointer-events: none;
-  z-index: 0;
-}
-.tabbar .tab.is-active::after {
-  content: "";
-  position: absolute;
-  bottom: 5px;
-  left: 50%;
-  width: 22px;
-  height: 3px;
-  transform: translateX(-50%);
-  border-radius: 999px;
-  background: var(--teal);
-  box-shadow: 0 0 10px var(--teal), 0 0 18px rgba(0, 212, 232, .80);
-  pointer-events: none;
-}
-.tabbar .tab__ico { position: relative; z-index: 1; }
-
-/* ---- 14. Partner card keeps Antarctic brand, gains neon edge ------- */
-.partner-card { border: 1px solid rgba(0, 212, 232, .25) !important; box-shadow: 0 0 24px rgba(30, 200, 220, .25); }
-
-/* ---- 15. Stability — keep press feedback transform-only ------------ */
-@media (prefers-reduced-motion: reduce) {
-  .bg-grid { animation: none; }
-}
-
-/* =========================================================
-   DESIGN SYSTEM v10 — Real-App Opaque Shell + No-JS Fallback
-   ---------------------------------------------------------
-   Root cause this layer fixes: the Telegram Mini App could render
-   transparent — the host chat / a foreign document image showed
-   through — whenever app.js failed to load or never added
-   `.boot-done` (the old rule kept .app + .bg-stack visibility:hidden
-   and pinned the splash forever). v10 guarantees the ENTIRE viewport
-   is always an opaque dark blue-neon QUANTSIGNAL surface, with or
-   without JS, and ships a self-contained no-JS fallback shell.
-   ========================================================= */
-
-/* 1. Opaque backstops on every root container. Each is painted with a
-   solid near-black/navy BEFORE any translucent neon layering, so a
-   missing/late background image or glow can never reveal the host. */
-html, body {
-  background-color: #050A12 !important;
-}
-.app {
-  /* Solid layered dark base under the (mostly transparent) shell so the
-     content column itself is never see-through. z-index keeps it above
-     .bg-stack but below interactive chrome. */
-  background-color: #050A12;
-  background-image:
-    radial-gradient(1200px 760px at 50% -12%, rgba(0, 212, 232, .10), transparent 60%),
-    linear-gradient(180deg, #080C14 0%, #060A0F 100%);
-  isolation: isolate;
-}
-.screens,
-.screen {
-  background-color: transparent;
-}
-/* The atmospheric layer must itself sit on an opaque base — if its glows
-   fail to paint, we still get navy, never the host surface. */
-.bg-stack {
-  background-color: #050A12;
-}
-
-/* 2. Boot-splash is fully opaque regardless of gradient support. */
-.boot-splash {
-  background-color: #050A12;
-}
-/* If the brand <img> fails to load it must not leave a transparent hole. */
-.boot-splash__label,
-.topbar__label {
-  background-color: transparent;
-}
-
-/* 3. No-JS / failed-bundle fallback shell. <html class="no-js"> is the
-   default in markup; app.js swaps it to `js` the instant it runs. While
-   `no-js` is set we surface a static blue-neon skeleton so the user sees
-   a real app shell (panels + skeleton rows), never a blank/transparent
-   screen, even if every script 404s. */
-.fallback-shell {
-  display: none;
-}
-html.no-js .fallback-shell {
-  display: block;
-  position: relative;
-  z-index: 2;
-  margin-top: 8px;
-}
-/* When JS is alive, the live screens render and the fallback is removed. */
-html.js .fallback-shell {
-  display: none !important;
-}
-.fallback-shell__panel {
-  background:
-    linear-gradient(180deg, rgba(8, 18, 40, .92), rgba(4, 9, 22, .92)),
-    #050b18;
-  border: 1px solid var(--qsn-edge, rgba(0, 212, 232, .35));
-  border-radius: 20px;
-  padding: 16px;
-  margin-bottom: 14px;
-  box-shadow: var(--qsn-glow-soft, 0 0 40px rgba(30, 200, 220, .18));
-}
-.fallback-shell__label {
-  font: 700 11px/1 "JetBrains Mono", ui-monospace, monospace;
-  letter-spacing: .14em;
+.signal-entry__label {
+  font-size: 9px;
+  color: var(--text-2);
   text-transform: uppercase;
-  color: var(--qsn-cyan-soft, #5EF5FF);
-  text-shadow: 0 0 12px rgba(30, 200, 220, .35);
-  margin: 0 0 12px;
+  letter-spacing: 0.08em;
 }
-.fallback-shell__skeleton {
-  height: 14px;
-  border-radius: 8px;
+.signal-entry__val {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-1);
+}
+.signal-entry__val--pos { color: var(--pos); }
+.signal-entry__val--neg { color: var(--neg); }
+
+.signal-card__arr {
+  color: var(--text-2);
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+/* -------- MATRIX GRID -------- */
+.matrix-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.matrix-cell {
+  background: var(--bg-card);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  transition: border-color 0.2s;
+}
+.matrix-cell:hover { border-color: rgba(30,200,220,0.15); }
+
+.matrix-cell__label {
+  font-size: 10px;
+  color: var(--text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 4px;
+}
+.matrix-cell__val {
+  font-family: var(--font-mono);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-0);
+  margin-bottom: 2px;
+}
+.matrix-cell__sub {
+  font-size: 10px;
+  color: var(--text-2);
+  margin-bottom: 6px;
+}
+.matrix-cell__bar {
+  height: 3px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.matrix-cell__fill {
+  height: 100%;
+  background: var(--teal);
+  border-radius: 2px;
+  transition: width 0.5s ease;
+}
+.matrix-cell__fill--orange { background: var(--orange); }
+
+/* -------- TOP MOVERS -------- */
+.movers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.mover-item {
+  display: flex; align-items: center;
+  background: var(--bg-card);
+  border: 1px solid rgba(255,255,255,0.04);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  transition: border-color 0.2s;
+}
+.mover-item:hover { border-color: rgba(30,200,220,0.12); }
+.mover-item--skeleton { opacity: 0.4; }
+
+.mover-item__rank {
+  font-size: 11px;
+  color: var(--text-2);
+  width: 20px;
+  flex-shrink: 0;
+}
+.mover-item__sym {
+  font-size: 16px;
+  width: 24px;
+  flex-shrink: 0;
+}
+.mover-item__coin {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 700;
+}
+.mover-item__price {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-1);
+  margin-right: 12px;
+  min-width: 80px;
+  text-align: right;
+}
+.mover-item__delta {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  min-width: 60px;
+  text-align: right;
+  border-radius: 5px;
+  padding: 2px 8px;
+}
+.mover-item__delta.pos {
+  background: var(--pos-soft);
+  color: var(--pos);
+}
+.mover-item__delta.neg {
+  background: var(--neg-soft);
+  color: var(--neg);
+}
+
+/* -------- SIGNALS SCREEN -------- */
+.signals-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+}
+.signals-header__title {
+  font-size: 18px;
+  font-weight: 700;
+}
+.signals-header__filters {
+  display: flex; gap: 6px;
+}
+.filter-btn {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-2);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid transparent;
+  transition: all 0.18s;
+}
+.filter-btn.is-active {
+  color: var(--teal);
+  background: var(--teal-soft);
+  border-color: rgba(30,200,220,0.25);
+}
+
+.signals-list { display: flex; flex-direction: column; gap: 10px; }
+
+.signal-row {
+  background: var(--bg-card);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s, transform 0.15s;
+}
+.signal-row::before {
+  content: '';
+  position: absolute; top: 0; left: 0; bottom: 0;
+  width: 3px;
+}
+.signal-row.long::before { background: var(--pos); }
+.signal-row.short::before { background: var(--neg); }
+.signal-row:hover { border-color: rgba(30,200,220,0.2); transform: translateX(2px); }
+.signal-row:active { transform: scale(0.99); }
+
+.signal-row__top {
+  display: flex; align-items: center; gap: 10px;
   margin-bottom: 10px;
-  background: linear-gradient(90deg, rgba(0, 212, 232, .10), rgba(0, 212, 232, .22), rgba(0, 212, 232, .10));
-  background-size: 200% 100%;
-  animation: fallbackShimmer 1.6s linear infinite;
 }
-.fallback-shell__skeleton--wide { width: 100%; }
-.fallback-shell__skeleton--mid  { width: 70%; }
-.fallback-shell__skeleton--sm   { width: 40%; }
-@keyframes fallbackShimmer {
-  from { background-position: 200% 0; }
-  to   { background-position: -200% 0; }
+.signal-row__pair {
+  font-size: 15px;
+  font-weight: 700;
+  flex: 1;
 }
-@media (prefers-reduced-motion: reduce) {
-  .fallback-shell__skeleton { animation: none; }
+.signal-row__conf {
+  font-size: 11px;
+  color: var(--text-2);
 }
-
-/* =========================================================
-   DESIGN SYSTEM v11 — Real-App Fix (20260613)
-   ---------------------------------------------------------
-   Fixes found on the real 390x844 production screenshot after v10:
-     1. The fixed bottom nav overlapped the AI Signal panel — the
-        last visible card sat *behind* the dock. Reserve clearance
-        from a single nav-height variable + safe-area + a generous
-        gap, and add scroll-padding so programmatic/anchor scrolls
-        also stop above the dock.
-     2. Chart axis tick labels were too low-contrast (--ink-3 #3A5868
-        ~ invisible on dark navy). Lift to a still-subtle slate blue.
-     3. Red candles/wicks (#ff5577) washed out against the dark blue
-        canvas. Lift to a brighter neon pink and add a faint glow so
-        bearish bodies read clearly without losing the neon style.
-   Additive, last-in-cascade layer — wins over all prior .app/.tabbar
-   padding rules. Preserves v10 opaque shell + no-JS fallback.
-   ========================================================= */
-
-/* 1. Bottom-nav overlap guard. Every scrollable app surface reserves
-   clearance equal to the dock height + safe-area + a 28px breathing gap
-   so the final panel (AI Signal and any later panel) always scrolls
-   fully clear of the fixed nav. */
-.app {
-  padding-bottom: calc(
-    var(--bottom-nav-height) + env(safe-area-inset-bottom) + 28px
-  );
-  /* Anchor/programmatic scrolls (focus, scrollIntoView) also stop above
-     the dock instead of parking content underneath it. */
-  scroll-padding-bottom: calc(
-    var(--bottom-nav-height) + env(safe-area-inset-bottom) + 28px
-  );
-}
-/* The AI screen scrolls its own column on some hosts — give it the same
-   guard so the AI Signal card never hides under the dock. */
-.screen--ai {
-  scroll-padding-bottom: calc(
-    var(--bottom-nav-height) + env(safe-area-inset-bottom) + 28px
-  );
-}
-/* When the keyboard is open the dock is hidden, so drop the reservation
-   back to a small inset (re-assert v10 contract, must stay after the
-   rule above). */
-body.keyboard-open .app {
-  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+.signal-row__conf span {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--teal);
 }
 
-/* 2. Chart axis labels — readable but still subtle slate blue. */
-.chart-axis,
-.chart-axis--x,
-.chart-axis--x i {
-  color: #7A9DB8;
+.signal-row__levels {
+  display: flex; gap: 16px;
+}
+.level-item__label {
+  font-size: 9px;
+  color: var(--text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 2px;
+}
+.level-item__val {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+}
+.level-item--entry .level-item__val { color: var(--text-1); }
+.level-item--tp .level-item__val { color: var(--pos); }
+.level-item--sl .level-item__val { color: var(--neg); }
+
+.signal-row__time {
+  position: absolute;
+  top: 14px; right: 14px;
+  font-size: 10px;
+  color: var(--text-2);
 }
 
-/* 3. Brighter, more legible bearish red against the dark blue chart,
-   keeping the neon aesthetic. Used by CSS-driven down states. */
-:root {
-  --neg: #FF3060;
+.signal-skeleton {
+  background: var(--bg-card);
+  border: 1px solid rgba(255,255,255,0.04);
+  border-radius: var(--radius-md);
+  padding: 14px;
 }
-.mp-cell--down { box-shadow: inset 3px 0 0 #FF3B5C; }
-.mp-cell__chg--down { color: #FF3B5C; }
+.sk-line {
+  height: 12px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 4px;
+  margin-bottom: 8px;
+  animation: shimmer 1.5s ease infinite;
+}
+.sk-line--wide { width: 70%; }
+.sk-line--short { width: 40%; }
+@keyframes shimmer {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
 
+/* -------- AI CHAT SCREEN -------- */
+.screen[data-screen="ai"] {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+.screen[data-screen="ai"].is-active {
+  display: flex;
+}
+
+.chat-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px;
+  background: rgba(5,10,18,0.8);
+  border-bottom: 1px solid rgba(30,200,220,0.08);
+  flex-shrink: 0;
+}
+.chat-header__name {
+  font-size: 15px; font-weight: 700;
+}
+.chat-header__status {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 11px;
+  color: var(--text-2);
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  -webkit-overflow-scrolling: touch;
+}
+.chat-messages::-webkit-scrollbar { display: none; }
+
+.msg { display: flex; flex-direction: column; }
+.msg--user { align-items: flex-end; }
+.msg--bot { align-items: flex-start; }
+
+.msg__bubble {
+  max-width: 85%;
+  padding: 10px 14px;
+  border-radius: 16px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.msg--bot .msg__bubble {
+  background: rgba(30,200,220,0.08);
+  border: 1px solid rgba(30,200,220,0.15);
+  border-bottom-left-radius: 4px;
+  color: var(--text-0);
+}
+.msg--user .msg__bubble {
+  background: linear-gradient(135deg, rgba(30,200,220,0.25), rgba(255,128,0,0.15));
+  border: 1px solid rgba(30,200,220,0.2);
+  border-bottom-right-radius: 4px;
+}
+.msg__time {
+  font-size: 10px;
+  color: var(--text-2);
+  margin-top: 4px;
+  padding: 0 4px;
+}
+
+.msg--typing .msg__bubble::after {
+  content: '···';
+  animation: typing 1.2s ease infinite;
+}
+@keyframes typing {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+.chat-suggestions {
+  display: flex; flex-wrap: wrap; gap: 7px;
+  margin-top: 4px;
+}
+.suggestion {
+  padding: 7px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-1);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  transition: all 0.18s;
+}
+.suggestion:hover {
+  background: var(--teal-soft);
+  border-color: rgba(30,200,220,0.25);
+  color: var(--teal);
+}
+
+.chat-input-wrap {
+  padding: 12px 14px;
+  padding-bottom: calc(12px + var(--safe-bot));
+  background: rgba(5,10,18,0.92);
+  border-top: 1px solid rgba(30,200,220,0.08);
+  flex-shrink: 0;
+}
+.chat-input-row {
+  display: flex; align-items: flex-end; gap: 10px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(30,200,220,0.12);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  transition: border-color 0.2s;
+}
+.chat-input-row:focus-within { border-color: rgba(30,200,220,0.3); }
+
+.chat-input {
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--text-0);
+  resize: none;
+  max-height: 120px;
+  overflow-y: auto;
+}
+.chat-input::placeholder { color: var(--text-2); }
+
+.chat-send {
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, var(--teal), var(--orange));
+  border-radius: 50%;
+  color: white;
+  flex-shrink: 0;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.chat-send:hover {
+  transform: scale(1.05);
+  box-shadow: var(--teal-glow);
+}
+.chat-send:active { transform: scale(0.95); }
+
+/* -------- MARKET SCREEN -------- */
+.market-header {
+  margin-bottom: 12px;
+}
+.market-header__title {
+  font-size: 18px; font-weight: 700;
+  margin-bottom: 10px;
+}
+.market-search-wrap {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  color: var(--text-2);
+}
+.market-search {
+  flex: 1; font-size: 13px; color: var(--text-0);
+}
+.market-search::placeholder { color: var(--text-2); }
+
+.market-tabs {
+  display: flex; gap: 8px;
+  margin-bottom: 12px;
+}
+.market-tab {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-2);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid transparent;
+  transition: all 0.18s;
+}
+.market-tab.is-active {
+  color: var(--teal);
+  background: var(--teal-soft);
+  border-color: rgba(30,200,220,0.25);
+}
+
+.market-table-wrap {}
+.market-table-head {
+  display: grid;
+  grid-template-columns: 1fr 1fr 0.7fr 0.8fr;
+  padding: 6px 12px;
+  font-size: 10px;
+  color: var(--text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.market-table-head span:not(:first-child) { text-align: right; }
+
+.market-table { display: flex; flex-direction: column; gap: 4px; }
+
+.market-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 0.7fr 0.8fr;
+  align-items: center;
+  padding: 10px 12px;
+  background: var(--bg-card);
+  border: 1px solid rgba(255,255,255,0.04);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color 0.18s;
+}
+.market-row:hover { border-color: rgba(30,200,220,0.12); }
+
+.market-row__coin {
+  display: flex; align-items: center; gap: 8px;
+}
+.market-row__sym {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--teal-soft);
+  border: 1px solid rgba(30,200,220,0.2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.market-row__name {
+  font-size: 13px; font-weight: 700;
+}
+.market-row__full {
+  font-size: 10px;
+  color: var(--text-2);
+}
+.market-row__price {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: right;
+}
+.market-row__pct {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: right;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.market-row__pct.pos { background: var(--pos-soft); color: var(--pos); }
+.market-row__pct.neg { background: var(--neg-soft); color: var(--neg); }
+.market-row__vol {
+  font-size: 11px;
+  color: var(--text-2);
+  text-align: right;
+  font-family: var(--font-mono);
+}
+
+/* -------- SETTINGS SCREEN -------- */
+.screen--settings {
+  position: absolute; inset: 0;
+  background: var(--bg-0);
+  z-index: 10;
+  padding: 16px;
+}
+.screen--settings.is-active { display: block !important; }
+
+.settings-header {
+  margin-bottom: 20px;
+}
+.settings-header h2 {
+  font-size: 20px; font-weight: 700;
+}
+
+.settings-section { margin-bottom: 20px; }
+.settings-label {
+  font-size: 10px;
+  color: var(--text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 8px;
+}
+.settings-row {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg-card);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  font-size: 14px;
+}
+.settings-select {
+  background: rgba(30,200,220,0.08);
+  border: 1px solid rgba(30,200,220,0.2);
+  border-radius: 6px;
+  color: var(--teal);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 4px 8px;
+}
+
+.settings-about {
+  display: flex; gap: 14px;
+  background: var(--bg-card);
+  border: 1px solid rgba(30,200,220,0.1);
+  border-radius: var(--radius-md);
+  padding: 14px;
+}
+.settings-about__name {
+  font-size: 15px; font-weight: 700;
+  margin-bottom: 3px;
+}
+.settings-about__ver {
+  font-size: 11px;
+  color: var(--teal);
+  margin-bottom: 7px;
+}
+.settings-about__desc {
+  font-size: 12px;
+  color: var(--text-2);
+  line-height: 1.5;
+}
+
+/* -------- TAB BAR -------- */
+.tabbar {
+  display: flex;
+  align-items: flex-start;
+  background: rgba(5, 10, 18, 0.95);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-top: 1px solid rgba(30, 200, 220, 0.08);
+  padding-top: 8px;
+  padding-bottom: calc(8px + var(--safe-bot));
+  flex-shrink: 0;
+  height: var(--tabbar-h);
+  position: relative;
+  z-index: 100;
+}
+
+.tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 0;
+  color: var(--text-2);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  transition: color 0.2s;
+  min-width: 0;
+}
+.tab.is-active { color: var(--teal); }
+.tab.is-active .tab__icon { filter: drop-shadow(0 0 6px rgba(30,200,220,0.6)); }
+
+.tab__icon { flex-shrink: 0; }
+
+.tab--center { margin-top: -16px; }
+.tab__center-btn {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--teal), var(--orange));
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 20px rgba(30,200,220,0.4), 0 0 0 3px rgba(5,10,18,1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.tab.is-active .tab__center-btn,
+.tab--center:hover .tab__center-btn {
+  transform: scale(1.05);
+  box-shadow: 0 6px 28px rgba(30,200,220,0.5), 0 0 0 3px rgba(5,10,18,1);
+}
+
+/* -------- TOAST -------- */
+.toast {
+  position: fixed;
+  bottom: calc(var(--tabbar-h) + var(--safe-bot) + 12px);
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  background: rgba(8, 14, 24, 0.95);
+  border: 1px solid rgba(30,200,220,0.2);
+  border-radius: 20px;
+  padding: 8px 18px;
+  font-size: 13px;
+  color: var(--text-0);
+  opacity: 0;
+  transition: opacity 0.3s, transform 0.3s;
+  pointer-events: none;
+  backdrop-filter: blur(16px);
+  z-index: 500;
+  white-space: nowrap;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
