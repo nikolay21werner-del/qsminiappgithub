@@ -1,473 +1,431 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
-  <meta name="theme-color" content="#050A12"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>QUANTSIGNAL AI</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="styles.css?v=19"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=20">
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════════
-     GLOBAL BACKGROUND — Neural left, Candle right
-═══════════════════════════════════════════ -->
-<div class="bg" aria-hidden="true">
-  <!-- Left side: neural network canvas -->
-  <canvas id="neural-canvas" class="bg__neural"></canvas>
-  <!-- Right side: candlestick canvas -->
-  <canvas id="candle-canvas" class="bg__candle"></canvas>
-  <!-- Centre glow vignette -->
-  <div class="bg__vignette"></div>
-  <!-- Teal glow top-left -->
-  <div class="bg__orb bg__orb--teal"></div>
-  <!-- Orange glow bottom-right -->
-  <div class="bg__orb bg__orb--orange"></div>
-</div>
+<!-- Background canvases -->
+<canvas id="circuit-canvas"></canvas>
+<canvas id="candle-canvas"></canvas>
 
-<!-- ═══════════════════════════════════════════
-     SPLASH SCREEN
-═══════════════════════════════════════════ -->
-<div class="splash" id="splash">
-  <div class="splash__logo">
-    <!-- Q logo SVG — matches logo style -->
-    <svg viewBox="0 0 120 120" width="100" height="100" fill="none">
-      <defs>
-        <linearGradient id="qGrad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#1EC8DC"/>
-          <stop offset="60%" stop-color="#1EC8DC"/>
-          <stop offset="100%" stop-color="#FF8000"/>
-        </linearGradient>
-        <filter id="qGlow">
-          <feGaussianBlur stdDeviation="3" result="blur"/>
-          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-        </filter>
-      </defs>
-      <!-- Q ring -->
-      <circle cx="60" cy="55" r="36" stroke="url(#qGrad)" stroke-width="7" fill="none" filter="url(#qGlow)" stroke-linecap="round"
-        stroke-dasharray="200 226" stroke-dashoffset="-20" transform="rotate(-30 60 55)"/>
-      <!-- Orange tail -->
-      <line x1="84" y1="78" x2="97" y2="95" stroke="#FF8000" stroke-width="8" stroke-linecap="round" filter="url(#qGlow)"/>
-      <!-- Bar chart inside Q -->
-      <rect x="46" y="62" width="7" height="16" rx="2" fill="#FF8000" opacity="0.9"/>
-      <rect x="56" y="52" width="7" height="26" rx="2" fill="url(#qGrad)" opacity="0.95"/>
-      <rect x="66" y="57" width="7" height="21" rx="2" fill="#1EC8DC" opacity="0.85"/>
-    </svg>
-    <!-- Rotating ring -->
-    <svg class="splash__ring" viewBox="0 0 120 120" width="120" height="120" fill="none">
-      <circle cx="60" cy="60" r="54" stroke="url(#splashRingGrad)" stroke-width="1.5"
-        stroke-dasharray="280 60" stroke-linecap="round"/>
-      <defs>
-        <linearGradient id="splashRingGrad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#1EC8DC" stop-opacity="0.8"/>
-          <stop offset="100%" stop-color="#FF8000" stop-opacity="0.2"/>
-        </linearGradient>
-      </defs>
-    </svg>
-  </div>
-  <div class="splash__name">QUANTSIGNAL <span>AI</span></div>
-  <div class="splash__sub">Сигналы · Рынок · ИИ-анализ</div>
-  <div class="splash__bar-wrap">
-    <div class="splash__bar"><div class="splash__fill" id="splash-fill"></div></div>
-    <div class="splash__hint" id="splash-hint">Подключение к рынку…</div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════
-     APP
-═══════════════════════════════════════════ -->
-<div class="app" id="app">
-
-  <!-- TOP BAR -->
-  <header class="topbar">
-    <div class="topbar__brand">
-      <svg viewBox="0 0 36 36" width="30" height="30" fill="none">
-        <defs>
-          <linearGradient id="tbq" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stop-color="#1EC8DC"/>
-            <stop offset="100%" stop-color="#FF8000"/>
-          </linearGradient>
-        </defs>
-        <circle cx="17" cy="16" r="11" stroke="url(#tbq)" stroke-width="2.5" fill="none"
-          stroke-dasharray="55 14" stroke-dashoffset="-5" transform="rotate(-30 17 16)"/>
-        <line x1="25" y1="24" x2="31" y2="31" stroke="#FF8000" stroke-width="3" stroke-linecap="round"/>
-      </svg>
-      <div class="topbar__text">
-        <span class="topbar__name">QUANTSIGNAL</span>
-        <span class="topbar__ai">AI</span>
+<!-- SPLASH / WELCOME SCREEN -->
+<div id="splash-screen" class="screen active">
+  <div class="splash-inner">
+    <!-- Logo -->
+    <div class="splash-logo">
+      <div class="logo-ring">
+        <svg viewBox="0 0 80 80" width="80" height="80" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="qGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#1EC8DC"/>
+              <stop offset="100%" style="stop-color:#FF8000"/>
+            </linearGradient>
+          </defs>
+          <!-- Neural nodes left -->
+          <circle cx="12" cy="20" r="2" fill="#1EC8DC" opacity="0.7"/>
+          <circle cx="8" cy="40" r="2.5" fill="#1EC8DC" opacity="0.9"/>
+          <circle cx="14" cy="58" r="2" fill="#1EC8DC" opacity="0.6"/>
+          <circle cx="22" cy="32" r="1.5" fill="#1EC8DC" opacity="0.8"/>
+          <line x1="12" y1="20" x2="8" y2="40" stroke="#1EC8DC" stroke-width="0.8" opacity="0.4"/>
+          <line x1="8" y1="40" x2="14" y2="58" stroke="#1EC8DC" stroke-width="0.8" opacity="0.4"/>
+          <line x1="12" y1="20" x2="22" y2="32" stroke="#1EC8DC" stroke-width="0.8" opacity="0.4"/>
+          <line x1="22" y1="32" x2="8" y2="40" stroke="#1EC8DC" stroke-width="0.8" opacity="0.4"/>
+          <!-- Q letter -->
+          <text x="40" y="54" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="38"
+                fill="url(#qGrad)" text-anchor="middle">Q</text>
+          <!-- Candlestick right -->
+          <rect x="60" y="22" width="4" height="16" rx="1" fill="#FF8000" opacity="0.9"/>
+          <line x1="62" y1="18" x2="62" y2="22" stroke="#FF8000" stroke-width="1.5" opacity="0.8"/>
+          <line x1="62" y1="38" x2="62" y2="44" stroke="#FF8000" stroke-width="1.5" opacity="0.8"/>
+          <rect x="68" y="30" width="4" height="10" rx="1" fill="#1EC8DC" opacity="0.9"/>
+          <line x1="70" y1="26" x2="70" y2="30" stroke="#1EC8DC" stroke-width="1.5" opacity="0.8"/>
+          <line x1="70" y1="40" x2="70" y2="46" stroke="#1EC8DC" stroke-width="1.5" opacity="0.8"/>
+        </svg>
       </div>
     </div>
-    <div class="topbar__right">
-      <div class="live-pill" id="live-pill">
-        <span class="live-dot" id="live-dot"></span>
-        <span id="live-label">LIVE</span>
+
+    <!-- Welcome headline -->
+    <h1 class="splash-title">Добро пожаловать!</h1>
+    <p class="splash-subtitle">Присоединяйтесь к умному трейдингу с AI</p>
+
+    <!-- 4 Feature tiles (2×2 grid) matching banner -->
+    <div class="feature-grid">
+      <div class="feature-tile" style="--tile-color: #1EC8DC; --tile-glow: rgba(30,200,220,0.35);">
+        <div class="tile-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="9" stroke="#1EC8DC" stroke-width="1.5"/>
+            <polyline points="12,6 12,12 16,14" stroke="#1EC8DC" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="tile-text">
+          <span class="tile-title">Торговые сигналы</span>
+          <span class="tile-sub">24/7 без остановок</span>
+        </div>
       </div>
-      <button class="icon-btn" id="btn-refresh" aria-label="Refresh">
-        <svg viewBox="0 0 20 20" width="17" height="17" fill="none">
-          <path d="M3.5 10a6.5 6.5 0 1 0 1.4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-          <path d="M3.5 5v5H8.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+
+      <div class="feature-tile" style="--tile-color: #FF8000; --tile-glow: rgba(255,128,0,0.35);">
+        <div class="tile-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2C8.5 2 5.5 4.5 5 8c-.3 2 .5 4 2 5.5L12 22l5-8.5c1.5-1.5 2.3-3.5 2-5.5C18.5 4.5 15.5 2 12 2z" stroke="#FF8000" stroke-width="1.5"/>
+            <circle cx="12" cy="9" r="2.5" stroke="#FF8000" stroke-width="1.5"/>
+          </svg>
+        </div>
+        <div class="tile-text">
+          <span class="tile-title">AI‑анализ рынка</span>
+          <span class="tile-sub">Нейросеть GPT‑4</span>
+        </div>
+      </div>
+
+      <div class="feature-tile" style="--tile-color: #1EC8DC; --tile-glow: rgba(30,200,220,0.35);">
+        <div class="tile-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+            <path d="M18 8A6 6 0 1 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="#1EC8DC" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="#1EC8DC" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="tile-text">
+          <span class="tile-title">Уведомления</span>
+          <span class="tile-sub">В реальном времени</span>
+        </div>
+      </div>
+
+      <div class="feature-tile" style="--tile-color: #FF8000; --tile-glow: rgba(255,128,0,0.35);">
+        <div class="tile-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+            <rect x="3" y="12" width="4" height="9" rx="1" fill="#FF8000" opacity="0.8"/>
+            <rect x="10" y="7" width="4" height="14" rx="1" fill="#FF8000" opacity="0.9"/>
+            <rect x="17" y="3" width="4" height="18" rx="1" fill="#FF8000"/>
+            <polyline points="5,10 12,5 19,2" stroke="#FF8000" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
+          </svg>
+        </div>
+        <div class="tile-text">
+          <span class="tile-title">Статистика</span>
+          <span class="tile-sub">и аналитика</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA Button -->
+    <button class="cta-btn" id="splash-enter-btn">
+      <span>Войти в приложение</span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+
+    <p class="splash-brand">QUANTSIGNAL AI · Сигналы, рынок, ИИ-анализ</p>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="main-app" class="screen hidden">
+  <!-- Top Bar -->
+  <header class="topbar">
+    <div class="topbar-logo">
+      <div class="logo-q-small">
+        <svg viewBox="0 0 40 40" width="32" height="32" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="qGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#1EC8DC"/>
+              <stop offset="100%" style="stop-color:#FF8000"/>
+            </linearGradient>
+          </defs>
+          <text x="20" y="30" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="26"
+                fill="url(#qGrad2)" text-anchor="middle">Q</text>
         </svg>
-      </button>
+      </div>
+      <div class="topbar-title-block">
+        <span class="topbar-title">QUANTSIGNAL</span>
+        <span class="topbar-sub">AI</span>
+      </div>
+    </div>
+    <div class="topbar-live">
+      <span class="live-dot"></span>
+      <span class="live-label">LIVE</span>
     </div>
   </header>
 
-  <!-- SCREENS CONTAINER -->
-  <div class="screens" id="screens">
+  <!-- BTC Hero Tile -->
+  <div class="hero-tile" id="btc-hero">
+    <div class="hero-left">
+      <span class="hero-label">BTC / USDT</span>
+      <span class="hero-price" id="btc-price">$—</span>
+      <span class="hero-change" id="btc-change">—</span>
+    </div>
+    <div class="hero-right">
+      <canvas id="hero-sparkline" width="120" height="50"></canvas>
+    </div>
+  </div>
 
-    <!-- ─────────────── OVERVIEW ─────────────── -->
-    <section class="screen is-active" data-screen="overview">
+  <!-- Stats Row -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <span class="stat-label">ETH / USDT</span>
+      <span class="stat-val" id="eth-price">$—</span>
+      <span class="stat-chg" id="eth-chg">—</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">BNB / USDT</span>
+      <span class="stat-val" id="bnb-price">$—</span>
+      <span class="stat-chg" id="bnb-chg">—</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">SOL / USDT</span>
+      <span class="stat-val" id="sol-price">$—</span>
+      <span class="stat-chg" id="sol-chg">—</span>
+    </div>
+  </div>
 
-      <!-- Price ticker -->
-      <div class="ticker-strip">
-        <div class="ticker-inner" id="ticker-inner">
-          <span class="t-item">BTC <em id="tk-btc" class="up">—</em></span>
-          <span class="t-sep">◆</span>
-          <span class="t-item">ETH <em id="tk-eth" class="up">—</em></span>
-          <span class="t-sep">◆</span>
-          <span class="t-item">SOL <em id="tk-sol" class="up">—</em></span>
-          <span class="t-sep">◆</span>
-          <span class="t-item">BNB <em id="tk-bnb" class="up">—</em></span>
-          <span class="t-sep">◆</span>
-          <span class="t-item">XRP <em id="tk-xrp" class="up">—</em></span>
-          <span class="t-sep">◆</span>
-          <span class="t-item">BTC <em class="up">—</em></span>
-          <span class="t-sep">◆</span>
-          <span class="t-item">ETH <em class="up">—</em></span>
-          <span class="t-sep">◆</span>
-          <span class="t-item">SOL <em class="up">—</em></span>
-        </div>
-      </div>
-
-      <!-- HERO PRICE CARD -->
-      <div class="hero-card">
-        <div class="hero-card__shine"></div>
-
-        <!-- Coin tabs -->
-        <div class="coin-tabs" id="coin-tabs">
-          <button class="ctab active" data-coin="BTC"><span class="ctab__sym">₿</span>BTC</button>
-          <button class="ctab" data-coin="ETH"><span class="ctab__sym">Ξ</span>ETH</button>
-          <button class="ctab" data-coin="SOL"><span class="ctab__sym">◎</span>SOL</button>
-          <button class="ctab" data-coin="BNB"><span class="ctab__sym">⬡</span>BNB</button>
-        </div>
-
-        <!-- Price -->
-        <div class="hero-price-block">
-          <div class="hero-pair" id="hero-pair">BTC / USDT</div>
-          <div class="hero-price" id="hero-price">——</div>
-          <div class="hero-meta">
-            <span class="hero-delta" id="hero-delta">——</span>
-            <span class="hero-period">24ч</span>
-          </div>
-        </div>
-
-        <!-- Chart area -->
-        <div class="chart-box">
-          <svg class="chart-svg" id="hero-chart" viewBox="0 0 320 72" preserveAspectRatio="none">
-            <defs>
-              <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#1EC8DC" stop-opacity="0.35"/>
-                <stop offset="100%" stop-color="#1EC8DC" stop-opacity="0"/>
-              </linearGradient>
-              <filter id="lineGlow">
-                <feGaussianBlur stdDeviation="2.5" result="b"/>
-                <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-              </filter>
-            </defs>
-            <path id="chart-area" fill="url(#areaGrad)"/>
-            <path id="chart-line" fill="none" stroke="#1EC8DC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" filter="url(#lineGlow)"/>
-          </svg>
-          <!-- Timeframe buttons -->
-          <div class="tf-row" id="tf-row">
-            <button class="tf" data-tf="1m">1М</button>
-            <button class="tf active" data-tf="5m">5М</button>
-            <button class="tf" data-tf="15m">15М</button>
-            <button class="tf" data-tf="1h">1Ч</button>
-            <button class="tf" data-tf="4h">4Ч</button>
-          </div>
-        </div>
-
-        <!-- Stats -->
-        <div class="stats-row">
-          <div class="stat-col">
-            <div class="stat-lbl">Объём 24ч</div>
-            <div class="stat-val" id="s-vol">—</div>
-          </div>
-          <div class="stat-col">
-            <div class="stat-lbl">Макс 24ч</div>
-            <div class="stat-val up" id="s-high">—</div>
-          </div>
-          <div class="stat-col">
-            <div class="stat-lbl">Мин 24ч</div>
-            <div class="stat-val dn" id="s-low">—</div>
-          </div>
-          <div class="stat-col">
-            <div class="stat-lbl">OI</div>
-            <div class="stat-val" id="s-oi">—</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- AI SIGNAL CARD -->
-      <div class="sec-head">
-        <span class="sec-dot teal"></span>
-        <span class="sec-title">AI Сигнал</span>
-        <span class="live-tag">LIVE</span>
-      </div>
-
-      <div class="sig-card" id="sig-card" tabindex="0" role="button">
-        <div class="sig-card__accent"></div>
-        <div class="sig-left">
-          <!-- Confidence ring -->
-          <div class="conf-ring">
-            <svg viewBox="0 0 68 68" width="68" height="68">
-              <circle cx="34" cy="34" r="28" stroke="rgba(255,255,255,0.06)" stroke-width="6" fill="none"/>
-              <circle id="conf-arc" cx="34" cy="34" r="28" stroke="#1EC8DC" stroke-width="6"
-                fill="none" stroke-linecap="round"
-                stroke-dasharray="176" stroke-dashoffset="44"
-                transform="rotate(-90 34 34)"/>
-            </svg>
-            <span class="conf-pct" id="conf-pct">75%</span>
-          </div>
-          <div class="sig-info">
-            <div class="sig-pair" id="sig-pair">BTC/USDT</div>
-            <div class="sig-side" id="sig-side">
-              <span class="side long">LONG</span>
-            </div>
-            <div class="sig-tf" id="sig-tf">TF: 4Ч</div>
-          </div>
-        </div>
-        <div class="sig-right">
-          <div class="sig-lvl">
-            <div class="sig-lvl__lbl">Вход</div>
-            <div class="sig-lvl__val" id="sig-entry">—</div>
-          </div>
-          <div class="sig-lvl">
-            <div class="sig-lvl__lbl">Цель</div>
-            <div class="sig-lvl__val up" id="sig-tp">—</div>
-          </div>
-          <div class="sig-lvl">
-            <div class="sig-lvl__lbl">Стоп</div>
-            <div class="sig-lvl__val dn" id="sig-sl">—</div>
-          </div>
-        </div>
-        <div class="sig-arr">›</div>
-      </div>
-
-      <!-- MARKET MATRIX -->
-      <div class="sec-head">
-        <span class="sec-dot orange"></span>
-        <span class="sec-title">Market Matrix</span>
-      </div>
-      <div class="matrix" id="matrix">
-        <div class="mx-cell">
-          <div class="mx-lbl">Fear &amp; Greed</div>
-          <div class="mx-val" id="mx-fng" style="color:var(--neg)">—</div>
-          <div class="mx-sub" id="mx-fng-sub">Загрузка…</div>
-          <div class="mx-bar"><div class="mx-fill" id="mx-fng-fill" style="width:50%"></div></div>
-        </div>
-        <div class="mx-cell">
-          <div class="mx-lbl">BTC Доминация</div>
-          <div class="mx-val" id="mx-dom">—</div>
-          <div class="mx-sub">Доля рынка</div>
-          <div class="mx-bar"><div class="mx-fill orange" id="mx-dom-fill" style="width:60%"></div></div>
-        </div>
-        <div class="mx-cell">
-          <div class="mx-lbl">Funding Rate</div>
-          <div class="mx-val" id="mx-fund">—</div>
-          <div class="mx-sub">BTC Perp 8ч</div>
-        </div>
-        <div class="mx-cell">
-          <div class="mx-lbl">Капитализация</div>
-          <div class="mx-val" id="mx-cap">—</div>
-          <div class="mx-sub" id="mx-cap-chg">24ч изм.</div>
-        </div>
-      </div>
-
-      <!-- TOP MOVERS -->
-      <div class="sec-head">
-        <span class="sec-dot teal"></span>
-        <span class="sec-title">Топ Муверы</span>
-      </div>
-      <div class="movers" id="movers">
-        <div class="mover sk"><div class="sk-b wide"></div><div class="sk-b short"></div></div>
-        <div class="mover sk"><div class="sk-b wide"></div><div class="sk-b short"></div></div>
-        <div class="mover sk"><div class="sk-b wide"></div><div class="sk-b short"></div></div>
-      </div>
-
-      <div class="screen-gap"></div>
-    </section>
-
-    <!-- ─────────────── SIGNALS ─────────────── -->
-    <section class="screen" data-screen="signals">
-      <div class="page-head">
-        <h2 class="page-title">AI Сигналы</h2>
-        <div class="filter-row" id="sig-filters">
-          <button class="flt active" data-f="all">Все</button>
-          <button class="flt" data-f="long">Long</button>
-          <button class="flt" data-f="short">Short</button>
-        </div>
-      </div>
-      <div class="sig-list" id="sig-list">
-        <div class="sig-sk"><div class="sk-b wide"></div><div class="sk-b med"></div></div>
-        <div class="sig-sk"><div class="sk-b wide"></div><div class="sk-b med"></div></div>
-        <div class="sig-sk"><div class="sk-b wide"></div><div class="sk-b med"></div></div>
-      </div>
-      <div class="screen-gap"></div>
-    </section>
-
-    <!-- ─────────────── AI CHAT ─────────────── -->
-    <section class="screen screen--chat" data-screen="ai">
-      <div class="chat-hdr">
-        <div class="chat-avatar">
-          <svg viewBox="0 0 40 40" width="38" height="38" fill="none">
-            <circle cx="20" cy="20" r="18" fill="rgba(30,200,220,0.1)" stroke="#1EC8DC" stroke-width="1.2"/>
-            <circle cx="20" cy="20" r="5" fill="rgba(30,200,220,0.3)" stroke="#1EC8DC" stroke-width="1.2"/>
-            <path d="M20 6v5M20 29v5M6 20h5M29 20h5" stroke="#1EC8DC" stroke-width="1.5" stroke-linecap="round"/>
-          </svg>
-        </div>
-        <div>
-          <div class="chat-name">QSI Neural</div>
-          <div class="chat-status"><span class="live-dot"></span>AI Engine Online</div>
-        </div>
-      </div>
-
-      <div class="chat-msgs" id="chat-msgs">
-        <div class="msg bot">
-          <div class="msg__bub">Привет! Я <b>QSI Neural</b> — ваш AI-аналитик крипторынка.<br>Спросите о ценах, трендах, сигналах или стратегиях.</div>
-          <div class="msg__t">Сейчас</div>
-        </div>
-        <div class="chat-chips" id="chat-chips">
-          <button class="chip" data-q="Анализ BTC сейчас">📊 Анализ BTC</button>
-          <button class="chip" data-q="Топ сигналы сегодня">⚡ Топ сигналы</button>
-          <button class="chip" data-q="Что купить сейчас?">🎯 Что купить?</button>
-          <button class="chip" data-q="Риск-менеджмент советы">🛡 Риск-менеджмент</button>
-        </div>
-      </div>
-
-      <div class="chat-input-area">
-        <div class="chat-input-row">
-          <textarea class="chat-inp" id="chat-inp" rows="1" placeholder="Спроси AI о крипте…"></textarea>
-          <button class="send-btn" id="send-btn" aria-label="Отправить">
-            <svg viewBox="0 0 20 20" width="17" height="17" fill="none">
-              <path d="M17 10L3 3l3.5 7L3 17l14-7z" fill="currentColor"/>
-            </svg>
-          </button>
-        </div>
-      </div>
-    </section>
-
-    <!-- ─────────────── MARKET ─────────────── -->
-    <section class="screen" data-screen="market">
-      <div class="page-head">
-        <h2 class="page-title">Рынок</h2>
-        <div class="search-box">
-          <svg viewBox="0 0 16 16" width="13" height="13" fill="none">
-            <circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" stroke-width="1.3"/>
-            <path d="M10 10 L14 14" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
-          </svg>
-          <input class="search-inp" id="mkt-search" type="text" placeholder="Поиск монет…"/>
-        </div>
-      </div>
-      <div class="mkt-tabs" id="mkt-tabs">
-        <button class="mtab active" data-cat="all">Все</button>
-        <button class="mtab" data-cat="gainers">Растут 🚀</button>
-        <button class="mtab" data-cat="losers">Падают 📉</button>
-      </div>
-      <div class="mkt-head-row">
-        <span>Монета</span><span>Цена</span><span>24ч</span><span>Объём</span>
-      </div>
-      <div class="mkt-list" id="mkt-list"></div>
-      <div class="screen-gap"></div>
-    </section>
-
-  </div><!-- /screens -->
-
-  <!-- TAB BAR -->
-  <nav class="tabbar" role="tablist">
-    <button class="tab active" data-tab="overview" role="tab">
-      <svg class="tab-ic" viewBox="0 0 20 20" width="20" height="20" fill="none">
-        <rect x="2" y="11" width="4" height="7" rx="1" fill="currentColor" opacity=".5"/>
-        <rect x="8" y="6" width="4" height="12" rx="1" fill="currentColor" opacity=".8"/>
-        <rect x="14" y="2" width="4" height="16" rx="1" fill="currentColor"/>
+  <!-- Navigation Tabs -->
+  <nav class="tab-bar">
+    <button class="tab-btn active" data-tab="overview">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <rect x="3" y="3" width="8" height="8" rx="2" stroke="currentColor" stroke-width="1.8"/>
+        <rect x="13" y="3" width="8" height="8" rx="2" stroke="currentColor" stroke-width="1.8"/>
+        <rect x="3" y="13" width="8" height="8" rx="2" stroke="currentColor" stroke-width="1.8"/>
+        <rect x="13" y="13" width="8" height="8" rx="2" stroke="currentColor" stroke-width="1.8"/>
       </svg>
       <span>Обзор</span>
     </button>
-    <button class="tab" data-tab="signals" role="tab">
-      <svg class="tab-ic" viewBox="0 0 20 20" width="20" height="20" fill="none">
-        <path d="M10 2L12.5 8H18L13.5 11.5L15 18L10 14.5L5 18L6.5 11.5L2 8H7.5Z"
-          stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" fill="none"/>
+    <button class="tab-btn" data-tab="signals">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <polyline points="22,12 18,12 15,21 9,3 6,12 2,12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
       <span>Сигналы</span>
     </button>
-    <button class="tab tab--hub" data-tab="ai" role="tab">
-      <div class="tab-hub-btn">
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
-          <circle cx="12" cy="12" r="3.5" fill="white"/>
-          <path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M16.9 16.9l2.1 2.1M4.9 19.1l2.1-2.1M16.9 7.1l2.1-2.1" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-      </div>
+    <button class="tab-btn" data-tab="ai">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <path d="M12 2a4 4 0 0 1 4 4 4 4 0 0 1-4 4 4 4 0 0 1-4-4 4 4 0 0 1 4-4" stroke="currentColor" stroke-width="1.8"/>
+        <path d="M6 18a6 6 0 0 1 12 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        <circle cx="6" cy="14" r="1.5" stroke="currentColor" stroke-width="1.5"/>
+        <circle cx="18" cy="14" r="1.5" stroke="currentColor" stroke-width="1.5"/>
+      </svg>
       <span>AI Чат</span>
     </button>
-    <button class="tab" data-tab="market" role="tab">
-      <svg class="tab-ic" viewBox="0 0 20 20" width="20" height="20" fill="none">
-        <path d="M2 14L7 9L11 12L15 6L18 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M18 5 L18 9 L14 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <button class="tab-btn" data-tab="market">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <polyline points="23,6 13.5,15.5 8.5,10.5 1,18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        <polyline points="17,6 23,6 23,12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
       <span>Рынок</span>
     </button>
-    <button class="tab" data-tab="settings" role="tab">
-      <svg class="tab-ic" viewBox="0 0 20 20" width="20" height="20" fill="none">
-        <circle cx="10" cy="10" r="2.5" stroke="currentColor" stroke-width="1.4"/>
-        <path d="M10 1v2.5M10 16.5V19M1 10h2.5M16.5 10H19M3.2 3.2l1.8 1.8M15 15l1.8 1.8M16.8 3.2L15 5M5 15l-1.8 1.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+    <button class="tab-btn" data-tab="settings">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" stroke="currentColor" stroke-width="1.8"/>
       </svg>
       <span>Настройки</span>
     </button>
   </nav>
 
-  <!-- SETTINGS overlay -->
-  <section class="screen screen--settings" data-screen="settings" style="display:none">
-    <div class="page-head"><h2 class="page-title">Настройки</h2></div>
-    <div class="sett-section">
-      <div class="sett-lbl">О приложении</div>
-      <div class="sett-about">
-        <svg viewBox="0 0 52 52" width="52" height="52" fill="none">
-          <defs>
-            <linearGradient id="saGrad" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stop-color="#1EC8DC"/><stop offset="100%" stop-color="#FF8000"/>
-            </linearGradient>
-          </defs>
-          <circle cx="26" cy="24" r="16" stroke="url(#saGrad)" stroke-width="3" fill="none"
-            stroke-dasharray="80 20" stroke-dashoffset="-5" transform="rotate(-30 26 24)"/>
-          <line x1="38" y1="36" x2="46" y2="46" stroke="#FF8000" stroke-width="3.5" stroke-linecap="round"/>
-        </svg>
-        <div>
-          <div class="sett-about__name">QUANTSIGNAL AI</div>
-          <div class="sett-about__ver">v19 · Logo Style Edition</div>
-          <div class="sett-about__desc">Профессиональный криптотерминал с AI-сигналами, живыми данными и нейросетевой аналитикой.</div>
+  <!-- Tab content -->
+  <div class="tab-content">
+
+    <!-- OVERVIEW TAB -->
+    <div id="tab-overview" class="tab-panel active">
+      <div class="panel-grid">
+
+        <!-- Signals card -->
+        <div class="panel-tile glow-teal">
+          <div class="pt-header">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="9" stroke="#1EC8DC" stroke-width="1.5"/>
+              <polyline points="12,6 12,12 16,14" stroke="#1EC8DC" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <span>Торговые сигналы</span>
+          </div>
+          <div class="signal-list" id="signal-list">
+            <div class="signal-item">
+              <span class="sig-pair">BTC/USDT</span>
+              <span class="sig-action buy">BUY</span>
+              <span class="sig-conf">94%</span>
+            </div>
+            <div class="signal-item">
+              <span class="sig-pair">ETH/USDT</span>
+              <span class="sig-action buy">BUY</span>
+              <span class="sig-conf">87%</span>
+            </div>
+            <div class="signal-item">
+              <span class="sig-pair">SOL/USDT</span>
+              <span class="sig-action sell">SELL</span>
+              <span class="sig-conf">72%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI analysis card -->
+        <div class="panel-tile glow-orange">
+          <div class="pt-header">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2a4 4 0 0 1 4 4 4 4 0 0 1-4 4 4 4 0 0 1-4-4 4 4 0 0 1 4-4" stroke="#FF8000" stroke-width="1.5"/>
+              <path d="M6 18a6 6 0 0 1 12 0" stroke="#FF8000" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <span>AI‑анализ рынка</span>
+          </div>
+          <div class="ai-summary" id="ai-summary">
+            <p>Рынок в фазе <strong>бычьего импульса</strong>. BTC удерживает ключевую поддержку. Вероятность роста 68% в ближайшие 4ч.</p>
+            <div class="ai-tags">
+              <span class="tag teal">Бычий тренд</span>
+              <span class="tag orange">Высокий объём</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fear & Greed -->
+        <div class="panel-tile glow-teal">
+          <div class="pt-header">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="9" stroke="#1EC8DC" stroke-width="1.5"/>
+              <path d="M8 14s1.5 2 4 2 4-2 4-2" stroke="#1EC8DC" stroke-width="1.5" stroke-linecap="round"/>
+              <circle cx="9" cy="10" r="1" fill="#1EC8DC"/>
+              <circle cx="15" cy="10" r="1" fill="#1EC8DC"/>
+            </svg>
+            <span>Страх / Жадность</span>
+          </div>
+          <div class="fg-meter">
+            <div class="fg-arc">
+              <svg viewBox="0 0 120 60" width="120" height="60">
+                <path d="M10,55 A50,50 0 0,1 110,55" fill="none" stroke="#1a2535" stroke-width="10"/>
+                <path id="fg-arc-fill" d="M10,55 A50,50 0 0,1 110,55" fill="none" stroke="#1EC8DC" stroke-width="10" stroke-dasharray="157" stroke-dashoffset="78"/>
+              </svg>
+            </div>
+            <div class="fg-value">
+              <span id="fg-number">—</span>
+              <span id="fg-label">Загрузка...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notifications card -->
+        <div class="panel-tile glow-orange">
+          <div class="pt-header">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M18 8A6 6 0 1 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="#FF8000" stroke-width="1.5" stroke-linecap="round"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="#FF8000" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <span>Уведомления</span>
+          </div>
+          <div class="notif-list">
+            <div class="notif-item">
+              <span class="notif-dot teal"></span>
+              <div class="notif-body">
+                <span class="notif-title">Сигнал: BTC BUY</span>
+                <span class="notif-time">2 мин назад</span>
+              </div>
+            </div>
+            <div class="notif-item">
+              <span class="notif-dot orange"></span>
+              <div class="notif-body">
+                <span class="notif-title">Цена ETH +3.2%</span>
+                <span class="notif-time">8 мин назад</span>
+              </div>
+            </div>
+            <div class="notif-item">
+              <span class="notif-dot teal"></span>
+              <div class="notif-body">
+                <span class="notif-title">AI прогноз обновлён</span>
+                <span class="notif-time">15 мин назад</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- SIGNALS TAB -->
+    <div id="tab-signals" class="tab-panel">
+      <div class="section-header">
+        <h2>Торговые Сигналы</h2>
+        <span class="badge-live">LIVE 24/7</span>
+      </div>
+      <div class="signals-full" id="signals-full">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+
+    <!-- AI CHAT TAB -->
+    <div id="tab-ai" class="tab-panel">
+      <div class="chat-container">
+        <div class="chat-messages" id="chat-messages">
+          <div class="chat-msg bot">
+            <div class="msg-avatar">Q</div>
+            <div class="msg-bubble">Привет! Я QUANTSIGNAL AI. Спросите про BTC, ETH, сигналы или рыночный анализ.</div>
+          </div>
+        </div>
+        <div class="chat-input-row">
+          <input type="text" id="chat-input" placeholder="Спросите AI..." autocomplete="off"/>
+          <button id="chat-send">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <line x1="22" y1="2" x2="11" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <polygon points="22,2 15,22 11,13 2,9" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none"/>
+            </svg>
+          </button>
         </div>
       </div>
     </div>
-    <div class="sett-section">
-      <div class="sett-lbl">Интерфейс</div>
-      <div class="sett-row">
-        <span>Язык</span>
-        <select class="sett-sel">
-          <option>Русский</option>
-          <option>English</option>
-        </select>
+
+    <!-- MARKET TAB -->
+    <div id="tab-market" class="tab-panel">
+      <div class="section-header">
+        <h2>Рынок</h2>
+        <span class="refresh-btn" id="market-refresh">↻</span>
+      </div>
+      <div class="market-list" id="market-list">
+        <!-- Filled by JS -->
       </div>
     </div>
-    <div class="screen-gap"></div>
-  </section>
 
-</div><!-- /app -->
+    <!-- SETTINGS TAB -->
+    <div id="tab-settings" class="tab-panel">
+      <div class="settings-hero">
+        <div class="settings-logo">
+          <svg viewBox="0 0 80 80" width="64" height="64" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="qGrad3" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#1EC8DC"/>
+                <stop offset="100%" style="stop-color:#FF8000"/>
+              </linearGradient>
+            </defs>
+            <text x="40" y="56" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="52"
+                  fill="url(#qGrad3)" text-anchor="middle">Q</text>
+          </svg>
+        </div>
+        <h2>QUANTSIGNAL AI</h2>
+        <p>Версия 20.0 · Сигналы, рынок, ИИ-анализ</p>
+      </div>
+      <div class="settings-list">
+        <div class="settings-item">
+          <span>Уведомления сигналов</span>
+          <label class="toggle"><input type="checkbox" checked><span class="slider"></span></label>
+        </div>
+        <div class="settings-item">
+          <span>Звуковые алерты</span>
+          <label class="toggle"><input type="checkbox"><span class="slider"></span></label>
+        </div>
+        <div class="settings-item">
+          <span>AI автоанализ</span>
+          <label class="toggle"><input type="checkbox" checked><span class="slider"></span></label>
+        </div>
+        <div class="settings-item">
+          <span>Тёмная тема</span>
+          <label class="toggle"><input type="checkbox" checked><span class="slider"></span></label>
+        </div>
+      </div>
+    </div>
 
-<div class="toast" id="toast" role="alert"></div>
+  </div>
+</div>
 
-<script src="app.js?v=19"></script>
+<script src="app.js?v=20"></script>
 </body>
 </html>
