@@ -4,26 +4,26 @@
    ========================================================= */
 
 :root {
-  --bg-0: #060A0F;
-  --bg-1: #080C14;
-  --bg-2: #0B1019;
-  --ink-0: #EAF3FF;
-  --ink-1: #b9c6d8;
-  --ink-2: #8899B2;
-  --ink-3: #4a5670;
-  --teal: #00D4E8;
-  --teal-soft: #5EF5FF;
-  --teal-deep: #007A8A;
-  --warn: #FFB547;
-  --pos: #00D68F;
-  --neg: #FF3B5C;
-  --orange: #FF8C00;
-  --line: rgba(0, 212, 232, 0.12);
-  --line-strong: rgba(0, 212, 232, 0.22);
+  --bg-0: #050A12;
+  --bg-1: #070D18;
+  --bg-2: #09111E;
+  --ink-0: #FFFFFF;
+  --ink-1: #C8DDE8;
+  --ink-2: #7A9DB8;
+  --ink-3: #3A5868;
+  --teal: #1EC8DC;
+  --teal-soft: #40E8F8;
+  --teal-deep: #0E7A8A;
+  --warn: #FFB020;
+  --pos: #00D890;
+  --neg: #FF3060;
+  --orange: #FF8000;
+  --line: rgba(30, 200, 220, 0.10);
+  --line-strong: rgba(30, 200, 220, 0.22);
   --panel: rgba(11, 18, 28, 0.78);
   --panel-2: rgba(7, 12, 21, 0.85);
-  --glow-teal: 0 0 24px rgba(0, 212, 232, 0.45);
-  --glow-soft: 0 0 60px rgba(0, 212, 232, 0.12);
+  --glow-teal: 0 0 28px rgba(30, 200, 220, 0.55);
+  --glow-soft: 0 0 60px rgba(30, 200, 220, 0.12);
   --radius-lg: 18px;
   --radius-md: 12px;
   --radius-sm: 8px;
@@ -48,7 +48,7 @@ html, body {
      bottom-most paint layer: even if every stylesheet/script after this
      fails to load, the Telegram WebView can never show through to the
      chat background or a foreign document/image behind the Mini App. */
-  background-color: #060A0F;
+  background-color: #050A12;
   background: var(--bg-0);
   color: var(--ink-0);
   font-family: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -67,7 +67,7 @@ html, body {
 
 /* New stacking context on the root so descendant z-index can never escape
    to composite behind the page and reveal the host background. */
-html { isolation: isolate; background-color: #060A0F; }
+html { isolation: isolate; background-color: #050A12; }
 
 body {
   background:
@@ -418,33 +418,33 @@ button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
   --coin-tag: #ffcb7a;
 }
 [data-coin="ETH"] {
-  --coin-c1: rgba(110,116,228,.30);
-  --coin-c2: rgba(60,40,180,.05);
-  --coin-glow: rgba(110,116,228,.45);
-  --coin-ink: rgba(170,180,255,.55);
-  --coin-mark-bg: linear-gradient(180deg, #8a8df0, #4350c8);
+  --coin-c1: rgba(30, 200, 220, .30);
+  --coin-c2: rgba(30, 200, 220, .05);
+  --coin-glow: rgba(30, 200, 220, .45);
+  --coin-ink: rgba(30, 200, 220, .55);
+  --coin-mark-bg: linear-gradient(180deg, #1EC8DC, #0E7A8A);
   --coin-mark-fg: #0a0d24;
-  --coin-line: rgba(110,116,228,.35);
+  --coin-line: rgba(30, 200, 220, .35);
   --coin-tag: #b8c0ff;
 }
 [data-coin="SOL"] {
-  --coin-c1: rgba(153,69,255,.28);
+  --coin-c1: rgba(30, 200, 220, .28);
   --coin-c2: rgba(20,241,149,.10);
-  --coin-glow: rgba(153,69,255,.45);
-  --coin-ink: rgba(190,140,255,.55);
-  --coin-mark-bg: linear-gradient(135deg, #9945ff 0%, #14f195 100%);
+  --coin-glow: rgba(30, 200, 220, .45);
+  --coin-ink: rgba(30, 200, 220, .55);
+  --coin-mark-bg: linear-gradient(135deg, #1EC8DC 0%, #14f195 100%);
   --coin-mark-fg: #0d0820;
-  --coin-line: rgba(153,69,255,.35);
+  --coin-line: rgba(30, 200, 220, .35);
   --coin-tag: #d8b8ff;
 }
 [data-coin="TON"] {
-  --coin-c1: rgba(38,176,235,.32);
-  --coin-c2: rgba(0,136,204,.05);
-  --coin-glow: rgba(38,176,235,.45);
-  --coin-ink: rgba(140,210,245,.55);
-  --coin-mark-bg: linear-gradient(180deg, #38b6ff, #0088cc);
+  --coin-c1: rgba(30, 200, 220, .32);
+  --coin-c2: rgba(30, 200, 220, .05);
+  --coin-glow: rgba(30, 200, 220, .45);
+  --coin-ink: rgba(30, 200, 220, .55);
+  --coin-mark-bg: linear-gradient(180deg, #38b6ff, #1EC8DC);
   --coin-mark-fg: #001a2c;
-  --coin-line: rgba(38,176,235,.35);
+  --coin-line: rgba(30, 200, 220, .35);
   --coin-tag: #b6e5ff;
 }
 [data-coin="BNB"] {
@@ -472,7 +472,7 @@ button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
   --coin-c2: rgba(0,50,80,.06);
   --coin-glow: rgba(0,212,232,.35);
   --coin-ink: rgba(180,220,240,.50);
-  --coin-mark-bg: linear-gradient(135deg, #00D4E8 0%, #004A6A 100%);
+  --coin-mark-bg: linear-gradient(135deg, #00D4E8 0%, #070D18 100%);
   --coin-mark-fg: #04070d;
   --coin-line: rgba(0,212,232,.30);
   --coin-tag: #b6f1f7;
@@ -484,10 +484,10 @@ button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
   --coin-mark-fg: #1a1100; --coin-line: rgba(212,180,90,.35); --coin-tag: #ffe39a;
 }
 [data-coin="ADA"] {
-  --coin-c1: rgba(40,113,200,.32); --coin-c2: rgba(20,60,140,.06);
-  --coin-glow: rgba(64,140,230,.45); --coin-ink: rgba(140,190,255,.55);
-  --coin-mark-bg: linear-gradient(180deg, #3cc8ff, #0033ad);
-  --coin-mark-fg: #001028; --coin-line: rgba(64,140,230,.35); --coin-tag: #b3d8ff;
+  --coin-c1: rgba(30, 200, 220, .32); --coin-c2: rgba(30, 200, 220, .06);
+  --coin-glow: rgba(30, 200, 220, .45); --coin-ink: rgba(30, 200, 220, .55);
+  --coin-mark-bg: linear-gradient(180deg, #3cc8ff, #0E7A8A);
+  --coin-mark-fg: #001028; --coin-line: rgba(30, 200, 220, .35); --coin-tag: #b3d8ff;
 }
 [data-coin="AVAX"] {
   --coin-c1: rgba(232,65,66,.32); --coin-c2: rgba(140,30,30,.06);
@@ -496,10 +496,10 @@ button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
   --coin-mark-fg: #20040a; --coin-line: rgba(232,65,66,.35); --coin-tag: #ffb3b3;
 }
 [data-coin="LINK"] {
-  --coin-c1: rgba(43,93,236,.32); --coin-c2: rgba(20,40,120,.06);
-  --coin-glow: rgba(80,140,255,.45); --coin-ink: rgba(140,180,255,.55);
-  --coin-mark-bg: linear-gradient(180deg, #5b95ff, #2a5ada);
-  --coin-mark-fg: #04081f; --coin-line: rgba(80,140,255,.35); --coin-tag: #c8d6ff;
+  --coin-c1: rgba(30, 200, 220, .32); --coin-c2: rgba(30, 200, 220, .06);
+  --coin-glow: rgba(30, 200, 220, .45); --coin-ink: rgba(30, 200, 220, .55);
+  --coin-mark-bg: linear-gradient(180deg, #40D0E8, #0E7A8A);
+  --coin-mark-fg: #04081f; --coin-line: rgba(30, 200, 220, .35); --coin-tag: #c8d6ff;
 }
 [data-coin="DOT"] {
   --coin-c1: rgba(230,0,122,.30); --coin-c2: rgba(130,0,70,.06);
@@ -508,13 +508,13 @@ button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
   --coin-mark-fg: #20051a; --coin-line: rgba(230,0,122,.35); --coin-tag: #ffb6db;
 }
 [data-coin="POL"], [data-coin="MATIC"] {
-  --coin-c1: rgba(130,71,229,.32); --coin-c2: rgba(60,30,140,.06);
-  --coin-glow: rgba(130,71,229,.45); --coin-ink: rgba(190,160,255,.55);
-  --coin-mark-bg: linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%);
-  --coin-mark-fg: #100822; --coin-line: rgba(130,71,229,.35); --coin-tag: #d6c2ff;
+  --coin-c1: rgba(30, 200, 220, .32); --coin-c2: rgba(30, 200, 220, .06);
+  --coin-glow: rgba(30, 200, 220, .45); --coin-ink: rgba(30, 200, 220, .55);
+  --coin-mark-bg: linear-gradient(135deg, #40D0E8 0%, #0E7A8A 100%);
+  --coin-mark-fg: #100822; --coin-line: rgba(30, 200, 220, .35); --coin-tag: #d6c2ff;
 }
 [data-coin="LTC"] {
-  --coin-c1: rgba(180,200,220,.30); --coin-c2: rgba(80,100,130,.06);
+  --coin-c1: rgba(180,200,220,.30); --coin-c2: rgba(30, 200, 220, .06);
   --coin-glow: rgba(180,200,220,.40); --coin-ink: rgba(220,228,240,.55);
   --coin-mark-bg: linear-gradient(180deg, #cad8e5, #6f7c8a);
   --coin-mark-fg: #06090f; --coin-line: rgba(180,200,220,.35); --coin-tag: #e3edf5;
@@ -532,10 +532,10 @@ button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
   --coin-mark-fg: #04070d; --coin-line: rgba(120,220,170,.35); --coin-tag: #bff0d6;
 }
 [data-coin="ARB"] {
-  --coin-c1: rgba(40,160,219,.30); --coin-c2: rgba(20,80,140,.06);
-  --coin-glow: rgba(40,160,219,.45); --coin-ink: rgba(150,210,255,.55);
-  --coin-mark-bg: linear-gradient(180deg, #50b5ff, #1565a5);
-  --coin-mark-fg: #02101e; --coin-line: rgba(40,160,219,.35); --coin-tag: #b8e1ff;
+  --coin-c1: rgba(30, 200, 220, .30); --coin-c2: rgba(30, 200, 220, .06);
+  --coin-glow: rgba(30, 200, 220, .45); --coin-ink: rgba(30, 200, 220, .55);
+  --coin-mark-bg: linear-gradient(180deg, #50b5ff, #0E7A8A);
+  --coin-mark-fg: #02101e; --coin-line: rgba(30, 200, 220, .35); --coin-tag: #b8e1ff;
 }
 [data-coin="OP"] {
   --coin-c1: rgba(255,4,32,.30); --coin-c2: rgba(140,0,10,.06);
@@ -544,10 +544,10 @@ button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
   --coin-mark-fg: #20040a; --coin-line: rgba(255,40,80,.35); --coin-tag: #ffb6c2;
 }
 [data-coin="SUI"] {
-  --coin-c1: rgba(77,162,255,.30); --coin-c2: rgba(40,100,170,.06);
-  --coin-glow: rgba(120,200,255,.45); --coin-ink: rgba(180,220,255,.55);
-  --coin-mark-bg: linear-gradient(135deg, #6fbcf0 0%, #2b6fb8 100%);
-  --coin-mark-fg: #02141f; --coin-line: rgba(120,200,255,.35); --coin-tag: #c5e6ff;
+  --coin-c1: rgba(30, 200, 220, .30); --coin-c2: rgba(30, 200, 220, .06);
+  --coin-glow: rgba(30, 200, 220, .45); --coin-ink: rgba(30, 200, 220, .55);
+  --coin-mark-bg: linear-gradient(135deg, #6fbcf0 0%, #0E7A8A 100%);
+  --coin-mark-fg: #02141f; --coin-line: rgba(30, 200, 220, .35); --coin-tag: #c5e6ff;
 }
 [data-coin="APT"] {
   --coin-c1: rgba(20,90,90,.30); --coin-c2: rgba(0,40,40,.06);
@@ -580,10 +580,10 @@ button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
   --coin-mark-fg: #20051a; --coin-line: rgba(255,90,180,.35); --coin-tag: #ffc0e0;
 }
 [data-coin="ATOM"] {
-  --coin-c1: rgba(110,116,220,.30); --coin-c2: rgba(40,40,120,.06);
-  --coin-glow: rgba(140,150,240,.45); --coin-ink: rgba(180,190,255,.55);
-  --coin-mark-bg: linear-gradient(180deg, #8c92ed, #3a3f9c);
-  --coin-mark-fg: #04070d; --coin-line: rgba(140,150,240,.35); --coin-tag: #c5cbff;
+  --coin-c1: rgba(30, 200, 220, .30); --coin-c2: rgba(30, 200, 220, .06);
+  --coin-glow: rgba(30, 200, 220, .45); --coin-ink: rgba(30, 200, 220, .55);
+  --coin-mark-bg: linear-gradient(180deg, #1EC8DC, #0A5060);
+  --coin-mark-fg: #04070d; --coin-line: rgba(30, 200, 220, .35); --coin-tag: #c5cbff;
 }
 [data-coin="ETC"] {
   --coin-c1: rgba(60,160,90,.30); --coin-c2: rgba(20,70,30,.06);
@@ -594,20 +594,20 @@ button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
 [data-coin="FIL"] {
   --coin-c1: rgba(38,180,200,.30); --coin-c2: rgba(20,80,90,.06);
   --coin-glow: rgba(60,210,230,.40); --coin-ink: rgba(160,220,230,.55);
-  --coin-mark-bg: linear-gradient(135deg, #4dd3e2 0%, #1e7782 100%);
+  --coin-mark-bg: linear-gradient(135deg, #4dd3e2 0%, #0E7A8A 100%);
   --coin-mark-fg: #03141a; --coin-line: rgba(60,210,230,.35); --coin-tag: #b6ecf3;
 }
 [data-coin="INJ"] {
   --coin-c1: rgba(0,228,222,.30); --coin-c2: rgba(0,90,90,.06);
   --coin-glow: rgba(0,228,222,.45); --coin-ink: rgba(140,240,235,.55);
-  --coin-mark-bg: linear-gradient(180deg, #2af1e8, #0a6a66);
+  --coin-mark-bg: linear-gradient(180deg, #2af1e8, #0E7A8A);
   --coin-mark-fg: #02181a; --coin-line: rgba(0,228,222,.35); --coin-tag: #b0f3ef;
 }
 [data-coin="TIA"] {
-  --coin-c1: rgba(124,68,255,.30); --coin-c2: rgba(60,20,140,.06);
-  --coin-glow: rgba(160,120,255,.45); --coin-ink: rgba(200,180,255,.55);
-  --coin-mark-bg: linear-gradient(135deg, #b18cff 0%, #6a3ad6 100%);
-  --coin-mark-fg: #100620; --coin-line: rgba(160,120,255,.35); --coin-tag: #d6c4ff;
+  --coin-c1: rgba(30, 200, 220, .30); --coin-c2: rgba(30, 200, 220, .06);
+  --coin-glow: rgba(30, 200, 220, .45); --coin-ink: rgba(30, 200, 220, .55);
+  --coin-mark-bg: linear-gradient(135deg, #40D0E8 0%, #0E7A8A 100%);
+  --coin-mark-fg: #100620; --coin-line: rgba(30, 200, 220, .35); --coin-tag: #d6c4ff;
 }
 [data-coin="WLD"] {
   --coin-c1: rgba(180,180,180,.28); --coin-c2: rgba(60,60,60,.06);
@@ -616,10 +616,10 @@ button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
   --coin-mark-fg: #07090d; --coin-line: rgba(200,200,210,.35); --coin-tag: #e3e3eb;
 }
 [data-coin="AAVE"] {
-  --coin-c1: rgba(180,110,230,.30); --coin-c2: rgba(70,30,120,.06);
-  --coin-glow: rgba(200,130,250,.45); --coin-ink: rgba(220,180,255,.55);
-  --coin-mark-bg: linear-gradient(135deg, #b6509e 0%, #5a2da1 100%);
-  --coin-mark-fg: #160622; --coin-line: rgba(200,130,250,.35); --coin-tag: #e3c0ff;
+  --coin-c1: rgba(30, 200, 220, .30); --coin-c2: rgba(30, 200, 220, .06);
+  --coin-glow: rgba(30, 200, 220, .45); --coin-ink: rgba(220,180,255,.55);
+  --coin-mark-bg: linear-gradient(135deg, #b6509e 0%, #0E7A8A 100%);
+  --coin-mark-fg: #160622; --coin-line: rgba(30, 200, 220, .35); --coin-tag: #e3c0ff;
 }
 [data-coin="RNDR"] {
   --coin-c1: rgba(229,67,80,.30); --coin-c2: rgba(120,20,30,.06);
@@ -628,10 +628,10 @@ button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
   --coin-mark-fg: #20040a; --coin-line: rgba(229,67,80,.35); --coin-tag: #ffb6bc;
 }
 [data-coin="FTM"] {
-  --coin-c1: rgba(20,160,255,.30); --coin-c2: rgba(10,80,140,.06);
-  --coin-glow: rgba(60,180,255,.45); --coin-ink: rgba(150,210,255,.55);
-  --coin-mark-bg: linear-gradient(180deg, #4bb6ff, #0058a8);
-  --coin-mark-fg: #021527; --coin-line: rgba(60,180,255,.35); --coin-tag: #b8dcff;
+  --coin-c1: rgba(30, 200, 220, .30); --coin-c2: rgba(30, 200, 220, .06);
+  --coin-glow: rgba(30, 200, 220, .45); --coin-ink: rgba(30, 200, 220, .55);
+  --coin-mark-bg: linear-gradient(180deg, #4bb6ff, #0E7A8A);
+  --coin-mark-fg: #021527; --coin-line: rgba(30, 200, 220, .35); --coin-tag: #b8dcff;
 }
 [data-coin="HBAR"] {
   --coin-c1: rgba(100,100,100,.26); --coin-c2: rgba(30,30,30,.06);
@@ -642,7 +642,7 @@ button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
 [data-coin="ICP"] {
   --coin-c1: rgba(255,100,90,.28); --coin-c2: rgba(100,30,140,.10);
   --coin-glow: rgba(255,120,180,.45); --coin-ink: rgba(255,170,200,.55);
-  --coin-mark-bg: linear-gradient(135deg, #ff6e7b 0%, #6a3ad6 100%);
+  --coin-mark-bg: linear-gradient(135deg, #ff6e7b 0%, #0E7A8A 100%);
   --coin-mark-fg: #20040a; --coin-line: rgba(255,120,180,.35); --coin-tag: #ffbacb;
 }
 [data-coin="ALGO"] {
@@ -658,10 +658,10 @@ button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
   --coin-mark-fg: #20051a; --coin-line: rgba(232,80,140,.35); --coin-tag: #ffc0d8;
 }
 [data-coin="STX"] {
-  --coin-c1: rgba(90,69,230,.30); --coin-c2: rgba(40,30,140,.06);
-  --coin-glow: rgba(140,120,250,.45); --coin-ink: rgba(180,170,255,.55);
-  --coin-mark-bg: linear-gradient(135deg, #8a7bff 0%, #4536b8 100%);
-  --coin-mark-fg: #04070d; --coin-line: rgba(140,120,250,.35); --coin-tag: #c8c0ff;
+  --coin-c1: rgba(30, 200, 220, .30); --coin-c2: rgba(30, 200, 220, .06);
+  --coin-glow: rgba(30, 200, 220, .45); --coin-ink: rgba(30, 200, 220, .55);
+  --coin-mark-bg: linear-gradient(135deg, #1EC8DC 0%, #0E7A8A 100%);
+  --coin-mark-fg: #04070d; --coin-line: rgba(30, 200, 220, .35); --coin-tag: #c8c0ff;
 }
 [data-coin="SEI"] {
   --coin-c1: rgba(150,30,90,.28); --coin-c2: rgba(60,10,40,.06);
@@ -676,10 +676,10 @@ button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
   --coin-mark-fg: #20100a; --coin-line: rgba(255,170,80,.35); --coin-tag: #ffd9a8;
 }
 [data-coin="PYTH"], [data-coin="JTO"], [data-coin="JUP"] {
-  --coin-c1: rgba(160,80,230,.28); --coin-c2: rgba(60,20,120,.06);
-  --coin-glow: rgba(180,120,255,.45); --coin-ink: rgba(210,180,255,.55);
-  --coin-mark-bg: linear-gradient(135deg, #b58cff 0%, #6a3ad6 100%);
-  --coin-mark-fg: #100622; --coin-line: rgba(180,120,255,.35); --coin-tag: #d8c2ff;
+  --coin-c1: rgba(30, 200, 220, .28); --coin-c2: rgba(30, 200, 220, .06);
+  --coin-glow: rgba(30, 200, 220, .45); --coin-ink: rgba(30, 200, 220, .55);
+  --coin-mark-bg: linear-gradient(135deg, #40D0E8 0%, #0E7A8A 100%);
+  --coin-mark-fg: #100622; --coin-line: rgba(30, 200, 220, .35); --coin-tag: #d8c2ff;
 }
 [data-coin="WIF"] {
   --coin-c1: rgba(255,200,90,.30); --coin-c2: rgba(100,60,10,.06);
@@ -714,10 +714,10 @@ button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
 [data-coin="GMX"], [data-coin="DYDX"], [data-coin="ENS"],
 [data-coin="CRV"], [data-coin="COMP"], [data-coin="MKR"],
 [data-coin="SNX"], [data-coin="LDO"] {
-  --coin-c1: rgba(38,140,242,.28); --coin-c2: rgba(80,82,255,.08);
-  --coin-glow: rgba(38,180,242,.40); --coin-ink: rgba(150,210,250,.55);
-  --coin-mark-bg: linear-gradient(135deg, #26a9f2 0%, #7064ff 100%);
-  --coin-mark-fg: #02101e; --coin-line: rgba(38,180,242,.30); --coin-tag: #b8d8f5;
+  --coin-c1: rgba(30, 200, 220, .28); --coin-c2: rgba(30, 200, 220, .08);
+  --coin-glow: rgba(30, 200, 220, .40); --coin-ink: rgba(30, 200, 220, .55);
+  --coin-mark-bg: linear-gradient(135deg, #1EC8DC 0%, #1EC8DC 100%);
+  --coin-mark-fg: #02101e; --coin-line: rgba(30, 200, 220, .30); --coin-tag: #b8d8f5;
 }
 .hero-card__row { display: flex; align-items: center; gap: 8px; }
 .hero-card__row b { font-size: 15px; font-weight: 800; letter-spacing: 0.02em; }
@@ -1107,7 +1107,7 @@ button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
   display: grid; place-items: center;
   font-size: 10px;
   font-weight: 800;
-  background: var(--coin-mark-bg, linear-gradient(180deg, #00D4E8, #00607A));
+  background: var(--coin-mark-bg, linear-gradient(180deg, #00D4E8, #0E7A8A));
   color: var(--coin-mark-fg, #04070d);
   font-family: "JetBrains Mono", monospace;
 }
@@ -2132,7 +2132,7 @@ body.boot-done .boot-splash {
   /* Extended palette */
   --accent-1: #00D4E8;
   --accent-2: #FF8C00;
-  --accent-3: #004060;
+  --accent-3: #050A12;
   --pos-soft: rgba(45, 214, 144, .14);
   --neg-soft: rgba(255, 85, 119, .14);
   --warn-soft: rgba(255, 181, 71, .14);
@@ -2327,10 +2327,10 @@ h1, h2, h3, .screen__title, .brand-title, .boot-splash__title {
   color: #f4faff;
   /* Antarctic Wallet brand blue — bright royal/cyan, no dark overlay */
   background:
-    linear-gradient(135deg, #0a5bff 0%, #1f7cff 45%, #3ec0ff 100%);
+    linear-gradient(135deg, #1EC8DC 0%, #1EC8DC 45%, #3ec0ff 100%);
   border: 1px solid rgba(255, 255, 255, 0.22);
   box-shadow:
-    0 12px 28px rgba(10, 91, 255, 0.35),
+    0 12px 28px rgba(30, 200, 220, 0.35),
     inset 0 1px 0 rgba(255, 255, 255, 0.18);
   overflow: hidden;
   isolation: isolate;
@@ -2342,7 +2342,7 @@ h1, h2, h3, .screen__title, .brand-title, .boot-splash__title {
 .partner-card:focus-visible {
   border-color: rgba(255, 255, 255, 0.42);
   box-shadow:
-    0 16px 34px rgba(10, 91, 255, 0.45),
+    0 16px 34px rgba(30, 200, 220, 0.45),
     inset 0 1px 0 rgba(255, 255, 255, 0.22);
   outline: none;
 }
@@ -2355,7 +2355,7 @@ h1, h2, h3, .screen__title, .brand-title, .boot-splash__title {
   pointer-events: none;
   background:
     radial-gradient(120% 80% at 110% 0%, rgba(255, 255, 255, 0.22), transparent 60%),
-    radial-gradient(80% 80% at -10% 110%, rgba(10, 91, 255, 0.28), transparent 60%);
+    radial-gradient(80% 80% at -10% 110%, rgba(30, 200, 220, 0.28), transparent 60%);
 }
 
 .partner-card__body {
@@ -2397,13 +2397,13 @@ h1, h2, h3, .screen__title, .brand-title, .boot-splash__title {
   font-weight: 800;
   letter-spacing: 0.01em;
   color: #ffffff;
-  text-shadow: 0 1px 0 rgba(10, 91, 255, 0.25);
+  text-shadow: 0 1px 0 rgba(30, 200, 220, 0.25);
 }
 .partner-card__chip {
   font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.02em;
-  color: #0a3a8c;
+  color: #050A12;
   padding: 2px 8px;
   border-radius: 999px;
   background: linear-gradient(135deg, #ffffff, #e4f3ff);
@@ -2430,10 +2430,10 @@ h1, h2, h3, .screen__title, .brand-title, .boot-splash__title {
   font-size: 12.5px;
   font-weight: 800;
   letter-spacing: 0.02em;
-  color: #0a3a8c;
+  color: #050A12;
   background: linear-gradient(180deg, #ffffff 0%, #d8eeff 100%);
   border: 1px solid rgba(255, 255, 255, 0.7);
-  box-shadow: 0 6px 14px rgba(10, 91, 255, 0.28);
+  box-shadow: 0 6px 14px rgba(30, 200, 220, 0.28);
   white-space: nowrap;
   transition: background 160ms ease, transform 120ms ease;
 }
@@ -3744,7 +3744,7 @@ body.keyboard-open .topbar {
   font-weight: 800;
   letter-spacing: .12em;
   text-transform: uppercase;
-  color: var(--ink-2, #7c8aa3);
+  color: var(--ink-2, #7A9DB8);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3778,7 +3778,7 @@ body.keyboard-open .topbar {
 .app-panel__chevron {
   flex: 0 0 auto;
   display: inline-flex;
-  color: var(--ink-2, #7c8aa3);
+  color: var(--ink-2, #7A9DB8);
 }
 
 /* --- AI Signal Panel ------------------------------------------------ */
@@ -3860,7 +3860,7 @@ body.keyboard-open .topbar {
   font-weight: 700;
   letter-spacing: .06em;
   text-transform: uppercase;
-  color: var(--ink-2, #7c8aa3);
+  color: var(--ink-2, #7A9DB8);
 }
 .sig-panel__legs b {
   font-size: 12.5px;
@@ -3980,7 +3980,7 @@ body.keyboard-open .topbar {
 .feed-row__sub {
   display: block;
   font-size: 10.5px;
-  color: var(--ink-2, #7c8aa3);
+  color: var(--ink-2, #7A9DB8);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3989,13 +3989,13 @@ body.keyboard-open .topbar {
   flex: 0 0 auto;
   font-size: 10px;
   font-weight: 700;
-  color: var(--ink-2, #7c8aa3);
+  color: var(--ink-2, #7A9DB8);
 }
 .feed-panel__empty {
   display: flex;
   align-items: center;
   font-size: 12px;
-  color: var(--ink-2, #7c8aa3);
+  color: var(--ink-2, #7A9DB8);
 }
 
 /* --- Overflow guards: new panel grids never push the viewport ------- */
@@ -4032,7 +4032,7 @@ body.keyboard-open .topbar {
   --qsn-navy-1: #080C14;          /* panel base navy */
   --qsn-navy-2: #0C1420;          /* raised navy */
   --qsn-blue: #00D4E8;            /* teal accent */
-  --qsn-blue-deep: #007A8A;       /* deep teal */
+  --qsn-blue-deep: #0E7A8A;       /* deep teal */
   --qsn-cyan: #00D4E8;            /* neon teal */
   --qsn-cyan-soft: #5EF5FF;
   --qsn-edge: rgba(0, 212, 232, .38);      /* glowing border */
@@ -4041,7 +4041,7 @@ body.keyboard-open .topbar {
   --qsn-glass-2: rgba(8, 12, 20, .62);
   --qsn-glow-cyan: 0 0 0 1px rgba(0, 212, 232, .35),
                    0 0 22px rgba(0, 212, 232, .30),
-                   0 0 60px rgba(0, 150, 180, .18);
+                   0 0 60px rgba(30, 200, 220, .18);
   --qsn-glow-soft: 0 0 24px rgba(0, 212, 232, .18);
   --qsn-pos: #00D68F;
   --qsn-neg: #FF3B5C;
@@ -4081,7 +4081,7 @@ body {
   background:
     linear-gradient(180deg, rgba(4, 6, 10, .94), rgba(3, 6, 12, .80)) !important;
   border-bottom: 1px solid var(--qsn-edge) !important;
-  box-shadow: 0 1px 0 rgba(0, 212, 232, .14), 0 14px 30px -18px rgba(0, 120, 150, .5);
+  box-shadow: 0 1px 0 rgba(0, 212, 232, .14), 0 14px 30px -18px rgba(30, 200, 220, .5);
 }
 .topbar::after {
   content: "";
@@ -4151,7 +4151,7 @@ body {
     linear-gradient(180deg, var(--qsn-navy-2), var(--qsn-navy-1)) !important;
   box-shadow:
     var(--qsn-glow-cyan),
-    0 24px 60px -24px rgba(0, 100, 130, .5) !important;
+    0 24px 60px -24px rgba(30, 200, 220, .5) !important;
 }
 .hero-card::before {
   content: "";
@@ -4189,7 +4189,7 @@ body {
 /* Timeframe tabs — neon pill row */
 .tf-tabs { border: 1px solid var(--qsn-edge-soft) !important; background: rgba(4, 6, 12, .55) !important; }
 .tf-tabs button.is-active {
-  background: linear-gradient(180deg, rgba(0, 212, 232, .30), rgba(0, 120, 150, .20)) !important;
+  background: linear-gradient(180deg, rgba(0, 212, 232, .30), rgba(30, 200, 220, .20)) !important;
   color: #f1faff !important;
   box-shadow: 0 0 16px rgba(0, 212, 232, .45);
   border: 1px solid var(--qsn-edge) !important;
@@ -4200,7 +4200,7 @@ body {
   background:
     radial-gradient(120% 120% at 50% 0%, rgba(0, 212, 232, .12), transparent 60%),
     rgba(3, 6, 12, .6) !important;
-  box-shadow: inset 0 0 40px rgba(0, 100, 130, .18);
+  box-shadow: inset 0 0 40px rgba(30, 200, 220, .18);
 }
 .chart-tag {
   border: 1px solid var(--qsn-edge) !important;
@@ -4316,12 +4316,12 @@ body {
   background: linear-gradient(180deg, rgba(4, 6, 10, .92), rgba(3, 5, 10, .96)) !important;
   box-shadow:
     0 0 0 1px rgba(0, 212, 232, .12),
-    0 -2px 30px rgba(0, 100, 130, .22),
+    0 -2px 30px rgba(30, 200, 220, .22),
     0 18px 40px -18px rgba(0, 0, 0, .9) !important;
   backdrop-filter: blur(22px) saturate(1.3) !important;
   -webkit-backdrop-filter: blur(22px) saturate(1.3) !important;
 }
-.tabbar .tab { color: var(--ink-2, #7c8aa3); }
+.tabbar .tab { color: var(--ink-2, #7A9DB8); }
 .tabbar .tab.is-active {
   color: var(--qsn-cyan-soft) !important;
   text-shadow: 0 0 12px rgba(0, 212, 232, .65);
@@ -4361,7 +4361,7 @@ body {
 .tabbar .tab__ico { position: relative; z-index: 1; }
 
 /* ---- 14. Partner card keeps Antarctic brand, gains neon edge ------- */
-.partner-card { border: 1px solid rgba(0, 212, 232, .25) !important; box-shadow: 0 0 24px rgba(10, 91, 255, .25); }
+.partner-card { border: 1px solid rgba(0, 212, 232, .25) !important; box-shadow: 0 0 24px rgba(30, 200, 220, .25); }
 
 /* ---- 15. Stability — keep press feedback transform-only ------------ */
 @media (prefers-reduced-motion: reduce) {
@@ -4384,13 +4384,13 @@ body {
    solid near-black/navy BEFORE any translucent neon layering, so a
    missing/late background image or glow can never reveal the host. */
 html, body {
-  background-color: #060A0F !important;
+  background-color: #050A12 !important;
 }
 .app {
   /* Solid layered dark base under the (mostly transparent) shell so the
      content column itself is never see-through. z-index keeps it above
      .bg-stack but below interactive chrome. */
-  background-color: #060A0F;
+  background-color: #050A12;
   background-image:
     radial-gradient(1200px 760px at 50% -12%, rgba(0, 212, 232, .10), transparent 60%),
     linear-gradient(180deg, #080C14 0%, #060A0F 100%);
@@ -4403,12 +4403,12 @@ html, body {
 /* The atmospheric layer must itself sit on an opaque base — if its glows
    fail to paint, we still get navy, never the host surface. */
 .bg-stack {
-  background-color: #060A0F;
+  background-color: #050A12;
 }
 
 /* 2. Boot-splash is fully opaque regardless of gradient support. */
 .boot-splash {
-  background-color: #060A0F;
+  background-color: #050A12;
 }
 /* If the brand <img> fails to load it must not leave a transparent hole. */
 .boot-splash__label,
@@ -4442,14 +4442,14 @@ html.js .fallback-shell {
   border-radius: 20px;
   padding: 16px;
   margin-bottom: 14px;
-  box-shadow: var(--qsn-glow-soft, 0 0 40px rgba(0, 120, 150, .18));
+  box-shadow: var(--qsn-glow-soft, 0 0 40px rgba(30, 200, 220, .18));
 }
 .fallback-shell__label {
   font: 700 11px/1 "JetBrains Mono", ui-monospace, monospace;
   letter-spacing: .14em;
   text-transform: uppercase;
   color: var(--qsn-cyan-soft, #5EF5FF);
-  text-shadow: 0 0 12px rgba(47, 230, 255, .35);
+  text-shadow: 0 0 12px rgba(30, 200, 220, .35);
   margin: 0 0 12px;
 }
 .fallback-shell__skeleton {
@@ -4480,7 +4480,7 @@ html.js .fallback-shell {
         from a single nav-height variable + safe-area + a generous
         gap, and add scroll-padding so programmatic/anchor scrolls
         also stop above the dock.
-     2. Chart axis tick labels were too low-contrast (--ink-3 #4a5670
+     2. Chart axis tick labels were too low-contrast (--ink-3 #3A5868
         ~ invisible on dark navy). Lift to a still-subtle slate blue.
      3. Red candles/wicks (#ff5577) washed out against the dark blue
         canvas. Lift to a brighter neon pink and add a faint glow so
@@ -4521,13 +4521,13 @@ body.keyboard-open .app {
 .chart-axis,
 .chart-axis--x,
 .chart-axis--x i {
-  color: #7894b8;
+  color: #7A9DB8;
 }
 
 /* 3. Brighter, more legible bearish red against the dark blue chart,
    keeping the neon aesthetic. Used by CSS-driven down states. */
 :root {
-  --neg: #FF3B5C;
+  --neg: #FF3060;
 }
 .mp-cell--down { box-shadow: inset 3px 0 0 #FF3B5C; }
 .mp-cell__chg--down { color: #FF3B5C; }
