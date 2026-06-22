@@ -266,3 +266,145 @@ html, body {
 .chart-wrap {
   border-color: rgba(0,212,232,0.10) !important;
 }
+
+
+/* =====================================================
+   LAYOUT FIXES — Mobile Emulation Audit v14.1
+   Fixes: content clipping, tabbar overlap, font contrast,
+   safe-area insets, small screen compression
+   ===================================================== */
+
+/* FIX 1: Active tab color — was resolving to --teal-soft (#5EF5FF)
+   instead of --teal (#00D4E8). Force exact value. */
+.tab.is-active {
+  color: #00D4E8 !important;
+}
+.tab.is-active .tab__ico::after {
+  background: #00D4E8 !important;
+  box-shadow: 0 0 12px rgba(0, 212, 232, 0.85) !important;
+}
+
+/* FIX 2: Active screen overflow — was 'visible' which means
+   last signal card can bleed under tabbar on short screens.
+   Use scroll + pb clearance instead. */
+.screen.is-active {
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  padding-bottom: calc(var(--tab-h, 64px) + 32px + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+/* FIX 3: App padding-top — was 0px (no safe-area).
+   On notched iPhones (14 Pro, 15) the topbar overlaps the notch area. */
+.app {
+  padding-top: calc(14px + env(safe-area-inset-top, 0px)) !important;
+}
+
+/* FIX 4: Tabbar bottom — safe-area not applied correctly in override.
+   Ensure the tab dock clears the home indicator on notchless iPhones / Android. */
+.tabbar {
+  padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+/* FIX 5: iPhone SE (375px) — KPI chips compress badly.
+   Allow them to wrap instead of overflow. */
+.kpis {
+  flex-wrap: wrap !important;
+}
+.kpi-chip {
+  min-width: 0 !important;
+  flex: 1 1 calc(33% - 8px) !important;
+}
+
+/* FIX 6: Low-contrast subtitle text — "AI TRADING TERMINAL · LIVE"
+   and chart axis labels need at least 4.5:1 contrast ratio. */
+.topbar__brand-sub,
+.hero-card .topbar__brand-sub {
+  color: #8899B2 !important;
+  font-size: 10px !important;
+}
+
+/* FIX 7: Chart axis labels too small and low-contrast */
+.chart-axis-label,
+.chart-time,
+[class*="chart"] text,
+[class*="axis"] {
+  font-size: 10px !important;
+  fill: #8899B2 !important;
+  color: #8899B2 !important;
+  opacity: 1 !important;
+}
+
+/* FIX 8: Perpetual/badge text too small */
+.badge {
+  font-size: 10px !important;
+  padding: 2px 7px !important;
+  letter-spacing: 0.04em !important;
+}
+
+/* FIX 9: Topbar brand overflow on 360px — prevent label from
+   pushing outside the grid column */
+.topbar__brand {
+  overflow: hidden !important;
+  white-space: nowrap !important;
+  text-overflow: ellipsis !important;
+  min-width: 0 !important;
+}
+.topbar__label {
+  overflow: hidden !important;
+  white-space: nowrap !important;
+  text-overflow: ellipsis !important;
+  max-width: 100% !important;
+}
+
+/* FIX 10: Signal card AI section — last card cut off.
+   Ensure minimum margin before tabbar clearance. */
+.signal-card:last-child,
+.last-signal {
+  margin-bottom: 16px !important;
+}
+
+/* FIX 11: Touch targets — tabs must be at least 44×44px (Apple HIG) */
+.tab {
+  min-height: 44px !important;
+  min-width: 44px !important;
+  padding: 8px 4px !important;
+}
+
+/* FIX 12: Neutral badge low contrast (#gray on #dark) */
+.badge--mute {
+  background: rgba(136, 153, 178, 0.18) !important;
+  color: #b9c6d8 !important;
+  border: 1px solid rgba(136, 153, 178, 0.25) !important;
+}
+
+/* FIX 13: Small screen (≤375px) — reduce hero card padding
+   to give more room for content */
+@media (max-width: 375px) {
+  .hero-card {
+    padding: 10px !important;
+  }
+  .kpi-chip {
+    padding: 8px 10px !important;
+  }
+  .hero-card__price em {
+    font-size: 28px !important;
+  }
+  .topbar {
+    margin-bottom: 8px !important;
+  }
+}
+
+/* FIX 14: Landscape mode — reduce tabbar height so content area isn't too cramped */
+@media (max-height: 500px) and (orientation: landscape) {
+  .tabbar {
+    padding-top: 4px !important;
+    padding-bottom: calc(4px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  .tab {
+    min-height: 36px !important;
+    font-size: 9px !important;
+  }
+  .screen.is-active {
+    padding-bottom: calc(52px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}
