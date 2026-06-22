@@ -1,410 +1,409 @@
-/* QUANTSIGNAL AI — Design Override v14
-   Full visual redesign matching logo style:
-   Deep black #060A0F + Electric teal #00D4E8 + Orange #FF8C00
-   Circuit board pattern, neon glows, premium fintech */
+/* =====================================================
+   QUANTSIGNAL AI — Logo-Style Design Override v15
+   Exact aesthetic of the brand logo:
+   • Deep navy/black background #040810
+   • Circuit board PCB grid (teal lines + nodes)
+   • Teal glow top-right + orange glow bottom-left
+   • Neural network dot pattern (left side)
+   • Candlestick / chart atmosphere (right side)
+   • Glass gloss panel (like logo bottom half)
+   • Teal #00D4E8 + Orange #FF8C00 — logo gradient
+   ===================================================== */
 
-/* ===== ROOT TOKENS ===== */
+/* ===== CORE BRAND TOKENS ===== */
 :root {
-  --bg-0: #060A0F !important;
-  --bg-1: #080C14 !important;
-  --bg-2: #0B1019 !important;
-  --teal: #00D4E8 !important;
-  --teal-soft: #5EF5FF !important;
-  --teal-deep: #007A8A !important;
-  --orange: #FF8C00 !important;
-  --pos: #00D68F !important;
-  --neg: #FF3B5C !important;
-  --warn: #FFB547 !important;
-  --line: rgba(0,212,232,0.13) !important;
-  --line-strong: rgba(0,212,232,0.25) !important;
-  --panel: rgba(8,14,24,0.85) !important;
-  --panel-2: rgba(4,8,16,0.92) !important;
-  --glow-teal: 0 0 28px rgba(0,212,232,0.55) !important;
+  --bg-0:         #040810 !important;
+  --bg-1:         #060C16 !important;
+  --bg-2:         #080E1A !important;
+  --teal:         #00D4E8 !important;
+  --teal-soft:    #40E8F8 !important;
+  --teal-deep:    #006A78 !important;
+  --orange:       #FF8C00 !important;
+  --orange-deep:  #CC6A00 !important;
+  --pos:          #00D68F !important;
+  --neg:          #FF3B5C !important;
+  --warn:         #FFB547 !important;
+  --ink-0:        #F0F8FF !important;
+  --ink-1:        #C0D4E8 !important;
+  --ink-2:        #7A96B4 !important;
+  --ink-3:        #3A5060 !important;
+  --line:         rgba(0,212,232,0.10) !important;
+  --line-strong:  rgba(0,212,232,0.22) !important;
+  --panel:        rgba(4,10,22,0.88) !important;
+  --panel-2:      rgba(2,6,14,0.94) !important;
+  --glow-teal:    0 0 32px rgba(0,212,232,0.55) !important;
 }
 
-/* ===== BODY BACKGROUND — circuit board + dual glow ===== */
+/* ===== BASE BACKGROUND — deep navy like logo ===== */
 html, body {
-  background-color: #060A0F !important;
-  background:
-    radial-gradient(ellipse 120% 70% at 85% -5%, rgba(0,212,232,0.13) 0%, transparent 55%),
-    radial-gradient(ellipse 90% 60% at -5% 35%, rgba(255,140,0,0.09) 0%, transparent 55%),
-    radial-gradient(ellipse 80% 50% at 50% 110%, rgba(0,212,232,0.07) 0%, transparent 50%),
-    #060A0F !important;
+  background-color: #040810 !important;
+  color: #F0F8FF !important;
 }
 
-/* ===== CIRCUIT BOARD GRID — matches logo background ===== */
+body {
+  background:
+    /* Teal glow — top right, like logo */
+    radial-gradient(ellipse 110% 80% at 100% -5%,
+      rgba(0,212,232,0.18) 0%, transparent 50%),
+    /* Orange glow — bottom left, like logo */
+    radial-gradient(ellipse 90% 70% at -5% 100%,
+      rgba(255,140,0,0.16) 0%, transparent 55%),
+    /* Subtle center depth */
+    radial-gradient(ellipse 70% 50% at 50% 50%,
+      rgba(0,20,40,0.6) 0%, transparent 70%),
+    #040810 !important;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* ===== CIRCUIT BOARD GRID — exact logo background ===== */
 .bg-grid {
   background-image:
-    linear-gradient(rgba(0,212,232,0.07) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,212,232,0.07) 1px, transparent 1px) !important;
-  background-size: 36px 36px !important;
+    /* Horizontal PCB lines */
+    linear-gradient(rgba(0,212,232,0.08) 1px, transparent 1px),
+    /* Vertical PCB lines */
+    linear-gradient(90deg, rgba(0,212,232,0.08) 1px, transparent 1px) !important;
+  background-size: 32px 32px !important;
+  opacity: 1 !important;
+  mask-image: radial-gradient(ellipse 120% 100% at 50% 50%,
+    black 20%, rgba(0,0,0,0.6) 60%, transparent 100%) !important;
+}
+
+/* PCB circuit nodes — dots at grid intersections */
+.bg-grid::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  background-image:
+    radial-gradient(circle 1.5px at 50% 50%, rgba(0,212,232,0.35) 0%, transparent 100%) !important;
+  background-size: 32px 32px !important;
+  opacity: 0.6 !important;
+}
+
+/* PCB circuit traces — extra diagonal lines like logo */
+.bg-grid::after {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  background-image:
+    /* L-shaped PCB traces every 96px */
+    linear-gradient(rgba(0,212,232,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,232,0.04) 1px, transparent 1px) !important;
+  background-size: 96px 96px !important;
   opacity: 0.8 !important;
-  mask-image: radial-gradient(ellipse at 50% 30%, black 30%, transparent 80%) !important;
 }
 
-/* ===== TEAL TOP GLOW ===== */
+/* ===== TEAL GLOW — top right (like logo) ===== */
 .bg-glow--teal {
-  background: radial-gradient(circle, rgba(0,212,232,0.28), transparent 60%) !important;
-  width: 90vw !important; height: 90vw !important;
-  top: -35vw !important; right: -25vw !important;
+  width: 100vw !important;
+  height: 100vw !important;
+  top: -50vw !important;
+  right: -30vw !important;
+  background: radial-gradient(circle,
+    rgba(0,212,232,0.28) 0%,
+    rgba(0,180,200,0.12) 35%,
+    transparent 65%) !important;
+  filter: blur(60px) !important;
 }
 
-/* ===== ORANGE BOTTOM GLOW (like logo) ===== */
+/* ===== ORANGE GLOW — bottom left (like logo) ===== */
 .bg-glow--violet,
 .bg-glow--orange {
-  background: radial-gradient(circle, rgba(255,140,0,0.18), transparent 60%) !important;
-  width: 75vw !important; height: 75vw !important;
-  bottom: -28vw !important; left: -18vw !important;
+  width: 85vw !important;
+  height: 85vw !important;
+  bottom: -30vw !important;
+  left: -20vw !important;
+  background: radial-gradient(circle,
+    rgba(255,140,0,0.22) 0%,
+    rgba(200,90,0,0.10) 40%,
+    transparent 65%) !important;
+  filter: blur(50px) !important;
 }
 
-/* ===== CARDS — sharp glass + teal border ===== */
-.card, .kpi-card, .partner-card {
-  background: rgba(8,14,24,0.82) !important;
-  border: 1px solid rgba(0,212,232,0.16) !important;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(0,212,232,0.07) !important;
-}
-.card:hover {
-  border-color: rgba(0,212,232,0.28) !important;
-  box-shadow: 0 0 0 1px rgba(0,212,232,0.22), 0 8px 28px rgba(0,0,0,0.55) !important;
+/* ===== NEURAL NETWORK PARTICLES — left side dots ===== */
+.bg-particles {
+  background-image:
+    radial-gradient(2px 2px at 8%  15%, rgba(0,212,232,0.7), transparent 80%),
+    radial-gradient(2px 2px at 12% 28%, rgba(0,212,232,0.5), transparent 80%),
+    radial-gradient(1.5px 1.5px at 6%  42%, rgba(0,212,232,0.4), transparent 80%),
+    radial-gradient(2px 2px at 18% 20%, rgba(0,212,232,0.6), transparent 80%),
+    radial-gradient(1.5px 1.5px at 22% 35%, rgba(0,212,232,0.3), transparent 80%),
+    radial-gradient(2px 2px at 15% 55%, rgba(0,212,232,0.5), transparent 80%),
+    radial-gradient(1.5px 1.5px at 9%  68%, rgba(0,212,232,0.4), transparent 80%),
+    /* Right side — faint candlestick atmosphere dots */
+    radial-gradient(1.5px 1.5px at 82% 12%, rgba(255,140,0,0.40), transparent 80%),
+    radial-gradient(1px 1px at 88% 25%, rgba(255,140,0,0.30), transparent 80%),
+    radial-gradient(1.5px 1.5px at 75% 18%, rgba(0,212,232,0.25), transparent 80%),
+    radial-gradient(1px 1px at 92% 38%, rgba(255,140,0,0.25), transparent 80%),
+    /* Center subtle stars */
+    radial-gradient(1px 1px at 50% 30%, rgba(255,255,255,0.25), transparent 80%),
+    radial-gradient(1px 1px at 40% 70%, rgba(255,255,255,0.20), transparent 80%),
+    radial-gradient(1px 1px at 65% 55%, rgba(0,212,232,0.20), transparent 80%) !important;
+  opacity: 1 !important;
 }
 
-/* ===== HERO CARD — premium glow top ===== */
-.hero-card {
-  background:
-    radial-gradient(130% 65% at 50% 0%, rgba(0,212,232,0.15), transparent 60%),
-    rgba(8,14,24,0.88) !important;
-  border: 1px solid rgba(0,212,232,0.20) !important;
-  box-shadow: 0 0 40px rgba(0,212,232,0.06), 0 8px 32px rgba(0,0,0,0.6) !important;
+/* ===== APP SHELL ===== */
+.app {
+  padding-top: calc(14px + env(safe-area-inset-top, 0px)) !important;
 }
 
 /* ===== TOPBAR ===== */
 .topbar__btn {
-  background: rgba(0,212,232,0.08) !important;
-  border: 1px solid rgba(0,212,232,0.22) !important;
+  background: rgba(0,212,232,0.07) !important;
+  border: 1px solid rgba(0,212,232,0.20) !important;
   color: #00D4E8 !important;
 }
 .topbar__btn span { background: #00D4E8 !important; }
-
-/* ===== TOPBAR BRAND LABEL ===== */
 .topbar__brand b {
-  background: linear-gradient(180deg, #ffffff, #00D4E8) !important;
+  background: linear-gradient(135deg, #ffffff 0%, #00D4E8 100%) !important;
   -webkit-background-clip: text !important;
   background-clip: text !important;
   color: transparent !important;
 }
-.topbar__brand-line { background: rgba(0,212,232,0.35) !important; }
 
-/* ===== LIVE BADGE ===== */
-.badge--live, .dot-live {
-  background: rgba(0,214,143,0.18) !important;
-  color: #00D68F !important;
-  border-color: rgba(0,214,143,0.35) !important;
+/* ===== CARDS — glass panel like logo bottom ===== */
+.card, .kpi-card, .partner-card {
+  background:
+    linear-gradient(160deg,
+      rgba(0,212,232,0.05) 0%,
+      rgba(4,10,22,0.90) 40%,
+      rgba(2,6,14,0.95) 100%) !important;
+  border: 1px solid rgba(0,212,232,0.14) !important;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.04) inset,
+    0 8px 32px rgba(0,0,0,0.55),
+    0 0 0 1px rgba(0,212,232,0.06) !important;
+  backdrop-filter: blur(12px) !important;
+}
+.card:hover {
+  border-color: rgba(0,212,232,0.26) !important;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.06) inset,
+    0 0 20px rgba(0,212,232,0.08),
+    0 8px 32px rgba(0,0,0,0.55) !important;
+}
+
+/* ===== HERO CARD — logo Q atmosphere ===== */
+.hero-card {
+  background:
+    radial-gradient(120% 55% at 80% 0%,
+      rgba(255,140,0,0.18) 0%, transparent 50%),
+    radial-gradient(100% 50% at 0% 100%,
+      rgba(0,212,232,0.12) 0%, transparent 50%),
+    linear-gradient(160deg,
+      rgba(0,30,50,0.85) 0%,
+      rgba(4,10,22,0.95) 100%) !important;
+  border: 1px solid rgba(0,212,232,0.18) !important;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.05) inset,
+    0 0 40px rgba(0,212,232,0.07),
+    0 12px 40px rgba(0,0,0,0.65) !important;
 }
 
 /* ===== KPI CHIPS ===== */
 .kpi-chip {
-  background: rgba(8,14,24,0.85) !important;
-  border: 1px solid rgba(0,212,232,0.14) !important;
+  background:
+    linear-gradient(160deg,
+      rgba(0,212,232,0.06) 0%,
+      rgba(4,10,22,0.88) 100%) !important;
+  border: 1px solid rgba(0,212,232,0.13) !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.03) inset !important;
+  flex: 1 1 calc(33% - 8px) !important;
+  min-width: 0 !important;
 }
 .kpi-chip--accent {
-  background: radial-gradient(circle at 50% 0%, rgba(255,140,0,0.15), transparent 70%), rgba(8,14,24,0.85) !important;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255,140,0,0.18) 0%, transparent 65%),
+    linear-gradient(160deg, rgba(4,10,22,0.88) 0%, rgba(4,10,22,0.95) 100%) !important;
   border-color: rgba(255,140,0,0.28) !important;
 }
-.kpi-chip__val { color: #EAF3FF !important; }
-.kpi-chip__key { color: #8899B2 !important; }
+.kpis { flex-wrap: wrap !important; }
 
-/* ===== SIGNAL CARDS ===== */
+/* ===== SIGNAL CARDS — orange for SHORT, teal for LONG ===== */
 .signal-card {
-  background: rgba(8,14,24,0.82) !important;
-  border: 1px solid rgba(0,212,232,0.12) !important;
+  background:
+    linear-gradient(160deg,
+      rgba(0,212,232,0.04) 0%,
+      rgba(4,10,22,0.88) 100%) !important;
+  border: 1px solid rgba(0,212,232,0.11) !important;
 }
 .signal-card:hover {
-  border-color: rgba(0,212,232,0.26) !important;
-  box-shadow: 0 0 20px rgba(0,212,232,0.08) !important;
+  border-color: rgba(0,212,232,0.24) !important;
+  box-shadow: 0 0 24px rgba(0,212,232,0.07) !important;
 }
 .signal-card--long::before {
   background: linear-gradient(180deg, #00D4E8, #00D68F) !important;
-  box-shadow: 1px 0 12px rgba(0,212,232,0.6) !important;
+  box-shadow: 2px 0 14px rgba(0,212,232,0.65) !important;
 }
 .signal-card--short::before {
   background: linear-gradient(180deg, #FF8C00, #FF3B5C) !important;
-  box-shadow: 1px 0 12px rgba(255,140,0,0.5) !important;
+  box-shadow: 2px 0 14px rgba(255,140,0,0.55) !important;
 }
-.signal-card__dir.up {
-  background: rgba(0,214,143,0.15) !important;
-  color: #00D68F !important;
-  border: 1px solid rgba(0,214,143,0.32) !important;
-}
-.signal-card__dir.dn {
-  background: rgba(255,59,92,0.15) !important;
-  color: #FF3B5C !important;
-  border: 1px solid rgba(255,59,92,0.32) !important;
-}
-
-/* Confidence bar */
 .signal-card__conf-bar i {
-  background: linear-gradient(90deg, #007A8A, #00D4E8) !important;
-  box-shadow: 0 0 8px rgba(0,212,232,0.4) !important;
+  background: linear-gradient(90deg, #006A78, #00D4E8) !important;
+  box-shadow: 0 0 8px rgba(0,212,232,0.45) !important;
 }
 
-/* ===== CTA BUTTONS ===== */
-.cta--strong {
-  background: linear-gradient(180deg, rgba(255,140,0,0.25), rgba(255,140,0,0.10)) !important;
-  border: 1px solid rgba(255,140,0,0.50) !important;
-  color: #FF8C00 !important;
-  box-shadow: 0 0 20px rgba(255,140,0,0.15) !important;
-}
-.cta--strong:hover, .cta--strong:active {
-  background: linear-gradient(180deg, rgba(255,140,0,0.38), rgba(255,140,0,0.18)) !important;
-  box-shadow: 0 0 28px rgba(255,140,0,0.25) !important;
-}
-.cta--ghost {
-  border-color: rgba(0,212,232,0.25) !important;
-  color: #00D4E8 !important;
-}
-
-/* ===== TABBAR ===== */
+/* ===== TABBAR — glossy dark panel like logo bottom ===== */
 .tabbar {
-  background: rgba(3,5,9,0.97) !important;
-  border-top: 1px solid rgba(0,212,232,0.15) !important;
-  backdrop-filter: blur(24px) saturate(1.3) !important;
+  background:
+    linear-gradient(180deg,
+      rgba(0,212,232,0.04) 0%,
+      rgba(2,5,10,0.98) 100%) !important;
+  border-top: 1px solid rgba(0,212,232,0.16) !important;
+  backdrop-filter: blur(28px) saturate(1.4) !important;
+  padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px)) !important;
+  box-shadow: 0 -1px 0 rgba(255,255,255,0.03) !important;
+}
+.tab {
+  min-height: 44px !important;
+  min-width: 44px !important;
 }
 .tab.is-active { color: #00D4E8 !important; }
 .tab.is-active .tab__ico::after {
   background: #00D4E8 !important;
-  box-shadow: 0 0 12px rgba(0,212,232,0.85) !important;
+  box-shadow: 0 0 14px rgba(0,212,232,0.90) !important;
 }
 
-/* ===== BOOT SPLASH ===== */
+/* ===== BOOT SPLASH — exact logo circle interior ===== */
 .boot-splash {
-  background: radial-gradient(circle at 50% 25%, #0a1622 0%, #060A0F 60%, #020408 100%) !important;
+  background:
+    radial-gradient(ellipse 110% 80% at 80% -5%,
+      rgba(0,212,232,0.20) 0%, transparent 45%),
+    radial-gradient(ellipse 90% 70% at -5% 100%,
+      rgba(255,140,0,0.18) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%,
+      #071020 0%, #040810 55%, #020508 100%) !important;
 }
 .boot-splash__grid {
   background-image:
-    linear-gradient(rgba(0,212,232,0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,212,232,0.08) 1px, transparent 1px) !important;
-  background-size: 36px 36px !important;
-  opacity: 0.7 !important;
+    linear-gradient(rgba(0,212,232,0.09) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,232,0.09) 1px, transparent 1px) !important;
+  background-size: 32px 32px !important;
+  opacity: 0.9 !important;
 }
 .boot-splash__glow--teal {
-  background: radial-gradient(circle, rgba(0,212,232,0.35), transparent 60%) !important;
+  background: radial-gradient(circle,
+    rgba(0,212,232,0.38) 0%, transparent 60%) !important;
+  width: 100vw !important; height: 100vw !important;
+  top: -45vw !important; right: -25vw !important;
 }
 .boot-splash__glow--orange {
-  background: radial-gradient(circle, rgba(255,140,0,0.28), transparent 60%) !important;
-  width: 80vw !important; height: 80vw !important;
+  background: radial-gradient(circle,
+    rgba(255,140,0,0.30) 0%, transparent 60%) !important;
+  width: 85vw !important; height: 85vw !important;
+  bottom: -30vw !important; left: -18vw !important;
 }
 .boot-splash__halo {
-  background: radial-gradient(60% 60% at 50% 50%, rgba(0,212,232,0.28), transparent 70%) !important;
+  background: radial-gradient(60% 60% at 50% 50%,
+    rgba(0,212,232,0.32) 0%, transparent 70%) !important;
+  filter: blur(18px) !important;
 }
 
-/* ===== TOGGLES ===== */
-.toggle__track.is-on {
-  background: linear-gradient(135deg, #007A8A, #00D4E8) !important;
-  box-shadow: 0 0 14px rgba(0,212,232,0.45) !important;
+/* ===== CTA BUTTONS ===== */
+.cta--strong {
+  background: linear-gradient(135deg,
+    rgba(255,140,0,0.28) 0%,
+    rgba(255,140,0,0.12) 100%) !important;
+  border: 1px solid rgba(255,140,0,0.50) !important;
+  color: #FF8C00 !important;
+  box-shadow: 0 0 22px rgba(255,140,0,0.18), inset 0 1px 0 rgba(255,200,100,0.10) !important;
+}
+.cta--ghost {
+  border-color: rgba(0,212,232,0.28) !important;
+  color: #00D4E8 !important;
 }
 
-/* ===== SHEETS ===== */
+/* ===== SHEET PANELS ===== */
 .sheet__panel {
-  background: linear-gradient(180deg, #0B1019, #080C14) !important;
-  border-color: rgba(0,212,232,0.20) !important;
+  background:
+    linear-gradient(180deg, #080E1A, #050A12) !important;
+  border: 1px solid rgba(0,212,232,0.18) !important;
 }
 
 /* ===== AI SCREEN ===== */
 .ai-msg--ai .ai-msg__bubble {
-  background: rgba(0,212,232,0.08) !important;
-  border-color: rgba(0,212,232,0.18) !important;
-}
-.ai-input {
-  background: rgba(8,14,24,0.9) !important;
-  border-color: rgba(0,212,232,0.22) !important;
+  background:
+    linear-gradient(135deg,
+      rgba(0,212,232,0.09) 0%,
+      rgba(4,10,22,0.92) 100%) !important;
+  border: 1px solid rgba(0,212,232,0.16) !important;
 }
 .ai-send {
-  background: linear-gradient(135deg, #007A8A, #00D4E8) !important;
-  box-shadow: 0 0 16px rgba(0,212,232,0.45) !important;
+  background: linear-gradient(135deg, #006A78, #00D4E8) !important;
+  box-shadow: 0 0 18px rgba(0,212,232,0.50) !important;
 }
 
-/* ===== CONNECTION PILL ===== */
-.conn-pill.is-ws { color: #00D4E8 !important; }
-.conn-pill__dot.is-ws { background: #00D4E8 !important; box-shadow: 0 0 8px rgba(0,212,232,0.7) !important; }
-
-/* ===== PROFILE/SETTINGS ===== */
-.profile-card, .settings-card {
-  background: rgba(8,14,24,0.85) !important;
-  border-color: rgba(0,212,232,0.14) !important;
+/* ===== BADGE ===== */
+.badge { font-size: 10px !important; }
+.badge--mute {
+  background: rgba(120,150,180,0.16) !important;
+  color: #C0D4E8 !important;
+  border: 1px solid rgba(120,150,180,0.22) !important;
 }
-.profile-ava {
-  border: 2px solid #00D4E8 !important;
-  box-shadow: 0 0 24px rgba(0,212,232,0.35) !important;
+.badge--live, .dot-live {
+  color: #00D68F !important;
+  background: rgba(0,214,143,0.15) !important;
 }
 
-/* ===== MATRIX CELLS ===== */
-.matrix-cell {
-  background: rgba(8,14,24,0.8) !important;
-  border-color: rgba(0,212,232,0.10) !important;
+/* ===== TOGGLES ===== */
+.toggle__track.is-on {
+  background: linear-gradient(135deg, #006A78, #00D4E8) !important;
+  box-shadow: 0 0 16px rgba(0,212,232,0.50) !important;
 }
-.matrix-cell:hover { border-color: rgba(0,212,232,0.22) !important; }
 
-/* ===== SEARCH INPUT ===== */
+/* ===== INPUTS / SEARCH ===== */
 .market-search__input {
-  background: rgba(8,14,24,0.88) !important;
-  border-color: rgba(0,212,232,0.18) !important;
-  color: #EAF3FF !important;
+  background: rgba(4,10,22,0.90) !important;
+  border: 1px solid rgba(0,212,232,0.16) !important;
+  color: #F0F8FF !important;
 }
 .market-search__input:focus {
-  border-color: rgba(0,212,232,0.40) !important;
-  box-shadow: 0 0 0 3px rgba(0,212,232,0.10) !important;
+  border-color: rgba(0,212,232,0.38) !important;
+  box-shadow: 0 0 0 3px rgba(0,212,232,0.09) !important;
 }
 
-/* ===== TF TABS (timeframe) ===== */
-.tf-tab.is-active {
-  background: rgba(0,212,232,0.18) !important;
-  color: #00D4E8 !important;
-  border-color: rgba(0,212,232,0.35) !important;
-}
-
-/* ===== CHART WRAP ===== */
-.chart-wrap {
-  border-color: rgba(0,212,232,0.10) !important;
-}
-
-
-/* =====================================================
-   LAYOUT FIXES — Mobile Emulation Audit v14.1
-   Fixes: content clipping, tabbar overlap, font contrast,
-   safe-area insets, small screen compression
-   ===================================================== */
-
-/* FIX 1: Active tab color — was resolving to --teal-soft (#5EF5FF)
-   instead of --teal (#00D4E8). Force exact value. */
-.tab.is-active {
-  color: #00D4E8 !important;
-}
-.tab.is-active .tab__ico::after {
-  background: #00D4E8 !important;
-  box-shadow: 0 0 12px rgba(0, 212, 232, 0.85) !important;
-}
-
-/* FIX 2: Active screen overflow — was 'visible' which means
-   last signal card can bleed under tabbar on short screens.
-   Use scroll + pb clearance instead. */
+/* ===== ACTIVE SCREEN — prevent content hiding under tabbar ===== */
 .screen.is-active {
   overflow-y: auto !important;
   -webkit-overflow-scrolling: touch !important;
   padding-bottom: calc(var(--tab-h, 64px) + 32px + env(safe-area-inset-bottom, 0px)) !important;
 }
 
-/* FIX 3: App padding-top — was 0px (no safe-area).
-   On notched iPhones (14 Pro, 15) the topbar overlaps the notch area. */
-.app {
-  padding-top: calc(14px + env(safe-area-inset-top, 0px)) !important;
+/* ===== TF TABS ===== */
+.tf-tab.is-active {
+  background: rgba(0,212,232,0.16) !important;
+  color: #00D4E8 !important;
+  border-color: rgba(0,212,232,0.32) !important;
 }
 
-/* FIX 4: Tabbar bottom — safe-area not applied correctly in override.
-   Ensure the tab dock clears the home indicator on notchless iPhones / Android. */
-.tabbar {
-  padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px)) !important;
+/* ===== PROFILE / SETTINGS ===== */
+.profile-ava {
+  border: 2px solid #00D4E8 !important;
+  box-shadow: 0 0 28px rgba(0,212,232,0.40) !important;
 }
 
-/* FIX 5: iPhone SE (375px) — KPI chips compress badly.
-   Allow them to wrap instead of overflow. */
-.kpis {
-  flex-wrap: wrap !important;
-}
-.kpi-chip {
-  min-width: 0 !important;
-  flex: 1 1 calc(33% - 8px) !important;
-}
+/* ===== CONNECTION PILL ===== */
+.conn-pill.is-ws { color: #00D4E8 !important; }
+.conn-pill__dot { background: #00D4E8 !important; box-shadow: 0 0 8px rgba(0,212,232,0.75) !important; }
 
-/* FIX 6: Low-contrast subtitle text — "AI TRADING TERMINAL · LIVE"
-   and chart axis labels need at least 4.5:1 contrast ratio. */
-.topbar__brand-sub,
-.hero-card .topbar__brand-sub {
-  color: #8899B2 !important;
-  font-size: 10px !important;
-}
+/* ===== TOUCH TARGETS ===== */
+.tab { min-height: 44px !important; min-width: 44px !important; padding: 8px 4px !important; }
 
-/* FIX 7: Chart axis labels too small and low-contrast */
-.chart-axis-label,
-.chart-time,
-[class*="chart"] text,
-[class*="axis"] {
-  font-size: 10px !important;
-  fill: #8899B2 !important;
-  color: #8899B2 !important;
-  opacity: 1 !important;
-}
-
-/* FIX 8: Perpetual/badge text too small */
-.badge {
-  font-size: 10px !important;
-  padding: 2px 7px !important;
-  letter-spacing: 0.04em !important;
-}
-
-/* FIX 9: Topbar brand overflow on 360px — prevent label from
-   pushing outside the grid column */
-.topbar__brand {
-  overflow: hidden !important;
-  white-space: nowrap !important;
-  text-overflow: ellipsis !important;
-  min-width: 0 !important;
-}
-.topbar__label {
-  overflow: hidden !important;
-  white-space: nowrap !important;
-  text-overflow: ellipsis !important;
-  max-width: 100% !important;
-}
-
-/* FIX 10: Signal card AI section — last card cut off.
-   Ensure minimum margin before tabbar clearance. */
-.signal-card:last-child,
-.last-signal {
-  margin-bottom: 16px !important;
-}
-
-/* FIX 11: Touch targets — tabs must be at least 44×44px (Apple HIG) */
-.tab {
-  min-height: 44px !important;
-  min-width: 44px !important;
-  padding: 8px 4px !important;
-}
-
-/* FIX 12: Neutral badge low contrast (#gray on #dark) */
-.badge--mute {
-  background: rgba(136, 153, 178, 0.18) !important;
-  color: #b9c6d8 !important;
-  border: 1px solid rgba(136, 153, 178, 0.25) !important;
-}
-
-/* FIX 13: Small screen (≤375px) — reduce hero card padding
-   to give more room for content */
+/* ===== SMALL SCREEN (iPhone SE 375px) ===== */
 @media (max-width: 375px) {
-  .hero-card {
-    padding: 10px !important;
-  }
-  .kpi-chip {
-    padding: 8px 10px !important;
-  }
-  .hero-card__price em {
-    font-size: 28px !important;
-  }
-  .topbar {
-    margin-bottom: 8px !important;
-  }
+  .hero-card { padding: 10px !important; }
+  .hero-card__price em { font-size: 28px !important; }
+  .kpi-chip { padding: 8px 10px !important; }
+  .topbar { margin-bottom: 8px !important; }
 }
 
-/* FIX 14: Landscape mode — reduce tabbar height so content area isn't too cramped */
+/* ===== LANDSCAPE ===== */
 @media (max-height: 500px) and (orientation: landscape) {
   .tabbar {
     padding-top: 4px !important;
     padding-bottom: calc(4px + env(safe-area-inset-bottom, 0px)) !important;
   }
-  .tab {
-    min-height: 36px !important;
-    font-size: 9px !important;
-  }
-  .screen.is-active {
-    padding-bottom: calc(52px + env(safe-area-inset-bottom, 0px)) !important;
-  }
+  .tab { min-height: 36px !important; font-size: 9px !important; }
+  .screen.is-active { padding-bottom: calc(52px + env(safe-area-inset-bottom, 0px)) !important; }
 }
