@@ -1,468 +1,1138 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <title>QUANTSIGNAL AI</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=21">
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"/>
+<title>QUANTSIGNAL AI</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;height:100%;overflow:hidden;background:#030d1a;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sans-serif;}
+
+/* ══ LOADING ══ */
+#loading{
+  position:fixed;inset:0;z-index:9999;background:#030d1a;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;
+  transition:opacity .6s ease;
+}
+#loading.out{opacity:0;pointer-events:none;}
+#ld-logo{width:88px;height:88px;animation:pulse-logo 1.8s ease-in-out infinite;}
+@keyframes pulse-logo{
+  0%,100%{filter:drop-shadow(0 0 14px #00D4FF);}
+  50%{filter:drop-shadow(0 0 32px #00D4FF) drop-shadow(0 0 60px rgba(0,212,255,0.45));}
+}
+#ld-bar-wrap{width:220px;height:3px;background:rgba(0,212,255,0.1);border-radius:4px;overflow:hidden;}
+#ld-bar{height:100%;width:0%;background:linear-gradient(90deg,#00D4FF,#FF6B00);border-radius:4px;transition:width .3s ease;box-shadow:0 0 10px #00D4FF;}
+#ld-text{font-size:11px;color:rgba(0,212,255,0.6);letter-spacing:1.2px;font-weight:700;text-transform:uppercase;}
+#ld-ver{font-size:10px;color:rgba(255,255,255,0.2);letter-spacing:.5px;margin-top:-8px;}
+
+/* ══ APP SHELL ══ */
+#app{position:fixed;inset:0;overflow:hidden;}
+
+/* ══ PHASES ══ */
+.phase{position:absolute;inset:0;transition:opacity .45s ease;pointer-events:none;opacity:0;}
+.phase.active{opacity:1;pointer-events:all;}
+
+/* ══ SPLASH ══ */
+#splash{background:#030d1a;}
+#splash img{width:100%;height:100%;object-fit:cover;object-position:center top;}
+
+/* ══ ONBOARDING ══ */
+#onboard{background:#030d1a;display:flex;flex-direction:column;}
+#ob-track-wrap{flex:1;overflow:hidden;position:relative;}
+#ob-track{display:flex;height:100%;transition:transform .38s cubic-bezier(.4,0,.2,1);}
+.ob-slide{min-width:100%;height:100%;position:relative;flex-shrink:0;}
+.ob-slide img{width:100%;height:100%;object-fit:contain;object-position:center center;display:block;pointer-events:none;}
+#ob-footer{
+  position:absolute;bottom:0;left:0;right:0;
+  padding:0 20px calc(env(safe-area-inset-bottom,0px) + 32px);
+  display:flex;flex-direction:column;align-items:center;gap:16px;
+  background:linear-gradient(to top,#030d1a 65%,transparent);
+  pointer-events:all;
+}
+#ob-dots{display:flex;gap:7px;align-items:center;}
+.ob-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.2);transition:all .25s;}
+.ob-dot.active{width:22px;border-radius:3px;background:#00D4FF;box-shadow:0 0 10px #00D4FF;}
+#ob-skip{
+  position:absolute;top:calc(env(safe-area-inset-top,0px)+16px);right:18px;
+  font-size:13px;color:rgba(255,255,255,0.4);font-weight:700;
+  background:none;border:none;cursor:pointer;padding:6px 10px;letter-spacing:.3px;z-index:10;
+}
+#ob-btn{
+  width:100%;padding:16px 0;border-radius:16px;border:none;cursor:pointer;
+  background:linear-gradient(135deg,#00D4FF,#0088bb);
+  font-size:16px;font-weight:800;color:#030d1a;letter-spacing:.6px;
+  box-shadow:0 0 28px rgba(0,212,255,0.4);
+  transition:transform .12s,box-shadow .12s;
+}
+#ob-btn:active{transform:scale(.97);}
+
+/* ══ TICKER BAR ══ */
+#ticker-wrap{
+  position:absolute;top:0;left:0;right:0;z-index:100;
+  height:28px;background:rgba(3,13,26,0.9);border-bottom:1px solid rgba(0,212,255,0.12);
+  overflow:hidden;backdrop-filter:blur(8px);
+}
+#ticker-inner{
+  display:flex;align-items:center;height:100%;white-space:nowrap;
+  animation:ticker-scroll 45s linear infinite;
+}
+#ticker-inner:hover{animation-play-state:paused;}
+@keyframes ticker-scroll{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
+.tk-item{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:0 16px;font-size:10.5px;font-weight:700;letter-spacing:.4px;color:rgba(255,255,255,0.8);
+}
+.tk-item .tk-sym{color:#00D4FF;}
+.tk-item .tk-up{color:#00E676;}
+.tk-item .tk-dn{color:#FF3B3B;}
+.tk-sep{color:rgba(255,255,255,0.15);margin:0 4px;}
+
+/* ══ MAIN APP ══ */
+#main{background:#030d1a;display:flex;flex-direction:column;}
+
+/* Screens */
+#screens{flex:1;position:relative;overflow:hidden;margin-top:28px;}
+.screen{
+  position:absolute;inset:0;opacity:0;pointer-events:none;
+  transition:opacity .3s ease;overflow:hidden;
+}
+.screen.active{opacity:1;pointer-events:all;}
+.screen-bg{width:100%;height:100%;object-fit:cover;object-position:center top;display:block;}
+
+/* Overlay screens (sub-screens) */
+.overlay{
+  position:absolute;inset:0;z-index:50;opacity:0;pointer-events:none;
+  transition:opacity .3s ease,transform .35s cubic-bezier(.4,0,.2,1);
+  transform:translateY(20px);
+  overflow:hidden;
+}
+.overlay.open{opacity:1;pointer-events:all;transform:translateY(0);}
+.overlay img{width:100%;height:100%;object-fit:cover;object-position:center top;}
+.overlay-close{
+  position:absolute;top:calc(env(safe-area-inset-top,0px)+14px);left:16px;
+  width:36px;height:36px;border-radius:50%;
+  background:rgba(0,212,255,0.12);border:1px solid rgba(0,212,255,0.25);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;z-index:10;transition:background .15s;
+}
+.overlay-close:active{background:rgba(0,212,255,0.25);}
+
+/* ══ LIVE DATA PANEL (on home screen) ══ */
+#live-panel{
+  position:absolute;bottom:0;left:0;right:0;z-index:20;
+  padding:14px 16px calc(env(safe-area-inset-bottom,0px)+14px);
+  background:linear-gradient(to top,rgba(3,13,26,0.98) 80%,transparent);
+  pointer-events:none;
+}
+.live-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.live-coin{display:flex;flex-direction:column;align-items:flex-start;gap:2px;}
+.live-coin .lc-name{font-size:9.5px;color:rgba(255,255,255,0.4);font-weight:700;letter-spacing:.8px;text-transform:uppercase;}
+.live-coin .lc-price{font-size:15px;font-weight:800;color:#fff;letter-spacing:-.3px;}
+.live-coin .lc-chg{font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px;}
+.lc-chg.up{color:#00E676;background:rgba(0,230,118,0.12);}
+.lc-chg.dn{color:#FF3B3B;background:rgba(255,59,59,0.12);}
+.live-fg{display:flex;flex-direction:column;align-items:flex-end;gap:2px;}
+.live-fg .fg-label{font-size:9.5px;color:rgba(255,255,255,0.4);letter-spacing:.8px;font-weight:700;text-transform:uppercase;}
+.live-fg .fg-value{font-size:20px;font-weight:900;letter-spacing:-.5px;}
+.live-fg .fg-name{font-size:10px;font-weight:700;letter-spacing:.4px;}
+.live-dot{width:7px;height:7px;border-radius:50%;background:#FF3B3B;box-shadow:0 0 8px #FF3B3B;animation:blink 1.2s ease-in-out infinite;flex-shrink:0;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+.live-label{font-size:9px;color:#FF3B3B;font-weight:700;letter-spacing:1px;text-transform:uppercase;}
+.live-time{font-size:9.5px;color:rgba(255,255,255,0.3);font-weight:600;}
+
+/* ══ SIGNALS LIVE PANEL ══ */
+#signals-panel{
+  position:absolute;bottom:0;left:0;right:0;z-index:20;
+  padding:12px 14px calc(env(safe-area-inset-bottom,0px)+12px);
+  background:linear-gradient(to top,rgba(3,13,26,0.98) 85%,transparent);
+  pointer-events:none;
+}
+.signal-card{
+  background:rgba(255,255,255,0.04);border:1px solid rgba(0,212,255,0.12);
+  border-radius:14px;padding:12px 14px;margin-bottom:10px;
+}
+.signal-card:last-child{margin-bottom:0;}
+.sc-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.sc-coin{font-size:14px;font-weight:800;color:#fff;letter-spacing:.2px;}
+.sc-badge{font-size:10px;font-weight:800;padding:3px 10px;border-radius:8px;letter-spacing:.5px;}
+.sc-badge.buy{color:#00E676;background:rgba(0,230,118,0.15);border:1px solid rgba(0,230,118,0.25);}
+.sc-badge.sell{color:#FF3B3B;background:rgba(255,59,59,0.15);border:1px solid rgba(255,59,59,0.25);}
+.sc-badge.hold{color:#FFB800;background:rgba(255,184,0,0.15);border:1px solid rgba(255,184,0,0.25);}
+.sc-levels{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px;}
+.sc-level{display:flex;flex-direction:column;align-items:center;gap:2px;background:rgba(255,255,255,0.04);border-radius:8px;padding:6px 4px;}
+.sc-level .sl-key{font-size:8.5px;color:rgba(255,255,255,0.35);font-weight:700;letter-spacing:.5px;text-transform:uppercase;}
+.sc-level .sl-val{font-size:12px;font-weight:800;color:#fff;}
+.sl-val.entry{color:#00D4FF;}
+.sl-val.tp{color:#00E676;}
+.sl-val.sl{color:#FF3B3B;}
+.sc-bar-wrap{height:3px;background:rgba(255,255,255,0.08);border-radius:4px;overflow:hidden;}
+.sc-bar{height:100%;border-radius:4px;transition:width 1.2s ease;}
+.sc-confidence{display:flex;justify-content:space-between;align-items:center;margin-top:5px;}
+.sc-conf-label{font-size:9.5px;color:rgba(255,255,255,0.4);font-weight:600;}
+.sc-conf-val{font-size:11px;font-weight:800;color:#00D4FF;}
+
+/* ══ MARKETS LIVE PANEL ══ */
+#markets-panel{
+  position:absolute;bottom:0;left:0;right:0;z-index:20;
+  padding:10px 14px calc(env(safe-area-inset-bottom,0px)+10px);
+  background:linear-gradient(to top,rgba(3,13,26,0.98) 80%,transparent);
+  pointer-events:none;
+}
+.market-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:9px 12px;border-radius:12px;margin-bottom:6px;
+  background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);
+}
+.market-row:last-child{margin-bottom:0;}
+.mr-left{display:flex;align-items:center;gap:10px;}
+.mr-icon{width:32px;height:32px;border-radius:50%;background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#00D4FF;}
+.mr-info{display:flex;flex-direction:column;gap:1px;}
+.mr-sym{font-size:13px;font-weight:800;color:#fff;}
+.mr-name{font-size:10px;color:rgba(255,255,255,0.35);font-weight:600;}
+.mr-right{display:flex;flex-direction:column;align-items:flex-end;gap:2px;}
+.mr-price{font-size:13px;font-weight:800;color:#fff;letter-spacing:-.2px;}
+.mr-chg{font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;}
+.mr-chg.up{color:#00E676;background:rgba(0,230,118,0.12);}
+.mr-chg.dn{color:#FF3B3B;background:rgba(255,59,59,0.12);}
+
+/* ══ ANALYSIS PANEL ══ */
+#analysis-panel{
+  position:absolute;bottom:0;left:0;right:0;z-index:20;
+  padding:14px 16px calc(env(safe-area-inset-bottom,0px)+14px);
+  background:linear-gradient(to top,rgba(3,13,26,0.98) 85%,transparent);
+  pointer-events:none;
+}
+.an-title{font-size:11px;color:rgba(0,212,255,0.7);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;}
+.an-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px;}
+.an-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:10px 12px;}
+.an-card .ac-key{font-size:9px;color:rgba(255,255,255,0.35);font-weight:700;letter-spacing:.7px;text-transform:uppercase;margin-bottom:4px;}
+.an-card .ac-val{font-size:16px;font-weight:900;color:#fff;letter-spacing:-.3px;}
+.an-card .ac-sub{font-size:10px;font-weight:600;margin-top:2px;}
+.ac-sub.bull{color:#00E676;}
+.ac-sub.bear{color:#FF3B3B;}
+.ac-sub.neutral{color:#FFB800;}
+.an-levels{display:flex;gap:8px;}
+.an-lvl{flex:1;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:8px 10px;text-align:center;}
+.an-lvl .al-key{font-size:8.5px;color:rgba(255,255,255,0.35);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:3px;}
+.an-lvl .al-val{font-size:13px;font-weight:800;color:#fff;}
+.al-val.sup{color:#00E676;}
+.al-val.res{color:#FF3B3B;}
+
+/* ══ PROFILE PANEL ══ */
+#profile-panel{
+  position:absolute;bottom:0;left:0;right:0;z-index:20;
+  padding:14px 16px calc(env(safe-area-inset-bottom,0px)+14px);
+  background:linear-gradient(to top,rgba(3,13,26,0.98) 85%,transparent);
+  pointer-events:none;
+}
+.prof-header{display:flex;align-items:center;gap:14px;margin-bottom:16px;}
+.prof-avatar{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#00D4FF,#0055aa);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:#030d1a;border:2px solid rgba(0,212,255,0.4);box-shadow:0 0 20px rgba(0,212,255,0.3);}
+.prof-info{flex:1;}
+.prof-name{font-size:16px;font-weight:800;color:#fff;margin-bottom:2px;}
+.prof-plan{font-size:11px;font-weight:700;color:#00D4FF;letter-spacing:.5px;}
+.prof-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
+.ps-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:10px;text-align:center;}
+.ps-val{font-size:18px;font-weight:900;color:#00D4FF;letter-spacing:-.3px;}
+.ps-key{font-size:9px;color:rgba(255,255,255,0.35);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-top:2px;}
+.prof-settings{display:flex;flex-direction:column;gap:6px;}
+.setting-row{
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);
+  border-radius:12px;padding:10px 14px;
+  pointer-events:all;cursor:pointer;
+}
+.sr-label{font-size:13px;font-weight:700;color:rgba(255,255,255,0.85);}
+.sr-desc{font-size:10px;color:rgba(255,255,255,0.3);margin-top:1px;}
+.toggle{width:40px;height:22px;border-radius:11px;background:rgba(255,255,255,0.1);position:relative;transition:background .2s;border:1px solid rgba(255,255,255,0.1);flex-shrink:0;}
+.toggle.on{background:rgba(0,212,255,0.3);border-color:rgba(0,212,255,0.5);}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:rgba(255,255,255,0.5);transition:transform .2s,background .2s;}
+.toggle.on::after{transform:translateX(18px);background:#00D4FF;}
+
+/* ══ BOTTOM NAV ══ */
+#nav{
+  flex-shrink:0;
+  background:rgba(3,13,26,0.97);
+  border-top:1px solid rgba(0,212,255,0.1);
+  display:flex;align-items:stretch;
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  backdrop-filter:blur(16px);
+  position:relative;z-index:10;
+}
+.nav-btn{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:10px 4px 8px;gap:4px;background:none;border:none;cursor:pointer;
+  transition:opacity .15s;-webkit-tap-highlight-color:transparent;
+}
+.nav-btn:active{opacity:.6;}
+.nav-btn svg{transition:all .2s;}
+.nav-btn span{font-size:9.5px;font-weight:700;letter-spacing:.3px;color:rgba(122,155,181,0.7);transition:color .2s;text-transform:uppercase;}
+.nav-btn.active svg path,.nav-btn.active svg polyline,.nav-btn.active svg rect,.nav-btn.active svg circle{stroke:#00D4FF!important;}
+.nav-btn.active span{color:#00D4FF;}
+#nav-indicator{
+  position:absolute;top:0;height:2px;
+  background:linear-gradient(90deg,transparent,#00D4FF,transparent);
+  border-radius:0 0 3px 3px;
+  transition:left .3s cubic-bezier(.4,0,.2,1),width .3s cubic-bezier(.4,0,.2,1);
+  box-shadow:0 0 8px #00D4FF;
+}
+
+/* ══ SKELETON SHIMMER ══ */
+.skeleton{
+  background:linear-gradient(90deg,rgba(255,255,255,0.04) 25%,rgba(255,255,255,0.09) 50%,rgba(255,255,255,0.04) 75%);
+  background-size:400% 100%;
+  animation:shimmer 1.5s ease-in-out infinite;
+  border-radius:6px;
+}
+@keyframes shimmer{0%{background-position:100% 0;}100%{background-position:-100% 0;}}
+
+/* ══ TOAST ══ */
+#toast{
+  position:fixed;bottom:calc(env(safe-area-inset-bottom,0px)+80px);left:50%;
+  transform:translateX(-50%) translateY(20px);z-index:999;opacity:0;
+  background:rgba(0,212,255,0.15);border:1px solid rgba(0,212,255,0.3);
+  backdrop-filter:blur(12px);border-radius:12px;padding:10px 20px;
+  font-size:13px;font-weight:700;color:#00D4FF;white-space:nowrap;
+  transition:opacity .3s,transform .3s;letter-spacing:.3px;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ══ HEADER TIME ══ */
+#header-time{
+  position:absolute;top:calc(28px + env(safe-area-inset-top,0px) + 10px);right:14px;
+  font-size:11px;font-weight:700;color:rgba(255,255,255,0.35);letter-spacing:.5px;
+  z-index:15;pointer-events:none;
+}
+
+/* ══ TAP ZONES (invisible tap targets on screens) ══ */
+.tap-zone{
+  position:absolute;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+</style>
 </head>
 <body>
 
-<!-- ══════════════════════════════════
-     SCREEN 1: SPLASH / ЗАГРУЗКА
-══════════════════════════════════ -->
-<div id="screen-splash" class="screen active">
-  <div class="splash-bg"></div>
-  <div class="splash-content">
-    <div class="splash-logo-wrap">
-      <svg class="qs-logo-svg" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="lg1" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#1EC8DC"/>
-            <stop offset="100%" stop-color="#FF8000"/>
-          </linearGradient>
-          <linearGradient id="lg2" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#FF8000"/>
-            <stop offset="100%" stop-color="#1EC8DC"/>
-          </linearGradient>
-        </defs>
-        <!-- Q arc -->
-        <path d="M60 15 A45 45 0 1 1 59.9 15" fill="none" stroke="url(#lg1)" stroke-width="8" stroke-linecap="round" stroke-dasharray="220 20"/>
-        <!-- Q tail -->
-        <line x1="80" y1="85" x2="98" y2="105" stroke="url(#lg2)" stroke-width="8" stroke-linecap="round"/>
-        <!-- Bar chart inside Q -->
-        <rect x="42" y="65" width="8" height="22" rx="2" fill="url(#lg1)" opacity="0.9"/>
-        <rect x="54" y="52" width="8" height="35" rx="2" fill="url(#lg1)"/>
-        <rect x="66" y="58" width="8" height="29" rx="2" fill="url(#lg2)" opacity="0.9"/>
-      </svg>
-    </div>
-    <div class="splash-brand">
-      <span class="splash-quant">QUANTSIGNAL</span>
-      <span class="splash-ai">AI</span>
-    </div>
-    <p class="splash-tagline">AI-сигналы для умного трейдинга</p>
-    <div class="splash-progress-wrap">
-      <div class="splash-progress-bar">
-        <div class="splash-progress-fill" id="splash-fill"></div>
-      </div>
-      <p class="splash-loading-text" id="splash-text">Загрузка данных рынка...</p>
-    </div>
-  </div>
+<!-- ══ LOADING ══ -->
+<div id="loading">
+  <svg id="ld-logo" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="50" cy="50" r="44" stroke="#00D4FF" stroke-width="2" stroke-dasharray="8 4" opacity=".25"/>
+    <path d="M50 14 A36 36 0 1 1 14 50" stroke="#00D4FF" stroke-width="4" stroke-linecap="round"/>
+    <path d="M14 50 L9 41 M14 50 L23 47" stroke="#FF6B00" stroke-width="3" stroke-linecap="round"/>
+    <rect x="33" y="54" width="7" height="20" rx="3" fill="#00D4FF" opacity=".9"/>
+    <rect x="44" y="44" width="7" height="30" rx="3" fill="#00D4FF"/>
+    <rect x="55" y="37" width="7" height="37" rx="3" fill="#FF6B00"/>
+    <rect x="66" y="48" width="7" height="26" rx="3" fill="#00D4FF" opacity=".7"/>
+    <text x="50" y="100" text-anchor="middle" font-size="8" fill="rgba(0,212,255,0.5)" font-family="sans-serif" letter-spacing="1">QS</text>
+  </svg>
+  <div id="ld-bar-wrap"><div id="ld-bar"></div></div>
+  <div id="ld-text">QUANTSIGNAL AI</div>
+  <div id="ld-ver">v3.0 · AI-аналитика рынка</div>
 </div>
 
-<!-- ══════════════════════════════════
-     SCREEN 2: ОНБОРДИНГ
-══════════════════════════════════ -->
-<div id="screen-onboard" class="screen hidden">
-  <div class="onboard-content">
-    <div class="onboard-logo-wrap">
-      <svg class="qs-logo-svg-lg" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="olg1" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#1EC8DC"/>
-            <stop offset="100%" stop-color="#FF8000"/>
-          </linearGradient>
-          <linearGradient id="olg2" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#FF8000"/>
-            <stop offset="100%" stop-color="#1EC8DC"/>
-          </linearGradient>
-        </defs>
-        <path d="M60 15 A45 45 0 1 1 59.9 15" fill="none" stroke="url(#olg1)" stroke-width="8" stroke-linecap="round" stroke-dasharray="220 20"/>
-        <line x1="80" y1="85" x2="98" y2="105" stroke="url(#olg2)" stroke-width="8" stroke-linecap="round"/>
-        <rect x="42" y="65" width="8" height="22" rx="2" fill="url(#olg1)" opacity="0.9"/>
-        <rect x="54" y="52" width="8" height="35" rx="2" fill="url(#olg1)"/>
-        <rect x="66" y="58" width="8" height="29" rx="2" fill="url(#olg2)" opacity="0.9"/>
-      </svg>
-      <div class="onboard-brand">
-        <span class="ob-quant">QUANTSIGNAL</span>
-        <span class="ob-ai">AI</span>
-      </div>
-      <p class="onboard-sub">AI-сигналы для умного трейдинга</p>
-    </div>
-    <div class="onboard-features">
-      <div class="ob-feature">
-        <div class="ob-icon teal">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#1EC8DC" stroke-width="1.8"/><polyline points="12,6 12,12 16,14" stroke="#1EC8DC" stroke-width="1.8" stroke-linecap="round"/></svg>
-        </div>
-        <div class="ob-text">
-          <div class="ob-title">AI-анализ 24/7</div>
-          <div class="ob-desc">Анализирует рынок в реальном времени</div>
-        </div>
-      </div>
-      <div class="ob-feature">
-        <div class="ob-icon orange">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12" stroke="#FF8000" stroke-width="1.8" stroke-linecap="round"/></svg>
-        </div>
-        <div class="ob-text">
-          <div class="ob-title">Точные сигналы</div>
-          <div class="ob-desc">Высокая вероятность успешных сделок</div>
-        </div>
-      </div>
-      <div class="ob-feature">
-        <div class="ob-icon teal">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="#1EC8DC" stroke-width="1.8" stroke-linejoin="round"/></svg>
-        </div>
-        <div class="ob-text">
-          <div class="ob-title">Простота и скорость</div>
-          <div class="ob-desc">Получайте сигналы мгновенно</div>
-        </div>
+<!-- ══ APP ══ -->
+<div id="app">
+
+  <!-- ── SPLASH ── -->
+  <div class="phase" id="splash">
+    <img src="screens/screen_01_splash.png" alt=""/>
+  </div>
+
+  <!-- ── ONBOARDING ── -->
+  <div class="phase" id="onboard">
+    <button id="ob-skip">Пропустить</button>
+    <div id="ob-track-wrap">
+      <div id="ob-track">
+        <div class="ob-slide"><img src="screens/screen_02_onboard.png" alt=""/></div>
+        <div class="ob-slide"><img src="screens/screen_02_onboard.png" alt=""/></div>
+        <div class="ob-slide"><img src="screens/screen_02_onboard.png" alt=""/></div>
       </div>
     </div>
-    <button class="btn-primary" id="onboard-btn">Начать сейчас</button>
-    <div class="onboard-dots">
-      <span class="dot active"></span><span class="dot"></span><span class="dot"></span>
+    <div id="ob-footer">
+      <div id="ob-dots">
+        <div class="ob-dot active"></div>
+        <div class="ob-dot"></div>
+        <div class="ob-dot"></div>
+      </div>
+      <button id="ob-btn">Далее</button>
     </div>
   </div>
-</div>
 
-<!-- ══════════════════════════════════
-     MAIN APP SHELL
-══════════════════════════════════ -->
-<div id="main-app" class="screen hidden">
-  <div class="app-shell">
+  <!-- ── MAIN APP ── -->
+  <div class="phase" id="main">
 
-    <!-- ── SCREEN 3: ГЛАВНАЯ / ДАШБОРД ── -->
-    <div id="tab-home" class="tab-screen active">
-      <div class="page-header">
-        <div>
-          <div class="page-title">Обзор рынка</div>
-          <div class="page-sub" id="h-date">23 июня 2026</div>
-        </div>
-        <button class="icon-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#9AAFC4" stroke-width="1.8"/><line x1="16.5" y1="16.5" x2="21" y2="21" stroke="#9AAFC4" stroke-width="1.8" stroke-linecap="round"/></svg></button>
-      </div>
-      <!-- Market cap card -->
-      <div class="hero-card">
-        <div class="hc-label">Капитализация рынка</div>
-        <div class="hc-val" id="h-mcap">$2.41T</div>
-        <div class="hc-chg pos" id="h-mcap-chg">+2.35%</div>
-        <canvas id="h-sparkline" width="200" height="50"></canvas>
-      </div>
-      <!-- Fear & Greed -->
-      <div class="section-row">
-        <div class="sec-label">Индекс жадности</div>
-        <div class="fg-chip" id="h-fg-val">—</div>
-      </div>
-      <div class="fg-bar-wrap">
-        <div class="fg-bar-track">
-          <div class="fg-bar-fill" id="h-fg-bar" style="width:20%"></div>
-        </div>
-        <div class="fg-bar-labels"><span>Страх</span><span>Нейтр.</span><span>Жадность</span></div>
-      </div>
-      <!-- Top gainers -->
-      <div class="section-row" style="margin-top:16px">
-        <div class="sec-label">Топ рост</div>
-        <span class="see-all">3 / 3,116</span>
-      </div>
-      <div class="gainers-list" id="gainers-list">
-        <div class="gainer-row"><div class="coin-icon sol">◎</div><span class="coin-sym">SOL</span><span class="coin-chg pos">+8.29%</span></div>
-        <div class="gainer-row"><div class="coin-icon btc">₿</div><span class="coin-sym">BTC</span><span class="coin-chg pos">+5.72%</span></div>
-        <div class="gainer-row"><div class="coin-icon eth">Ξ</div><span class="coin-sym">ETH</span><span class="coin-chg pos">+4.31%</span></div>
-        <div class="gainer-row"><div class="coin-icon bnb">B</div><span class="coin-sym">BNB</span><span class="coin-chg pos">+2.18%</span></div>
+    <!-- Ticker -->
+    <div id="ticker-wrap">
+      <div id="ticker-inner" id="ticker-content">
+        <!-- populated by JS -->
       </div>
     </div>
 
-    <!-- ── SCREEN 4: СИГНАЛЫ ── -->
-    <div id="tab-signals" class="tab-screen">
-      <div class="page-header">
-        <div class="page-title">Сигналы</div>
-        <button class="icon-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#9AAFC4" stroke-width="1.8"/><line x1="16.5" y1="16.5" x2="21" y2="21" stroke="#9AAFC4" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+    <!-- Live time -->
+    <div id="header-time">--:--</div>
+
+    <!-- Screens container -->
+    <div id="screens">
+
+      <!-- HOME -->
+      <div class="screen active" data-screen="home">
+        <img class="screen-bg" src="screens/screen_03_home.png" alt=""/>
+        <!-- Tap zone: top right → stats overlay -->
+        <div class="tap-zone" style="top:8%;right:0;width:40%;height:20%;" onclick="openOverlay('stats')"></div>
+        <!-- Tap zone: chart area → chart overlay -->
+        <div class="tap-zone" style="top:30%;left:0;right:0;height:35%;" onclick="openOverlay('chart')"></div>
+        <!-- Live data panel -->
+        <div id="live-panel">
+          <div class="live-row">
+            <div class="live-coin">
+              <span class="lc-name">Bitcoin</span>
+              <span class="lc-price" id="btc-price">$—</span>
+              <span class="lc-chg" id="btc-chg">—</span>
+            </div>
+            <div class="live-coin">
+              <span class="lc-name">Ethereum</span>
+              <span class="lc-price" id="eth-price">$—</span>
+              <span class="lc-chg" id="eth-chg">—</span>
+            </div>
+            <div class="live-fg">
+              <span class="fg-label">Fear &amp; Greed</span>
+              <span class="fg-value" id="fg-val">—</span>
+              <span class="fg-name" id="fg-name">Загрузка...</span>
+            </div>
+          </div>
+          <div class="live-row" style="justify-content:flex-start;gap:8px;">
+            <div class="live-dot"></div>
+            <span class="live-label">LIVE</span>
+            <span class="live-time" id="live-upd">обновление...</span>
+          </div>
+        </div>
       </div>
-      <div class="filter-tabs">
-        <button class="ftab active" data-f="all">Все</button>
-        <button class="ftab" data-f="spot">Спот</button>
-        <button class="ftab" data-f="futures">Фьючерсы</button>
-        <button class="ftab" data-f="fav">Избранные</button>
+
+      <!-- SIGNALS -->
+      <div class="screen" data-screen="signals">
+        <img class="screen-bg" src="screens/screen_04_signals.png" alt=""/>
+        <div id="signals-panel">
+          <div class="signal-card" id="sig-btc">
+            <div class="sc-header">
+              <span class="sc-coin">BTC/USDT</span>
+              <span class="sc-badge buy" id="sig-btc-badge">BUY</span>
+            </div>
+            <div class="sc-levels">
+              <div class="sc-level"><span class="sl-key">Вход</span><span class="sl-val entry" id="sig-btc-entry">—</span></div>
+              <div class="sc-level"><span class="sl-key">TP</span><span class="sl-val tp" id="sig-btc-tp">—</span></div>
+              <div class="sc-level"><span class="sl-key">SL</span><span class="sl-val sl" id="sig-btc-sl">—</span></div>
+            </div>
+            <div class="sc-bar-wrap"><div class="sc-bar" id="sig-btc-bar" style="width:0%;background:linear-gradient(90deg,#00D4FF,#00E676);"></div></div>
+            <div class="sc-confidence">
+              <span class="sc-conf-label">Уверенность ИИ</span>
+              <span class="sc-conf-val" id="sig-btc-conf">—%</span>
+            </div>
+          </div>
+          <div class="signal-card" id="sig-eth">
+            <div class="sc-header">
+              <span class="sc-coin">ETH/USDT</span>
+              <span class="sc-badge hold" id="sig-eth-badge">HOLD</span>
+            </div>
+            <div class="sc-levels">
+              <div class="sc-level"><span class="sl-key">Вход</span><span class="sl-val entry" id="sig-eth-entry">—</span></div>
+              <div class="sc-level"><span class="sl-key">TP</span><span class="sl-val tp" id="sig-eth-tp">—</span></div>
+              <div class="sc-level"><span class="sl-key">SL</span><span class="sl-val sl" id="sig-eth-sl">—</span></div>
+            </div>
+            <div class="sc-bar-wrap"><div class="sc-bar" id="sig-eth-bar" style="width:0%;background:linear-gradient(90deg,#FFB800,#FF6B00);"></div></div>
+            <div class="sc-confidence">
+              <span class="sc-conf-label">Уверенность ИИ</span>
+              <span class="sc-conf-val" id="sig-eth-conf">—%</span>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="signals-list" id="signals-list">
-        <!-- Filled by JS -->
+
+      <!-- ANALYSIS -->
+      <div class="screen" data-screen="analysis">
+        <img class="screen-bg" src="screens/screen_05_analysis.png" alt=""/>
+        <!-- Tap: heatmap -->
+        <div class="tap-zone" style="top:5%;right:0;width:35%;height:18%;" onclick="openOverlay('heatmap')"></div>
+        <div id="analysis-panel">
+          <div class="an-title">AI-АНАЛИЗ РЫНКА · BTC</div>
+          <div class="an-grid">
+            <div class="an-card">
+              <div class="ac-key">RSI (14)</div>
+              <div class="ac-val" id="an-rsi">—</div>
+              <div class="ac-sub" id="an-rsi-label">загрузка...</div>
+            </div>
+            <div class="an-card">
+              <div class="ac-key">MA20 тренд</div>
+              <div class="ac-val" id="an-trend">—</div>
+              <div class="ac-sub" id="an-trend-label">загрузка...</div>
+            </div>
+            <div class="an-card">
+              <div class="ac-key">ETH/BTC ратио</div>
+              <div class="ac-val" id="an-ratio">—</div>
+              <div class="ac-sub" id="an-ratio-label">загрузка...</div>
+            </div>
+            <div class="an-card">
+              <div class="ac-key">AI Сигнал</div>
+              <div class="ac-val" id="an-signal">—</div>
+              <div class="ac-sub" id="an-signal-label">загрузка...</div>
+            </div>
+          </div>
+          <div class="an-levels">
+            <div class="an-lvl">
+              <div class="al-key">Поддержка</div>
+              <div class="al-val sup" id="an-sup">—</div>
+            </div>
+            <div class="an-lvl">
+              <div class="al-key">Сопротивление</div>
+              <div class="al-val res" id="an-res">—</div>
+            </div>
+            <div class="an-lvl">
+              <div class="al-key">Цель</div>
+              <div class="al-val" id="an-target" style="color:#00D4FF;">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MARKETS -->
+      <div class="screen" data-screen="markets">
+        <img class="screen-bg" src="screens/screen_11_markets.png" alt=""/>
+        <div id="markets-panel">
+          <div id="markets-list">
+            <!-- populated by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- PROFILE -->
+      <div class="screen" data-screen="profile">
+        <img class="screen-bg" src="screens/screen_09_profile.png" alt=""/>
+        <!-- Tap: plans overlay -->
+        <div class="tap-zone" style="bottom:28%;left:0;right:0;height:12%;" onclick="openOverlay('plans')"></div>
+        <div id="profile-panel">
+          <div class="prof-header">
+            <div class="prof-avatar" id="prof-avatar">Q</div>
+            <div class="prof-info">
+              <div class="prof-name" id="prof-name">QUANTSIGNAL</div>
+              <div class="prof-plan">PRO ПЛАН · Активен</div>
+            </div>
+          </div>
+          <div class="prof-stats">
+            <div class="ps-card">
+              <div class="ps-val" id="ps-acc">91%</div>
+              <div class="ps-key">Точность</div>
+            </div>
+            <div class="ps-card">
+              <div class="ps-val" id="ps-sigs">47</div>
+              <div class="ps-key">Сигналов</div>
+            </div>
+            <div class="ps-card">
+              <div class="ps-val" id="ps-fg2">—</div>
+              <div class="ps-key">Fear&amp;Greed</div>
+            </div>
+          </div>
+          <div class="prof-settings">
+            <div class="setting-row" onclick="toggleSetting(this)">
+              <div>
+                <div class="sr-label">Уведомления</div>
+                <div class="sr-desc">Push-алерты при сигналах</div>
+              </div>
+              <div class="toggle on"></div>
+            </div>
+            <div class="setting-row" onclick="toggleSetting(this)">
+              <div>
+                <div class="sr-label">Звук сигналов</div>
+                <div class="sr-desc">Звуковые оповещения</div>
+              </div>
+              <div class="toggle on"></div>
+            </div>
+            <div class="setting-row" onclick="toggleSetting(this)">
+              <div>
+                <div class="sr-label">Ночной режим</div>
+                <div class="sr-desc">Тихие часы 23:00–08:00</div>
+              </div>
+              <div class="toggle"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /screens -->
+
+    <!-- ── OVERLAY SCREENS ── -->
+
+    <!-- Chart -->
+    <div class="overlay" id="ov-chart">
+      <img src="screens/screen_06_chart.png" alt=""/>
+      <div class="overlay-close" onclick="closeOverlay('chart')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
       </div>
     </div>
 
-    <!-- ── SCREEN 5: AI-АНАЛИЗ ── -->
-    <div id="tab-ai" class="tab-screen">
-      <div class="page-header">
-        <div>
-          <div class="page-title">AI-Анализ</div>
-          <div class="page-sub teal">● BTC/USDT</div>
-        </div>
-        <button class="icon-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#9AAFC4" stroke-width="1.8" stroke-linecap="round"/></svg></button>
-      </div>
-      <div class="ai-filter-tabs">
-        <button class="ai-ftab active">Обзор</button>
-        <button class="ai-ftab">Нейросеть</button>
-        <button class="ai-ftab">Онлайн</button>
-        <button class="ai-ftab">Дневной</button>
-      </div>
-      <!-- AI brain card -->
-      <div class="ai-brain-card">
-        <div class="ai-brain-title">AI-модель рынка</div>
-        <div class="ai-brain-visual">
-          <canvas id="ai-brain-canvas" width="200" height="120"></canvas>
-        </div>
-        <div class="ai-metrics-row">
-          <div class="ai-metric">
-            <div class="ai-metric-label">Уверенность сигнала</div>
-            <div class="ai-metric-val teal" id="ai-conf">87%</div>
-          </div>
-          <div class="ai-metric">
-            <div class="ai-metric-label">Сценарий</div>
-            <div class="ai-metric-val orange">Бычий сценарий</div>
-          </div>
-        </div>
-      </div>
-      <div class="ai-conclusions">
-        <div class="ai-conc-title">Ключевые выводы <span class="ai-conc-badge">AI</span></div>
-        <div class="ai-conc-item">
-          <span class="conc-dot teal"></span>
-          <span>Сильный бычий импульс на старших таймфреймах</span>
-        </div>
-        <div class="ai-conc-item">
-          <span class="conc-dot orange"></span>
-          <span>Рост объёмов подтверждает движение</span>
-        </div>
-        <div class="ai-conc-item">
-          <span class="conc-dot teal"></span>
-          <span>Поддержка на $66,800 удерживается</span>
-        </div>
+    <!-- Stats -->
+    <div class="overlay" id="ov-stats">
+      <img src="screens/screen_07_stats.png" alt=""/>
+      <div class="overlay-close" onclick="closeOverlay('stats')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
       </div>
     </div>
 
-    <!-- ── SCREEN 7: СТАТИСТИКА ── -->
-    <div id="tab-stats" class="tab-screen">
-      <div class="page-header">
-        <div class="page-title">Статистика</div>
-      </div>
-      <div class="stats-filter-tabs">
-        <button class="sftab active">Обзор</button>
-        <button class="sftab">Эффективность</button>
-        <button class="sftab">История</button>
-      </div>
-      <div class="stats-grid">
-        <div class="stat-big-card">
-          <div class="sbc-label">Всего сигналов</div>
-          <div class="sbc-val">128</div>
-        </div>
-        <div class="stat-big-card">
-          <div class="sbc-label">Проходимость</div>
-          <div class="sbc-val teal">76.4%</div>
-        </div>
-        <div class="stat-big-card">
-          <div class="sbc-label">Средняя прибыль</div>
-          <div class="sbc-val pos">+2.18%</div>
-        </div>
-        <div class="stat-big-card">
-          <div class="sbc-label">Макс. просадка</div>
-          <div class="sbc-val neg">-4.32%</div>
-        </div>
-      </div>
-      <!-- Donut chart -->
-      <div class="dist-card">
-        <div class="dist-title">Распределение по активам</div>
-        <div class="dist-row">
-          <canvas id="donut-canvas" width="120" height="120"></canvas>
-          <div class="dist-legend">
-            <div class="dl-item"><span class="dl-dot" style="background:#1EC8DC"></span>BTC <span class="dl-pct">45%</span></div>
-            <div class="dl-item"><span class="dl-dot" style="background:#FF8000"></span>ETH <span class="dl-pct">20%</span></div>
-            <div class="dl-item"><span class="dl-dot" style="background:#00D890"></span>SOL <span class="dl-pct">15%</span></div>
-            <div class="dl-item"><span class="dl-dot" style="background:#5A7090"></span>Другие <span class="dl-pct">20%</span></div>
-          </div>
-        </div>
-      </div>
-      <!-- Total return -->
-      <div class="return-card">
-        <div class="rc-label">Доходность</div>
-        <div class="rc-val pos">+24.8%</div>
-        <canvas id="return-sparkline" width="200" height="50"></canvas>
+    <!-- Notifications -->
+    <div class="overlay" id="ov-notifications">
+      <img src="screens/screen_08_notifications.png" alt=""/>
+      <div class="overlay-close" onclick="closeOverlay('notifications')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
       </div>
     </div>
 
-    <!-- ── SCREEN 8: УВЕДОМЛЕНИЯ ── -->
-    <div id="tab-notifs" class="tab-screen">
-      <div class="page-header">
-        <div class="page-title">Уведомления</div>
-        <button class="icon-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#9AAFC4" stroke-width="1.8"/><line x1="16.5" y1="16.5" x2="21" y2="21" stroke="#9AAFC4" stroke-width="1.8" stroke-linecap="round"/></svg></button>
-      </div>
-      <div class="notif-list" id="notif-list">
-        <div class="notif-card teal-border">
-          <div class="nc-icon teal-bg"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12" stroke="#1EC8DC" stroke-width="2" stroke-linecap="round"/></svg></div>
-          <div class="nc-body">
-            <div class="nc-title">Новый сигнал</div>
-            <div class="nc-sub">BTC/USDT · LONG<br>+2.4% потенциал</div>
-          </div>
-          <div class="nc-time">Только что</div>
-        </div>
-        <div class="notif-card orange-border">
-          <div class="nc-icon orange-bg"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><polyline points="22,6 12,13 2,6" stroke="#FF8000" stroke-width="2"/><rect x="2" y="6" width="20" height="14" rx="2" stroke="#FF8000" stroke-width="2"/></svg></div>
-          <div class="nc-body">
-            <div class="nc-title">Достигнута цель</div>
-            <div class="nc-sub">ETH/USDT · цель 3,350<br>+3.1%</div>
-          </div>
-          <div class="nc-time">1 мин назад</div>
-        </div>
-        <div class="notif-card teal-border">
-          <div class="nc-icon teal-bg"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><polyline points="23,6 13.5,15.5 8.5,10.5 1,18" stroke="#1EC8DC" stroke-width="2" stroke-linecap="round"/></svg></div>
-          <div class="nc-body">
-            <div class="nc-title">Изменение тренда</div>
-            <div class="nc-sub">SOL/USDT · возможен разворот</div>
-          </div>
-          <div class="nc-time">20 мин назад</div>
-        </div>
-        <div class="notif-card orange-border">
-          <div class="nc-icon orange-bg"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke="#FF8000" stroke-width="2"/><line x1="12" y1="9" x2="12" y2="13" stroke="#FF8000" stroke-width="2"/><line x1="12" y1="17" x2="12.01" y2="17" stroke="#FF8000" stroke-width="2"/></svg></div>
-          <div class="nc-body">
-            <div class="nc-title">Аномалия рынка</div>
-            <div class="nc-sub">Резкий рост объёмов по BTC</div>
-          </div>
-          <div class="nc-time">20 мин назад</div>
-        </div>
-        <div class="notif-card teal-border">
-          <div class="nc-icon teal-bg"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#1EC8DC" stroke-width="2"/><path d="M12 8v4l3 3" stroke="#1EC8DC" stroke-width="2" stroke-linecap="round"/></svg></div>
-          <div class="nc-body">
-            <div class="nc-title">Обновление AI-модели</div>
-            <div class="nc-sub">Новая модель готова к анализу</div>
-          </div>
-          <div class="nc-time">Завтра</div>
-        </div>
-        <button class="mark-read-btn">Отметить все как прочитанные</button>
+    <!-- Plans -->
+    <div class="overlay" id="ov-plans">
+      <img src="screens/screen_10_plans.png" alt=""/>
+      <div class="overlay-close" onclick="closeOverlay('plans')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
       </div>
     </div>
 
-    <!-- ── SCREEN 9: ПРОФИЛЬ ── -->
-    <div id="tab-profile" class="tab-screen">
-      <div class="page-header">
-        <div class="page-title">Профиль</div>
-      </div>
-      <div class="profile-hero">
-        <div class="profile-avatar">А</div>
-        <div class="profile-info">
-          <div class="profile-name">Александр П.</div>
-          <div class="profile-badge">Премиум подписчик</div>
-        </div>
-      </div>
-      <div class="subscription-card">
-        <div class="sub-header">
-          <div class="sub-logo-small">
-            <svg viewBox="0 0 40 40" width="28" height="28"><defs><linearGradient id="slg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#1EC8DC"/><stop offset="100%" stop-color="#FF8000"/></linearGradient></defs><path d="M20 5 A15 15 0 1 1 19.9 5" fill="none" stroke="url(#slg)" stroke-width="4" stroke-linecap="round" stroke-dasharray="72 8"/><line x1="28" y1="28" x2="35" y2="36" stroke="#FF8000" stroke-width="4" stroke-linecap="round"/></svg>
-          </div>
-          <div>
-            <div class="sub-name">QUANTSIGNAL AI Premium</div>
-            <div class="sub-until">Действует до 15.08.2025</div>
-          </div>
-        </div>
-        <button class="btn-outline" onclick="showScreen('tab-plans')">Управление подпиской</button>
-      </div>
-      <div class="profile-menu">
-        <div class="pm-item" onclick="showScreen('tab-plans')"><span>Мои сигналы</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="#5A7090" stroke-width="2" stroke-linecap="round"/></svg></div>
-        <div class="pm-item"><span>История операций</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="#5A7090" stroke-width="2" stroke-linecap="round"/></svg></div>
-        <div class="pm-item"><span>Избранное</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="#5A7090" stroke-width="2" stroke-linecap="round"/></svg></div>
-        <div class="pm-item"><span>Настройки</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="#5A7090" stroke-width="2" stroke-linecap="round"/></svg></div>
-        <div class="pm-item"><span>Безопасность</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="#5A7090" stroke-width="2" stroke-linecap="round"/></svg></div>
-        <div class="pm-item"><span>Поддержка</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="#5A7090" stroke-width="2" stroke-linecap="round"/></svg></div>
+    <!-- Heatmap -->
+    <div class="overlay" id="ov-heatmap">
+      <img src="screens/screen_12_heatmap.png" alt=""/>
+      <div class="overlay-close" onclick="closeOverlay('heatmap')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
       </div>
     </div>
 
-    <!-- ── SCREEN 10: ПЛАНЫ ── -->
-    <div id="tab-plans" class="tab-screen">
-      <div class="page-header">
-        <button class="back-btn" onclick="showScreen('tab-profile')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="#9AAFC4" stroke-width="2" stroke-linecap="round"/></svg></button>
-        <div class="page-title">Выберите план</div>
-        <div></div>
-      </div>
-      <div class="plan-toggle">
-        <button class="ptog active" id="ptog-month" onclick="setPlanPeriod('month')">Месяц</button>
-        <button class="ptog" id="ptog-year" onclick="setPlanPeriod('year')">Год <span class="ptog-badge">скидка 20%</span></button>
-      </div>
-      <div class="plans-list">
-        <div class="plan-card">
-          <div class="plan-name">Базовый</div>
-          <div class="plan-price">$29<span class="plan-per">/мес</span></div>
-          <div class="plan-desc">AI-сигналы · Уведомления · Базовая аналитика</div>
-          <button class="btn-outline">Выбрать</button>
-        </div>
-        <div class="plan-card featured">
-          <div class="plan-badge">Популярный</div>
-          <div class="plan-name">Премиум</div>
-          <div class="plan-price teal">$59<span class="plan-per">/мес</span></div>
-          <div class="plan-desc">Всё из базового + Расширенная аналитика + AI-анализ с нейросетью + Приоритетная поддержка</div>
-          <button class="btn-primary">Выбрать</button>
-        </div>
-        <div class="plan-card">
-          <div class="plan-name">Премиум+</div>
-          <div class="plan-price">$99<span class="plan-per">/мес</span></div>
-          <div class="plan-desc">Всё из премиум + Портфельный менеджер</div>
-          <button class="btn-outline">Выбрать</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── SCREEN 11: РЫНКИ ── -->
-    <div id="tab-markets" class="tab-screen">
-      <div class="page-header">
-        <button class="back-btn" id="markets-back"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="#9AAFC4" stroke-width="2" stroke-linecap="round"/></svg></button>
-        <div class="page-title">Рынки</div>
-        <div></div>
-      </div>
-      <div class="market-filter-tabs">
-        <button class="mftab active">Все</button>
-        <button class="mftab">Избранные</button>
-        <button class="mftab">Спот</button>
-        <button class="mftab">Фьючерсы</button>
-      </div>
-      <div class="market-header-row">
-        <span>Пара</span><span>Цена</span><span>24ч</span><span>Объём</span>
-      </div>
-      <div class="market-list" id="market-list">
-        <!-- Filled by JS -->
-      </div>
-    </div>
-
-    <!-- ── SCREEN 12: ТЕПЛОВАЯ КАРТА ── -->
-    <div id="tab-heatmap" class="tab-screen">
-      <div class="page-header">
-        <button class="back-btn" id="heatmap-back"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="#9AAFC4" stroke-width="2" stroke-linecap="round"/></svg></button>
-        <div class="page-title">Тепловая карта рынка</div>
-        <div></div>
-      </div>
-      <div class="hm-period-tabs">
-        <button class="hmtab active">24ч</button>
-        <button class="hmtab">7д</button>
-        <button class="hmtab">30д</button>
-      </div>
-      <div class="heatmap-grid" id="heatmap-grid">
-        <!-- Filled by JS -->
-      </div>
-    </div>
-
-    <!-- BOTTOM NAV -->
-    <nav class="bottom-nav">
-      <button class="nav-btn active" data-screen="tab-home">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/><rect x="14" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/><rect x="3" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/><rect x="14" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/></svg>
+    <!-- ── BOTTOM NAV ── -->
+    <nav id="nav">
+      <div id="nav-indicator"></div>
+      <button class="nav-btn active" data-target="home" onclick="showScreen('home',this)">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" stroke="rgba(122,155,181,0.7)"/>
+          <polyline points="9 22 9 12 15 12 15 22" stroke="rgba(122,155,181,0.7)"/>
+        </svg>
         <span>Главная</span>
       </button>
-      <button class="nav-btn" data-screen="tab-signals">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <button class="nav-btn" data-target="signals" onclick="showScreen('signals',this)">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" stroke="rgba(122,155,181,0.7)"/>
+        </svg>
         <span>Сигналы</span>
       </button>
-      <button class="nav-btn" data-screen="tab-ai">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="18" cy="14" r="2" stroke="currentColor" stroke-width="1.5"/><circle cx="6" cy="14" r="2" stroke="currentColor" stroke-width="1.5"/></svg>
-        <span>Аналитика</span>
+      <button class="nav-btn" data-target="analysis" onclick="showScreen('analysis',this)">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round">
+          <circle cx="12" cy="12" r="3" stroke="rgba(122,155,181,0.7)"/>
+          <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" stroke="rgba(122,155,181,0.7)"/>
+        </svg>
+        <span>Анализ</span>
       </button>
-      <button class="nav-btn" data-screen="tab-stats">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="12" width="4" height="9" rx="1" stroke="currentColor" stroke-width="1.8"/><rect x="10" y="7" width="4" height="14" rx="1" stroke="currentColor" stroke-width="1.8"/><rect x="17" y="3" width="4" height="18" rx="1" stroke="currentColor" stroke-width="1.8"/></svg>
-        <span>Статистика</span>
+      <button class="nav-btn" data-target="markets" onclick="showScreen('markets',this)">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round">
+          <rect x="2" y="3" width="20" height="14" rx="2" stroke="rgba(122,155,181,0.7)"/>
+          <path d="M8 21h8M12 17v4" stroke="rgba(122,155,181,0.7)"/>
+          <polyline points="6 8 10 12 14 8 18 12" stroke="rgba(122,155,181,0.7)"/>
+        </svg>
+        <span>Рынки</span>
       </button>
-      <button class="nav-btn" data-screen="tab-profile">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <button class="nav-btn" data-target="profile" onclick="showScreen('profile',this)">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="rgba(122,155,181,0.7)"/>
+          <circle cx="12" cy="7" r="4" stroke="rgba(122,155,181,0.7)"/>
+        </svg>
         <span>Профиль</span>
       </button>
     </nav>
 
-  </div><!-- /app-shell -->
-</div><!-- /main-app -->
+  </div><!-- /main -->
+</div><!-- /app -->
 
-<script src="app.js?v=21"></script>
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════
+// TELEGRAM WEBAPP SDK
+// ═══════════════════════════════════════════
+(function(){
+  const tg = window.Telegram?.WebApp;
+  if(tg){
+    tg.ready();
+    tg.expand();
+    const u = tg.initDataUnsafe?.user;
+    if(u){
+      const name = u.first_name || u.username || 'Трейдер';
+      document.getElementById('prof-name').textContent = name.toUpperCase();
+      const initials = name.charAt(0).toUpperCase();
+      document.getElementById('prof-avatar').textContent = initials;
+    }
+    tg.BackButton.onClick(() => {
+      const open = document.querySelector('.overlay.open');
+      if(open){
+        const id = open.id.replace('ov-','');
+        closeOverlay(id);
+        tg.BackButton.hide();
+      }
+    });
+  }
+})();
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+let appStarted = false;
+let obStep = 0;
+const OB_TOTAL = 3;
+let liveData = {};
+
+// ═══════════════════════════════════════════
+// LOADING + PRELOAD
+// ═══════════════════════════════════════════
+const PRELOAD = [
+  'screens/screen_01_splash.png',
+  'screens/screen_02_onboard.png',
+  'screens/screen_03_home.png',
+];
+let loaded = 0;
+const ldBar = document.getElementById('ld-bar');
+
+PRELOAD.forEach(src => {
+  const img = new Image();
+  img.onload = img.onerror = () => {
+    loaded++;
+    ldBar.style.width = (loaded / PRELOAD.length * 100) + '%';
+  };
+  img.src = src;
+});
+
+// Force start after 1.8s regardless
+setTimeout(startApp, 1800);
+
+function startApp(){
+  if(appStarted) return;
+  appStarted = true;
+  ldBar.style.width = '100%';
+  setTimeout(() => {
+    const l = document.getElementById('loading');
+    l.classList.add('out');
+    setTimeout(() => {
+      l.style.display = 'none';
+      showPhase('splash');
+    }, 600);
+  }, 400);
+}
+
+// ═══════════════════════════════════════════
+// PHASE SYSTEM
+// ═══════════════════════════════════════════
+function showPhase(id){
+  document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
+  const p = document.getElementById(id);
+  if(p) p.classList.add('active');
+  if(id === 'splash') initSplash();
+  if(id === 'main')   initMain();
+}
+
+// ═══════════════════════════════════════════
+// SPLASH
+// ═══════════════════════════════════════════
+function initSplash(){
+  setTimeout(() => showPhase('onboard'), 2200);
+}
+document.getElementById('splash').addEventListener('click', () => showPhase('onboard'));
+
+// ═══════════════════════════════════════════
+// ONBOARDING
+// ═══════════════════════════════════════════
+const obTrack = document.getElementById('ob-track');
+const obBtn   = document.getElementById('ob-btn');
+
+function updateObUI(){
+  document.querySelectorAll('.ob-dot').forEach((d,i) => d.classList.toggle('active', i === obStep));
+  obBtn.textContent = obStep < OB_TOTAL-1 ? 'Далее' : 'Начать →';
+}
+
+obBtn.addEventListener('click', () => {
+  if(obStep < OB_TOTAL-1){
+    obStep++;
+    obTrack.style.transform = `translateX(-${obStep*100}%)`;
+    updateObUI();
+  } else { enterMain(); }
+});
+document.getElementById('ob-skip').addEventListener('click', () => enterMain());
+
+let obSwipeX = 0;
+obTrack.addEventListener('touchstart', e => { obSwipeX = e.touches[0].clientX; }, {passive:true});
+obTrack.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - obSwipeX;
+  if(dx < -50 && obStep < OB_TOTAL-1){ obStep++; obTrack.style.transform=`translateX(-${obStep*100}%)`; updateObUI(); }
+  if(dx >  50 && obStep > 0)         { obStep--; obTrack.style.transform=`translateX(-${obStep*100}%)`; updateObUI(); }
+});
+
+function enterMain(){ showPhase('main'); }
+
+// ═══════════════════════════════════════════
+// MAIN INIT
+// ═══════════════════════════════════════════
+function initMain(){
+  updateNavIndicator(document.querySelector('.nav-btn.active'));
+  startClock();
+  fetchAllData();
+  setInterval(fetchAllData, 60000);
+}
+
+// ═══════════════════════════════════════════
+// CLOCK
+// ═══════════════════════════════════════════
+function startClock(){
+  function tick(){
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2,'0');
+    const m = String(now.getMinutes()).padStart(2,'0');
+    document.getElementById('header-time').textContent = h + ':' + m;
+  }
+  tick();
+  setInterval(tick, 10000);
+}
+
+// ═══════════════════════════════════════════
+// DATA FETCH
+// ═══════════════════════════════════════════
+async function fetchAllData(){
+  try { await fetchPrices(); } catch(e){}
+  try { await fetchFearGreed(); } catch(e){}
+}
+
+async function fetchPrices(){
+  const ids = 'bitcoin,ethereum,solana,binancecoin,ripple,the-open-network,dogecoin,avalanche-2';
+  const res = await fetch(
+    `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`,
+    {signal: AbortSignal.timeout(9000)}
+  );
+  const d = await res.json();
+  liveData.prices = d;
+  renderPrices(d);
+  renderSignals(d);
+  renderMarkets(d);
+  renderAnalysis(d);
+  updateTicker(d);
+  const now = new Date();
+  document.getElementById('live-upd').textContent =
+    'обновлено ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+}
+
+async function fetchFearGreed(){
+  const res = await fetch('https://api.alternative.me/fng/?limit=1', {signal: AbortSignal.timeout(8000)});
+  const d = await res.json();
+  const val = parseInt(d.data[0].value);
+  const cls = d.data[0].value_classification;
+  liveData.fg = val;
+  liveData.fgName = cls;
+  const fgEl = document.getElementById('fg-val');
+  const fgNameEl = document.getElementById('fg-name');
+  fgEl.textContent = val;
+  fgEl.style.color = val < 25 ? '#FF3B3B' : val < 50 ? '#FFB800' : val < 75 ? '#00E676' : '#00D4FF';
+  fgNameEl.textContent = fgLabel(val);
+  fgNameEl.style.color = fgEl.style.color;
+  document.getElementById('ps-fg2').textContent = val;
+  document.getElementById('ps-fg2').style.color = fgEl.style.color;
+  // Analysis AI signal update
+  updateAnalysisFG(val);
+}
+
+function fgLabel(v){
+  if(v<=20) return 'Крайний страх';
+  if(v<=40) return 'Страх';
+  if(v<=60) return 'Нейтрально';
+  if(v<=80) return 'Жадность';
+  return 'Крайняя жадность';
+}
+
+// ═══════════════════════════════════════════
+// RENDER: PRICES (HOME)
+// ═══════════════════════════════════════════
+function fmt(n){
+  if(n >= 1000) return '$' + Math.round(n).toLocaleString('ru-RU');
+  if(n >= 1)    return '$' + n.toFixed(2);
+  return '$' + n.toFixed(4);
+}
+function fmtChg(c){
+  const sign = c >= 0 ? '+' : '';
+  return sign + c.toFixed(2) + '%';
+}
+
+function renderPrices(d){
+  const btc = d['bitcoin'];
+  const eth = d['ethereum'];
+  if(btc){
+    document.getElementById('btc-price').textContent = fmt(btc.usd);
+    const chgEl = document.getElementById('btc-chg');
+    chgEl.textContent = fmtChg(btc.usd_24h_change);
+    chgEl.className = 'lc-chg ' + (btc.usd_24h_change >= 0 ? 'up' : 'dn');
+  }
+  if(eth){
+    document.getElementById('eth-price').textContent = fmt(eth.usd);
+    const chgEl = document.getElementById('eth-chg');
+    chgEl.textContent = fmtChg(eth.usd_24h_change);
+    chgEl.className = 'lc-chg ' + (eth.usd_24h_change >= 0 ? 'up' : 'dn');
+  }
+}
+
+// ═══════════════════════════════════════════
+// RENDER: TICKER
+// ═══════════════════════════════════════════
+const TICKER_MAP = {
+  bitcoin:       {sym:'BTC', emoji:'₿'},
+  ethereum:      {sym:'ETH', emoji:'Ξ'},
+  solana:        {sym:'SOL', emoji:'◎'},
+  binancecoin:   {sym:'BNB', emoji:'⬡'},
+  ripple:        {sym:'XRP', emoji:'✕'},
+  'the-open-network':{sym:'TON', emoji:'💎'},
+  dogecoin:      {sym:'DOGE',emoji:'Ð'},
+  'avalanche-2': {sym:'AVAX',emoji:'▲'},
+};
+function updateTicker(d){
+  let html = '';
+  for(const [id, meta] of Object.entries(TICKER_MAP)){
+    const coin = d[id];
+    if(!coin) continue;
+    const up = coin.usd_24h_change >= 0;
+    html += `<span class="tk-item">
+      <span class="tk-sym">${meta.sym}</span>
+      <span style="color:#fff">${fmt(coin.usd)}</span>
+      <span class="${up?'tk-up':'tk-dn'}">${fmtChg(coin.usd_24h_change)}</span>
+    </span><span class="tk-sep">·</span>`;
+  }
+  // Duplicate for infinite scroll
+  const full = html + html;
+  document.getElementById('ticker-inner').innerHTML = full;
+}
+
+// ═══════════════════════════════════════════
+// RENDER: SIGNALS
+// ═══════════════════════════════════════════
+function renderSignals(d){
+  const btc = d['bitcoin'];
+  const eth = d['ethereum'];
+  if(btc){
+    const price = btc.usd;
+    const chg   = btc.usd_24h_change;
+    // AI logic: simple trend-based signal
+    let type = 'HOLD', badgeClass = 'hold';
+    let conf = 65;
+    if(chg < -3){ type='SELL'; badgeClass='sell'; conf=78; }
+    else if(chg > 2){ type='BUY'; badgeClass='buy'; conf=82; }
+    else if(chg > 0.5){ type='BUY'; badgeClass='buy'; conf=71; }
+
+    document.getElementById('sig-btc-badge').textContent = type;
+    document.getElementById('sig-btc-badge').className = `sc-badge ${badgeClass}`;
+    document.getElementById('sig-btc-entry').textContent = fmt(price);
+    document.getElementById('sig-btc-tp').textContent = fmt(price * (type==='SELL' ? 0.945 : 1.065));
+    document.getElementById('sig-btc-sl').textContent = fmt(price * (type==='SELL' ? 1.025 : 0.962));
+    document.getElementById('sig-btc-conf').textContent = conf + '%';
+    setTimeout(() => { document.getElementById('sig-btc-bar').style.width = conf + '%'; }, 300);
+  }
+  if(eth){
+    const price = eth.usd;
+    const chg   = eth.usd_24h_change;
+    let type = 'HOLD', badgeClass = 'hold';
+    let conf = 62;
+    if(chg < -3){ type='SELL'; badgeClass='sell'; conf=74; }
+    else if(chg > 2){ type='BUY'; badgeClass='buy'; conf=76; }
+
+    document.getElementById('sig-eth-badge').textContent = type;
+    document.getElementById('sig-eth-badge').className = `sc-badge ${badgeClass}`;
+    document.getElementById('sig-eth-entry').textContent = fmt(price);
+    document.getElementById('sig-eth-tp').textContent = fmt(price * (type==='SELL' ? 0.94 : 1.07));
+    document.getElementById('sig-eth-sl').textContent = fmt(price * (type==='SELL' ? 1.03 : 0.955));
+    document.getElementById('sig-eth-conf').textContent = conf + '%';
+    setTimeout(() => { document.getElementById('sig-eth-bar').style.width = conf + '%'; }, 500);
+  }
+}
+
+// ═══════════════════════════════════════════
+// RENDER: MARKETS
+// ═══════════════════════════════════════════
+const MARKETS_ORDER = [
+  ['bitcoin','BTC','Bitcoin','B'],
+  ['ethereum','ETH','Ethereum','E'],
+  ['solana','SOL','Solana','S'],
+  ['binancecoin','BNB','BNB Chain','N'],
+  ['ripple','XRP','Ripple','X'],
+  ['the-open-network','TON','TON','T'],
+  ['dogecoin','DOGE','Dogecoin','D'],
+  ['avalanche-2','AVAX','Avalanche','A'],
+];
+function renderMarkets(d){
+  let html = '';
+  for(const [id,sym,name,letter] of MARKETS_ORDER){
+    const coin = d[id];
+    if(!coin) continue;
+    const up = coin.usd_24h_change >= 0;
+    html += `<div class="market-row">
+      <div class="mr-left">
+        <div class="mr-icon">${letter}</div>
+        <div class="mr-info">
+          <span class="mr-sym">${sym}</span>
+          <span class="mr-name">${name}</span>
+        </div>
+      </div>
+      <div class="mr-right">
+        <span class="mr-price">${fmt(coin.usd)}</span>
+        <span class="mr-chg ${up?'up':'dn'}">${fmtChg(coin.usd_24h_change)}</span>
+      </div>
+    </div>`;
+  }
+  document.getElementById('markets-list').innerHTML = html;
+}
+
+// ═══════════════════════════════════════════
+// RENDER: ANALYSIS
+// ═══════════════════════════════════════════
+function renderAnalysis(d){
+  const btc = d['bitcoin'];
+  const eth = d['ethereum'];
+  if(!btc) return;
+
+  const price = btc.usd;
+  const chg   = btc.usd_24h_change;
+
+  // Synthetic RSI from 24h change (simplified model)
+  const rsi = Math.min(Math.max(50 + chg * 3.5, 20), 80);
+  document.getElementById('an-rsi').textContent = rsi.toFixed(0);
+  const rsiEl = document.getElementById('an-rsi-label');
+  if(rsi > 70){ rsiEl.textContent = 'Перекупленность'; rsiEl.className='ac-sub bear'; }
+  else if(rsi < 30){ rsiEl.textContent = 'Перепроданность'; rsiEl.className='ac-sub bull'; }
+  else{ rsiEl.textContent = 'Нейтральная зона'; rsiEl.className='ac-sub neutral'; }
+
+  // Trend
+  const trendEl = document.getElementById('an-trend');
+  const trendLb = document.getElementById('an-trend-label');
+  if(chg > 1.5){ trendEl.textContent='↑ BULL'; trendEl.style.color='#00E676'; trendLb.textContent='Восходящий тренд'; trendLb.className='ac-sub bull'; }
+  else if(chg < -1.5){ trendEl.textContent='↓ BEAR'; trendEl.style.color='#FF3B3B'; trendLb.textContent='Нисходящий тренд'; trendLb.className='ac-sub bear'; }
+  else { trendEl.textContent='→ FLAT'; trendEl.style.color='#FFB800'; trendLb.textContent='Боковое движение'; trendLb.className='ac-sub neutral'; }
+
+  // ETH/BTC ratio
+  if(eth){
+    const ratio = (eth.usd / btc.usd * 1000).toFixed(2);
+    document.getElementById('an-ratio').textContent = ratio;
+    document.getElementById('an-ratio-label').textContent = 'за 1000 USD BTC';
+    document.getElementById('an-ratio-label').className = 'ac-sub neutral';
+  }
+
+  // Levels
+  document.getElementById('an-sup').textContent = fmt(price * 0.962);
+  document.getElementById('an-res').textContent = fmt(price * 1.048);
+  document.getElementById('an-target').textContent = fmt(price * 1.12);
+}
+
+function updateAnalysisFG(val){
+  const sigEl = document.getElementById('an-signal');
+  const sigLb = document.getElementById('an-signal-label');
+  if(val <= 25){ sigEl.textContent = 'ПОКУПАЙ'; sigEl.style.color='#00E676'; sigLb.textContent='Страх = возможность'; sigLb.className='ac-sub bull'; }
+  else if(val >= 75){ sigEl.textContent = 'ОСТОРОЖНО'; sigEl.style.color='#FF6B00'; sigLb.textContent='Рынок перегрет'; sigLb.className='ac-sub bear'; }
+  else { sigEl.textContent = 'ДЕРЖИ'; sigEl.style.color='#FFB800'; sigLb.textContent='Нейтральный рынок'; sigLb.className='ac-sub neutral'; }
+}
+
+// ═══════════════════════════════════════════
+// SCREEN NAVIGATION
+// ═══════════════════════════════════════════
+function showScreen(id, btn){
+  // Close any open overlay first
+  document.querySelectorAll('.overlay.open').forEach(o => o.classList.remove('open'));
+
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const s = document.querySelector(`.screen[data-screen="${id}"]`);
+  if(s) s.classList.add('active');
+
+  document.querySelectorAll('.nav-btn').forEach(b => {
+    b.classList.remove('active');
+    b.querySelectorAll('[stroke]').forEach(el => el.setAttribute('stroke','rgba(122,155,181,0.7)'));
+  });
+  btn.classList.add('active');
+  btn.querySelectorAll('[stroke]').forEach(el => el.setAttribute('stroke','#00D4FF'));
+  updateNavIndicator(btn);
+}
+
+function updateNavIndicator(btn){
+  if(!btn) return;
+  const nav = document.getElementById('nav');
+  const ind = document.getElementById('nav-indicator');
+  const br = btn.getBoundingClientRect();
+  const nr = nav.getBoundingClientRect();
+  ind.style.left  = (br.left - nr.left + br.width * .2) + 'px';
+  ind.style.width = (br.width * .6) + 'px';
+}
+
+window.addEventListener('resize', () => updateNavIndicator(document.querySelector('.nav-btn.active')));
+
+// ── SWIPE between tabs ──
+let swipeX = 0;
+const screenOrder = ['home','signals','analysis','markets','profile'];
+const screensEl = document.getElementById('screens');
+screensEl.addEventListener('touchstart', e => { swipeX = e.touches[0].clientX; }, {passive:true});
+screensEl.addEventListener('touchend', e => {
+  // Don't swipe if overlay is open
+  if(document.querySelector('.overlay.open')) return;
+  const dx = e.changedTouches[0].clientX - swipeX;
+  if(Math.abs(dx) < 45) return;
+  const cur = document.querySelector('.screen.active')?.dataset.screen;
+  const idx = screenOrder.indexOf(cur);
+  if(dx < -60 && idx < screenOrder.length-1){
+    const btn = document.querySelector(`.nav-btn[data-target="${screenOrder[idx+1]}"]`);
+    if(btn) showScreen(screenOrder[idx+1], btn);
+  }
+  if(dx >  60 && idx > 0){
+    const btn = document.querySelector(`.nav-btn[data-target="${screenOrder[idx-1]}"]`);
+    if(btn) showScreen(screenOrder[idx-1], btn);
+  }
+});
+
+// ═══════════════════════════════════════════
+// OVERLAY SYSTEM
+// ═══════════════════════════════════════════
+function openOverlay(id){
+  const ov = document.getElementById('ov-'+id);
+  if(ov){
+    ov.classList.add('open');
+    if(window.Telegram?.WebApp) window.Telegram.WebApp.BackButton.show();
+  }
+}
+function closeOverlay(id){
+  const ov = document.getElementById('ov-'+id);
+  if(ov) ov.classList.remove('open');
+  if(window.Telegram?.WebApp && !document.querySelector('.overlay.open'))
+    window.Telegram.WebApp.BackButton.hide();
+}
+
+// Swipe down to close overlay
+let ovSwipeY = 0;
+document.querySelectorAll('.overlay').forEach(ov => {
+  ov.addEventListener('touchstart', e => { ovSwipeY = e.touches[0].clientY; }, {passive:true});
+  ov.addEventListener('touchend', e => {
+    const dy = e.changedTouches[0].clientY - ovSwipeY;
+    if(dy > 80){
+      const id = ov.id.replace('ov-','');
+      closeOverlay(id);
+    }
+  });
+});
+
+// ═══════════════════════════════════════════
+// PROFILE TOGGLES
+// ═══════════════════════════════════════════
+function toggleSetting(row){
+  const toggle = row.querySelector('.toggle');
+  toggle.classList.toggle('on');
+  showToast(toggle.classList.contains('on') ? 'Включено' : 'Выключено');
+}
+
+// ═══════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════
+let toastTimer;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+</script>
 </body>
 </html>
