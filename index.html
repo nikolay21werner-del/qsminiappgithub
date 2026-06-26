@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
+<link rel="preload" href="screens/screen_03_home.jpg" as="image"/>
 <title>QUANTSIGNAL AI</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
@@ -162,7 +163,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);
 /* ════════════════════════════════════════
    SCREEN: HOME
 ════════════════════════════════════════ */
-#scr-home{position:relative;}
+#scr-home{position:absolute;}
 #home-bg{position:absolute;inset:0;}
 #home-bg img{width:100%;height:100%;object-fit:cover;object-position:center top;}
 #home-bg::after{content:'';position:absolute;inset:0;
@@ -380,7 +381,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);
 
   <!-- SPLASH -->
   <div class="phase" id="ph-splash">
-    <img src="screens/screen_01_splash.png" alt=""/>
+    <img src="screens/screen_01_splash.jpg" alt=""/>
   </div>
 
   <!-- ONBOARDING -->
@@ -389,21 +390,21 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);
     <div id="ob-track-wrap">
       <div id="ob-track">
         <div class="ob-sl">
-          <img src="screens/screen_02_onboard.png" alt=""/>
+          <img src="screens/screen_02_onboard.jpg" alt=""/>
           <div class="ob-sl-text">
             <div class="ob-sl-title">ИИ-сигналы 24/7</div>
             <div class="ob-sl-desc">Анализируем BTC, ETH, SOL в реальном времени и даём точные сигналы входа</div>
           </div>
         </div>
         <div class="ob-sl">
-          <img src="screens/screen_04_signals.png" alt=""/>
+          <img src="screens/screen_04_signals.jpg" alt=""/>
           <div class="ob-sl-text">
             <div class="ob-sl-title">BUY · SELL · HOLD</div>
             <div class="ob-sl-desc">Каждый сигнал с точкой входа, тейк-профитом и стоп-лоссом</div>
           </div>
         </div>
         <div class="ob-sl">
-          <img src="screens/screen_05_analysis.png" alt=""/>
+          <img src="screens/screen_05_analysis.jpg" alt=""/>
           <div class="ob-sl-text">
             <div class="ob-sl-title">Точность 91%</div>
             <div class="ob-sl-desc">47 сигналов. Fear & Greed. Live цены. Всё в одном месте</div>
@@ -428,7 +429,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);
 
       <!-- HOME -->
       <div class="scr on" data-s="home" id="scr-home">
-        <div id="home-bg"><img src="screens/screen_03_home.png" alt=""/></div>
+        <div id="home-bg"><img src="screens/screen_03_home.jpg" alt=""/></div>
         <div id="home-content">
           <div class="home-live-row">
             <div class="home-section"><div class="live-dot"></div>LIVE · Рынок</div>
@@ -508,7 +509,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);
       <div class="scr" data-s="profile" id="scr-profile">
         <div class="scr-body">
           <div class="prof-hero">
-            <div class="prof-av"><img src="screens/screen_09_profile.png" alt="" style="object-position:50% 8%"/></div>
+            <div class="prof-av"><img src="screens/screen_09_profile.jpg" alt="" style="object-position:50% 8%"/></div>
             <div class="prof-name" id="p-name">QUANTSIGNAL</div>
             <div class="prof-tg" id="p-tg">@QUANTSIGNAL_AI</div>
             <div style="margin-top:6px;" id="p-plan-badge"><span class="badge badge-c">👑 PRO</span></div>
@@ -537,13 +538,13 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);
                 <div class="plan-period">бесплатно</div>
                 <button class="plan-btn plan-btn-active">Текущий</button>
               </div>
-              <div class="plan-card" onclick="openSub('screens/screen_10_plans.png')">
+              <div class="plan-card" onclick="openSub('screens/screen_10_plans.jpg')">
                 <div class="plan-name">Трейдер</div>
                 <div class="plan-price">2990₽</div>
                 <div class="plan-period">/мес</div>
                 <button class="plan-btn plan-btn-primary">Выбрать</button>
               </div>
-              <div class="plan-card popular" onclick="openSub('screens/screen_10_plans.png')">
+              <div class="plan-card popular" onclick="openSub('screens/screen_10_plans.jpg')">
                 <div class="plan-popular-badge">★ ХИТ</div>
                 <div class="plan-name" style="margin-top:8px;">PRO</div>
                 <div class="plan-price">4990₽</div>
@@ -759,9 +760,9 @@ document.getElementById('sub').addEventListener('touchend',e=>{
 });
 
 // Tap on cat image areas to open sub
-const SUB_MAP={signals:'screens/screen_08_notifications.png',markets:'screens/screen_12_heatmap.png',analysis:'screens/screen_06_chart.png',profile:'screens/screen_10_plans.png'};
+const SUB_MAP={signals:'screens/screen_08_notifications.jpg',markets:'screens/screen_12_heatmap.jpg',analysis:'screens/screen_06_chart.jpg',profile:'screens/screen_10_plans.jpg'};
 document.getElementById('scr-home').addEventListener('click',e=>{
-  if(!e.target.closest('#home-content')) openSub('screens/screen_07_stats.png');
+  if(!e.target.closest('#home-content')) openSub('screens/screen_07_stats.jpg');
 });
 
 // ══════════════════════════════════════
@@ -950,7 +951,7 @@ function renderSignals(){
       </div>
       <div class="sig-desc">${s.reason}</div>
     </div>`).join('')+
-  `<div style="margin:4px 12px 12px;padding:12px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r12);display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="openSub('screens/screen_08_notifications.png')">
+  `<div style="margin:4px 12px 12px;padding:12px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r12);display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="openSub('screens/screen_08_notifications.jpg')">
     <div class="live-dot"></div>
     <div style="font-size:12px;color:var(--muted);">История сигналов и уведомления →</div>
   </div>`;
@@ -973,7 +974,7 @@ function renderMarkets(){
   body.innerHTML=coins.map(({k,sym,name,ico,col})=>{
     const d=D[k];
     const cc=cls(d?.c);
-    return`<div class="mkt-row" onclick="openSub('screens/screen_12_heatmap.png')">
+    return`<div class="mkt-row" onclick="openSub('screens/screen_12_heatmap.jpg')">
       <div class="mkt-ico" style="background:${col}18;color:${col}">${ico}</div>
       <div class="mkt-info"><div class="mkt-sym">${sym}</div><div class="mkt-name">${name}</div></div>
       <div class="mkt-right">
@@ -1006,7 +1007,7 @@ function renderAnalysis(){
 
   body.innerHTML=`
     <!-- BTC главный -->
-    <div class="ana-hero" onclick="openSub('screens/screen_06_chart.png')">
+    <div class="ana-hero" onclick="openSub('screens/screen_06_chart.jpg')">
       <div class="ah-label">📈 BTC/USDT · График →</div>
       <div class="ah-val ${trendCls}">${fp(btc?.p)}</div>
       <div class="ah-sub">24ч: <span class="${trendCls}">${fc(chg)}</span> &nbsp;·&nbsp; Тренд: ${trend}</div>
@@ -1045,7 +1046,7 @@ function renderAnalysis(){
     </div>
 
     <!-- Статистика -->
-    <div style="margin:0 12px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:14px 16px;cursor:pointer;" onclick="openSub('screens/screen_07_stats.png')">
+    <div style="margin:0 12px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:14px 16px;cursor:pointer;" onclick="openSub('screens/screen_07_stats.jpg')">
       <div class="card-title">📊 Статистика портфеля →</div>
       <div style="font-size:28px;font-weight:900;color:var(--g);">+24.8%</div>
       <div style="font-size:12px;color:var(--muted);margin-top:4px;">За 30 дней · 47 сигналов · точность 91%</div>
