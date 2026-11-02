@@ -1,0 +1,13 @@
+/* QUANTSIGNAL AI — premium Telegram Mini App visual layer.
+   Original cat, logos, screens, pricing and signal logic remain untouched. */
+:root { --bg:#030d1a; --teal:#00d4ff; --orange:#ff6b00; --border:rgba(0,212,255,.22); }
+@media (prefers-reduced-motion:no-preference) {
+  .nb, button, .mk-row { transition:transform .18s ease,filter .18s ease,box-shadow .2s ease; }
+  button:active,.nb:active { transform:scale(.97); }
+}
+button:focus-visible,.nb:focus-visible { outline:2px solid var(--teal);outline-offset:3px; }
+.mk-row { border-bottom:1px solid rgba(0,212,255,.10); }
+.mk-row:active { background:rgba(0,212,255,.055); }
+@media (prefers-reduced-motion:reduce) {
+  *,*::before,*::after { animation-duration:.01ms!important;transition-duration:.01ms!important; }
+}
