@@ -46,3 +46,17 @@ button:focus-visible,.nb:focus-visible,[role="button"]:focus-visible {
 .pf-plan{color:var(--orange)}
 .pf-stat .sk{line-height:1.25}
 @media(max-height:700px){#signals-live{padding-top:6px}.sig-card{padding:7px 10px;margin-bottom:5px}.sc-levels{margin-bottom:4px}.qs-section-title{padding-bottom:5px}}
+
+/* Premium Telegram Mini App refinement — safe CSS-only iteration */
+:root{--qs-glow:rgba(0,212,255,.18);--qs-warm:rgba(255,121,0,.13)}
+#nav{border-top:1px solid rgba(0,212,255,.24);box-shadow:0 -12px 30px rgba(0,0,0,.28),0 -1px 16px var(--qs-glow)}
+#nav .nb{position:relative;border-radius:12px}
+#nav .nb.on{background:linear-gradient(180deg,rgba(0,212,255,.13),rgba(0,212,255,.025))}
+.sig-card,.an-row,.mk-row,.pf-row,.pf-stat{border-radius:15px}
+.sig-card{background:linear-gradient(145deg,rgba(13,36,55,.94),rgba(5,17,30,.92));box-shadow:0 7px 22px rgba(0,0,0,.19),inset 0 1px 0 rgba(255,255,255,.05)}
+.sig-card:first-of-type{box-shadow:0 0 0 1px rgba(0,212,255,.24),0 10px 26px rgba(0,212,255,.09)}
+.qs-section-title{letter-spacing:.5px;text-wrap:balance}
+.sc-lvl{border-radius:10px}
+#signals-live,#analysis-live,#markets-live,#profile-live{-webkit-overflow-scrolling:touch}
+@media(max-width:380px){.sig-card{border-radius:12px}.qs-section-title{font-size:12px}}
+@media(prefers-reduced-motion:reduce){#nav .nb,.sig-card{transition:none!important}}
