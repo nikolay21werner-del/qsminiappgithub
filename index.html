@@ -259,7 +259,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#030d1a;font-family:
 }
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 </style>
-<link rel="stylesheet" href="./premium-theme.css?v=2"/>
+<link rel="stylesheet" href="./premium-theme.css?v=3"/>
 </head>
 <body>
 
@@ -329,14 +329,14 @@ html,body{width:100%;height:100%;overflow:hidden;background:#030d1a;font-family:
               <span class="hl-chg" id="eth-c">—</span>
             </div>
             <div class="hl-fg">
-              <span class="hl-lbl">Fear &amp; Greed</span>
+              <span class="hl-lbl">Индекс страха</span>
               <span class="fg-num" id="fg-n" style="color:var(--teal)">—</span>
               <span class="fg-txt" id="fg-t" style="color:var(--teal)">Загрузка...</span>
             </div>
           </div>
           <div class="hl-live">
             <div class="live-dot"></div>
-            <span class="live-txt">LIVE</span>
+            <span class="live-txt">РЫНОК</span>
             <span class="live-time" id="ltime">обновление...</span>
           </div>
         </div>
@@ -345,16 +345,16 @@ html,body{width:100%;height:100%;overflow:hidden;background:#030d1a;font-family:
       <!-- SIGNALS -->
       <div class="scr" data-s="signals">
         <img class="scr-bg" src="screens2/s06_signals.png" alt=""/>
-        <div id="signals-live">
+        <div id="signals-live"><div class="qs-section-title">ТОРГОВЫЕ СИГНАЛЫ <small>КРИПТО · РАСЧЁТНЫЕ УРОВНИ</small></div>
           <div class="sig-card">
             <div class="sc-top">
               <span class="sc-name">BTC/USDT</span>
               <span class="sc-badge long" id="s-btc-badge">LONG</span>
             </div>
             <div class="sc-levels">
-              <div class="sc-lvl"><span class="k">Entry</span><span class="v entry" id="s-btc-entry">—</span></div>
-              <div class="sc-lvl"><span class="k">TP</span><span class="v tp" id="s-btc-tp">—</span></div>
-              <div class="sc-lvl"><span class="k">SL</span><span class="v sl" id="s-btc-sl">—</span></div>
+              <div class="sc-lvl"><span class="k">Вход</span><span class="v entry" id="s-btc-entry">—</span></div>
+              <div class="sc-lvl"><span class="k">Цель</span><span class="v tp" id="s-btc-tp">—</span></div>
+              <div class="sc-lvl"><span class="k">Стоп</span><span class="v sl" id="s-btc-sl">—</span></div>
             </div>
             <div class="sc-conf">
               <span style="font-size:9px;color:rgba(255,255,255,0.35);font-weight:700;">Уверенность</span>
@@ -368,9 +368,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:#030d1a;font-family:
               <span class="sc-badge hold" id="s-eth-badge">HOLD</span>
             </div>
             <div class="sc-levels">
-              <div class="sc-lvl"><span class="k">Entry</span><span class="v entry" id="s-eth-entry">—</span></div>
-              <div class="sc-lvl"><span class="k">TP</span><span class="v tp" id="s-eth-tp">—</span></div>
-              <div class="sc-lvl"><span class="k">SL</span><span class="v sl" id="s-eth-sl">—</span></div>
+              <div class="sc-lvl"><span class="k">Вход</span><span class="v entry" id="s-eth-entry">—</span></div>
+              <div class="sc-lvl"><span class="k">Цель</span><span class="v tp" id="s-eth-tp">—</span></div>
+              <div class="sc-lvl"><span class="k">Стоп</span><span class="v sl" id="s-eth-sl">—</span></div>
             </div>
             <div class="sc-conf">
               <span style="font-size:9px;color:rgba(255,255,255,0.35);font-weight:700;">Уверенность</span>
@@ -384,9 +384,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:#030d1a;font-family:
               <span class="sc-badge short" id="s-sol-badge">SHORT</span>
             </div>
             <div class="sc-levels">
-              <div class="sc-lvl"><span class="k">Entry</span><span class="v entry" id="s-sol-entry">—</span></div>
-              <div class="sc-lvl"><span class="k">TP</span><span class="v tp" id="s-sol-tp">—</span></div>
-              <div class="sc-lvl"><span class="k">SL</span><span class="v sl" id="s-sol-sl">—</span></div>
+              <div class="sc-lvl"><span class="k">Вход</span><span class="v entry" id="s-sol-entry">—</span></div>
+              <div class="sc-lvl"><span class="k">Цель</span><span class="v tp" id="s-sol-tp">—</span></div>
+              <div class="sc-lvl"><span class="k">Стоп</span><span class="v sl" id="s-sol-sl">—</span></div>
             </div>
             <div class="sc-conf">
               <span style="font-size:9px;color:rgba(255,255,255,0.35);font-weight:700;">Уверенность</span>
@@ -400,7 +400,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#030d1a;font-family:
       <!-- ANALYSIS -->
       <div class="scr" data-s="analysis">
         <img class="scr-bg" src="screens2/s07_analysis.png" alt=""/>
-        <div id="analysis-live">
+        <div id="analysis-live"><div class="qs-disclaimer">Предварительная оценка по изменению цены за 24 часа, не прогноз ИИ.</div>
           <div class="an-header">
             <span>🧠</span>
             <span>AI АНАЛИЗ</span>
@@ -409,14 +409,14 @@ html,body{width:100%;height:100%;overflow:hidden;background:#030d1a;font-family:
             <div class="an-row">
               <div class="an-row-left">
                 <div class="an-row-icon">₿</div>
-                <span class="an-row-key">БТС ТРЕНД</span>
+                <span class="an-row-key">ТРЕНД BTC</span>
               </div>
               <span class="an-row-val" id="an-trend">—</span>
             </div>
             <div class="an-row">
               <div class="an-row-left">
                 <div class="an-row-icon">📈</div>
-                <span class="an-row-key">СИГНАЛ</span>
+                <span class="an-row-key">НАПРАВЛЕНИЕ</span>
               </div>
               <span class="an-row-val" id="an-signal">—</span>
             </div>
@@ -429,7 +429,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#030d1a;font-family:
             </div>
           </div>
           <div class="an-live-row">
-            <div style="display:flex;align-items:center;gap:6px;"><div class="live-dot"></div><span class="live-txt">LIVE</span></div>
+            <div style="display:flex;align-items:center;gap:6px;"><div class="live-dot"></div><span class="live-txt">РЫНОК</span></div>
             <span style="font-size:10px;color:rgba(255,255,255,0.3);">@QUANTSIGNAL_AI</span>
           </div>
         </div>
@@ -438,7 +438,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#030d1a;font-family:
       <!-- MARKETS -->
       <div class="scr" data-s="markets">
         <img class="scr-bg" src="screens2/s08_markets.png" alt=""/>
-        <div id="markets-live">
+        <div id="markets-live"><div class="qs-section-title">КРИПТОРЫНОК <small>ЦЕНЫ В USD</small></div>
           <div id="mk-list"></div>
         </div>
       </div>
@@ -453,12 +453,12 @@ html,body{width:100%;height:100%;overflow:hidden;background:#030d1a;font-family:
             <div class="pf-avatar" id="pf-av">Q</div>
             <div>
               <div class="pf-name" id="pf-name">QUANTSIGNAL</div>
-              <div class="pf-plan">PRO ПЛАН · Активен</div>
+              <div class="pf-plan">БАЗОВЫЙ · Демо-интерфейс</div>
             </div>
           </div>
           <div class="pf-stats">
-            <div class="pf-stat"><div class="sv">91%</div><div class="sk">Точность</div></div>
-            <div class="pf-stat"><div class="sv" id="pf-sigs">47</div><div class="sk">Сигналов</div></div>
+            <div class="pf-stat"><div class="sv">—</div><div class="sk">Точность не проверена</div></div>
+            <div class="pf-stat"><div class="sv" id="pf-sigs">—</div><div class="sk">Сигналов</div></div>
             <div class="pf-stat"><div class="sv" id="pf-fg">—</div><div class="sk">Fear&amp;Greed</div></div>
           </div>
           <div class="pf-settings">
@@ -701,7 +701,7 @@ function renderSignals(d){
     document.getElementById(`s-${key}-entry`).textContent=fmt(p);
     document.getElementById(`s-${key}-tp`).textContent=fmt(p*(type==='short'?0.94:1.065));
     document.getElementById(`s-${key}-sl`).textContent=fmt(p*(type==='short'?1.025:0.962));
-    document.getElementById(`s-${key}-conf`).textContent=conf+'%';
+    document.getElementById(`s-${key}-conf`).textContent='Индикатор '+conf+'%';
     setTimeout(()=>{ document.getElementById(`s-${key}-bar`).style.width=conf+'%'; },400);
   });
 }
@@ -714,23 +714,23 @@ function renderAnalysis(d){
   const sEl=document.getElementById('an-signal');
   const cEl=document.getElementById('an-conf');
   if(ch>1.5){
-    tEl.textContent='BULLISH'; tEl.className='an-row-val val-bull';
-    sEl.textContent='STRONG BUY'; sEl.className='an-row-val val-bull';
-    cEl.textContent='87%';
+    tEl.textContent='РОСТ'; tEl.className='an-row-val val-bull';
+    sEl.textContent='ПОКУПКА'; sEl.className='an-row-val val-bull';
+    cEl.textContent='Расчёт';
   } else if(ch < -2){
-    tEl.textContent='BEARISH'; tEl.className='an-row-val val-bear';
-    sEl.textContent='SELL'; sEl.className='an-row-val val-bear';
-    cEl.textContent='79%';
+    tEl.textContent='ПАДЕНИЕ'; tEl.className='an-row-val val-bear';
+    sEl.textContent='ПРОДАЖА'; sEl.className='an-row-val val-bear';
+    cEl.textContent='Расчёт';
   } else {
-    tEl.textContent='NEUTRAL'; tEl.className='an-row-val val-neutral';
-    sEl.textContent='HOLD'; sEl.className='an-row-val val-neutral';
-    cEl.textContent='68%';
+    tEl.textContent='БОКОВИК'; tEl.className='an-row-val val-neutral';
+    sEl.textContent='ОЖИДАНИЕ'; sEl.className='an-row-val val-neutral';
+    cEl.textContent='Расчёт';
   }
 }
 function renderAnalysisFG(v){
   const sEl=document.getElementById('an-signal');
   if(!sEl||sEl.textContent!=='—') return; // don't overwrite if already set
-  if(v<=25){sEl.textContent='STRONG BUY';sEl.className='an-row-val val-bull';}
+  if(v<=25){sEl.textContent='ПОКУПКА';sEl.className='an-row-val val-bull';}
   else if(v>=75){sEl.textContent='ОСТОРОЖНО';sEl.className='an-row-val val-bear';}
 }
 
