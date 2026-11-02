@@ -1,0 +1,34 @@
+/* QUANTSIGNAL AI premium RU visual polish — non-destructive.
+   Existing mascot artwork, tariff values and signal calculations remain unchanged. */
+:root {
+  --bg:#030d1a;
+  --teal:#00d4ff;
+  --orange:#ff7900;
+  --border:rgba(0,212,255,.22);
+  color-scheme:dark;
+}
+html,body { -webkit-font-smoothing:antialiased; }
+button,.nb { touch-action:manipulation; }
+button:focus-visible,.nb:focus-visible,[role="button"]:focus-visible {
+  outline:2px solid var(--teal);
+  outline-offset:3px;
+}
+@media (hover:hover) and (pointer:fine) {
+  button:hover,.nb:hover { filter:brightness(1.13); }
+}
+@media (prefers-reduced-motion:no-preference) {
+  button,.nb,.mk-row { transition:transform .18s ease,filter .18s ease,box-shadow .22s ease,background-color .22s ease; }
+  button:active,.nb:active { transform:scale(.97); }
+  .nb.on { filter:drop-shadow(0 0 8px rgba(0,212,255,.38)); }
+}
+.mk-row { border-bottom:1px solid rgba(0,212,255,.11); }
+.mk-row:active { background:rgba(0,212,255,.055); }
+#nav { backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px); }
+#nav-ind { box-shadow:0 0 12px rgba(0,212,255,.32); }
+@media (max-width:380px) {
+  .mk-row { min-width:0; }
+  .mk-price,.mk-chg { font-variant-numeric:tabular-nums; }
+}
+@media (prefers-reduced-motion:reduce) {
+  *,*::before,*::after { animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important; }
+}
