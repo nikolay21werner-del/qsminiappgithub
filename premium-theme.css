@@ -60,3 +60,31 @@ button:focus-visible,.nb:focus-visible,[role="button"]:focus-visible {
 #signals-live,#analysis-live,#markets-live,#profile-live{-webkit-overflow-scrolling:touch}
 @media(max-width:380px){.sig-card{border-radius:12px}.qs-section-title{font-size:12px}}
 @media(prefers-reduced-motion:reduce){#nav .nb,.sig-card{transition:none!important}}
+
+/* vNext mobile application design system: consistent surfaces from boot to tabs */
+:root{--qs-radius:18px;--qs-panel:rgba(8,25,43,.94);--qs-line:rgba(89,199,231,.2);--qs-shadow:0 12px 36px rgba(0,0,0,.32)}
+#loading{background:radial-gradient(ellipse at 50% 30%,#0d3450 0%,#061626 45%,#030d1a 80%)}
+#ld-overlay{background:linear-gradient(180deg,rgba(3,13,26,.12),rgba(3,13,26,.64))}
+#ld-content{max-width:360px;padding:20px;border-radius:24px;background:rgba(3,13,26,.22);backdrop-filter:blur(6px)}
+#ld-bar-wrap{height:5px;border:1px solid rgba(0,212,255,.15);box-shadow:0 0 24px rgba(0,212,255,.12)}
+#ld-label{font-size:12px;letter-spacing:1px;text-align:center}
+#onboard .ob-footer{padding-left:24px;padding-right:24px}
+#ob-btn{min-height:52px;border-radius:18px;box-shadow:0 10px 32px rgba(0,212,255,.18)}
+#ob-skip{min-width:44px;min-height:44px;border-radius:12px;background:rgba(3,13,26,.42);color:rgba(255,255,255,.8)}
+#main{background:linear-gradient(155deg,#061b2b,#030d1a 55%,#061421)}
+#ticker{border-bottom:1px solid var(--qs-line);background:rgba(3,13,26,.91);backdrop-filter:blur(12px)}
+#home-live{background:linear-gradient(to top,rgba(3,13,26,.99) 68%,rgba(3,13,26,.74) 88%,transparent)}
+.hl-price{font-variant-numeric:tabular-nums;letter-spacing:-.4px}
+.hl-chg,.mk-chg{font-variant-numeric:tabular-nums}
+#signals-live,#analysis-live,#markets-live,#profile-live{scrollbar-width:thin;scrollbar-color:rgba(0,212,255,.3) transparent}
+.sig-card,.an-row,.mk-row,.pf-row,.pf-stat{background-color:var(--qs-panel);border:1px solid var(--qs-line);box-shadow:var(--qs-shadow)}
+.mk-row,.pf-row{min-height:48px}
+.sig-card .sc-levels{gap:8px}
+.sc-lvl{border:1px solid rgba(0,212,255,.1)}
+.qs-disclaimer{border-radius:14px;line-height:1.5}
+#nav{padding-bottom:max(8px,env(safe-area-inset-bottom,0px));background:rgba(3,13,26,.96)}
+#nav .nb{min-height:44px;touch-action:manipulation}
+#toast{max-width:calc(100vw - 32px);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.36)}
+button{-webkit-user-select:none;user-select:none}
+@media(max-width:360px){#ld-content{width:90%;padding:12px}.sig-card,.an-row,.mk-row,.pf-row{border-radius:12px}.hl-price{font-size:14px}}
+@media(prefers-reduced-transparency:reduce){#nav,#ticker,.sig-card,.an-row,.mk-row,.pf-row{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}}
