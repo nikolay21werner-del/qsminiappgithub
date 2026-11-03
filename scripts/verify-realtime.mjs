@@ -22,14 +22,19 @@ async function getJSON(url, timeoutMs = 8000) {
 function normalize(raw) {
   if (!raw) return null;
   const price = parseFloat(raw.lastPrice);
-  if (!isFinite(price)) return null;
+  if (!Number.isFinite(price) || price <= 0) return null;
+  const change = Number.parseFloat(raw.price24hPcnt);
+  const volume = Number.parseFloat(raw.turnover24h);
+  const high = Number.parseFloat(raw.highPrice24h);
+  const low = Number.parseFloat(raw.lowPrice24h);
+  if (![change, volume, high, low].every(Number.isFinite) || volume < 0 || low <= 0 || high < low || price < low || price > high) return null;
   return {
     symbol: raw.symbol,
     last_price: price,
-    change_pct_24h: (parseFloat(raw.price24hPcnt) || 0) * 100,
-    volume_24h: parseFloat(raw.turnover24h) || 0,
-    high_24h: parseFloat(raw.highPrice24h) || price,
-    low_24h: parseFloat(raw.lowPrice24h) || price
+    change_pct_24h: Number.parseFloat(raw.price24hPcnt) * 100,
+    volume_24h: Number.parseFloat(raw.turnover24h),
+    high_24h: Number.parseFloat(raw.highPrice24h),
+    low_24h: Number.parseFloat(raw.lowPrice24h)
   };
 }
 
@@ -79,6 +84,11 @@ function computeSignal(t) {
     // Kline smoke test
     const klResp = await getJSON(`${REST}/v5/market/kline?category=linear&symbol=BTCUSDT&interval=5&limit=20`);
     if (klResp.retCode !== 0 || !Array.isArray(klResp.result?.list) || klResp.result.list.length < 2) throw new Error("kline-bad");
+    for (const candle of klResp.result.list) {
+      if (!Array.isArray(candle) || candle.length < 6) throw new Error("kline-shape-invalid");
+      const [open, high, low, close, volume] = candle.slice(1, 6).map(Number);
+      if (![open, high, low, close, volume].every(Number.isFinite) || low <= 0 || high < low || open < low || open > high || close < low || close > high || volume < 0) throw new Error("kline-values-invalid");
+    }
     const row = klResp.result.list[0];
     console.log(`[OK] BTCUSDT 5m kline rows=${klResp.result.list.length} latest_close=$${parseFloat(row[4]).toFixed(2)}`);
 
