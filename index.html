@@ -53,6 +53,9 @@ button:disabled{opacity:.48;cursor:not-allowed;}
 #home-live:has(.hl-price:not(:empty)){filter:drop-shadow(0 -5px 18px rgba(20,220,230,.06));}
 @media(prefers-reduced-motion:reduce){.scr[data-s="home"]>.scr-bg,.home-actions{animation:none!important}}
 
+/* Functional home dashboard layer, independent of the static artwork. */
+.qs-home-dashboard{position:absolute;z-index:20;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));display:grid;gap:9px;pointer-events:auto}.qs-home-status{display:flex;justify-content:space-between;align-items:center;padding:10px 13px;border:1px solid rgba(20,220,230,.38);border-radius:15px;background:rgba(2,13,22,.91);color:#b9eaf0;font-size:11px;font-weight:700;backdrop-filter:blur(14px)}.qs-home-status strong{color:#ffc947}.qs-home-cta{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.qs-home-cta button{min-height:65px;padding:10px 4px;border:1px solid rgba(255,201,71,.5);border-radius:16px;color:#fff;background:linear-gradient(155deg,rgba(39,30,14,.96),rgba(7,24,32,.97));font-size:12px;font-weight:800;box-shadow:0 6px 18px rgba(0,0,0,.35)}.qs-home-cta button:nth-child(2){border-color:rgba(20,220,230,.6);background:linear-gradient(155deg,rgba(5,58,63,.96),rgba(7,24,32,.97))}.qs-home-cta button:active{transform:scale(.96)}.qs-home-cta button span{display:block;font-size:22px;margin-bottom:4px}.qs-home-note{font-size:10px;text-align:center;color:rgba(230,246,246,.75);text-shadow:0 1px 4px #000}.scr[data-s="home"] .home-actions{display:none}@media(max-height:680px){.qs-home-cta button{min-height:48px;padding:5px}.qs-home-cta button span{font-size:16px;margin-bottom:0}.qs-home-dashboard{gap:5px}}
+
 /* ══ LOADING ══ */
 #loading{
   position:fixed;inset:0;z-index:9999;background:var(--bg);
@@ -357,6 +360,15 @@ button:disabled{opacity:.48;cursor:not-allowed;}
           <button type="button" onclick="goScreen('analysis',document.querySelector('.nb[data-t=analysis]'))">◈ Анализ</button>
           <button type="button" onclick="goScreen('markets',document.querySelector('.nb[data-t=markets]'))">↗ Рынки</button>
         </div>
+        <section class="qs-home-dashboard" aria-label="Панель QUANTSIGNAL AI">
+          <div class="qs-home-status"><span>● КРИПТО · ДАННЫЕ РЫНКА</span><strong id="qs-data-state" aria-live="polite">Загрузка…</strong></div>
+          <div class="qs-home-cta">
+            <button type="button" onclick="goScreen('signals',document.querySelector('.nb[data-t=signals]'))"><span>⚡</span>Сигналы</button>
+            <button type="button" onclick="goScreen('analysis',document.querySelector('.nb[data-t=analysis]'))"><span>▥</span>Анализ</button>
+            <button type="button" onclick="goScreen('markets',document.querySelector('.nb[data-t=markets]'))"><span>↗</span>Рынки</button>
+          </div>
+          <div class="qs-home-note">Сигналы — расчётные индикаторы, не гарантия результата</div>
+        </section>
         <div id="home-live">
           <div class="hl-row">
             <div class="hl-coin">
@@ -662,11 +674,12 @@ async function fetchData(){
       {signal:AbortSignal.timeout(9000)}
     );
     const d = await r.json();
+    const state=document.getElementById('qs-data-state'); if(state)state.textContent='Обновлено '+new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
     renderHome(d); renderSignals(d); renderAnalysis(d); renderMarkets(d);
     buildTicker(d);
     const now=new Date();
     document.getElementById('ltime').textContent='обновлено '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
-  }catch(e){}
+  }catch(e){const state=document.getElementById('qs-data-state');if(state)state.textContent='Нет связи · повтор через 60 с';}
   try{
     const r = await fetch('https://api.alternative.me/fng/?limit=1',{signal:AbortSignal.timeout(7000)});
     const d = await r.json();
