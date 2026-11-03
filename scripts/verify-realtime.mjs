@@ -52,12 +52,13 @@ function computeSignal(t) {
 (async () => {
   try {
     const resp = await getJSON(`${REST}/v5/market/tickers?category=linear`);
-    if (resp.retCode !== 0) throw new Error("ret-" + resp.retCode);
+    if (resp.retCode !== 0 || !Array.isArray(resp.result?.list)) throw new Error("ticker-response-invalid");
     const map = Object.fromEntries(resp.result.list.map(r => [r.symbol, r]));
-    let ok = 0, fail = 0;
+    let ok = 0, fail = 0, found = 0;
     for (const s of SYMBOLS) {
       const n = normalize(map[s]);
       if (!n) { console.log(`[SKIP] ${s}: not in response`); continue; }
+      found++;
       console.log(`[OK] ${s}  $${n.last_price.toFixed(2)}  24h=${n.change_pct_24h.toFixed(2)}%  vol=${(n.volume_24h/1e6).toFixed(1)}M`);
       const sig = computeSignal(n);
       if (sig) {
@@ -69,9 +70,15 @@ function computeSignal(t) {
       }
     }
 
+    if (found !== SYMBOLS.length) {
+      const missing = SYMBOLS.length - found;
+      console.error(`[WARN] ${missing} required market symbol(s) missing from live response`);
+      if (process.env.STRICT_REALTIME === "1") fail += missing;
+    }
+
     // Kline smoke test
     const klResp = await getJSON(`${REST}/v5/market/kline?category=linear&symbol=BTCUSDT&interval=5&limit=20`);
-    if (klResp.retCode !== 0 || !klResp.result?.list?.length) throw new Error("kline-bad");
+    if (klResp.retCode !== 0 || !Array.isArray(klResp.result?.list) || klResp.result.list.length < 2) throw new Error("kline-bad");
     const row = klResp.result.list[0];
     console.log(`[OK] BTCUSDT 5m kline rows=${klResp.result.list.length} latest_close=$${parseFloat(row[4]).toFixed(2)}`);
 
