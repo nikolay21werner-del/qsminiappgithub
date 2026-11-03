@@ -2,7 +2,7 @@
 /* Smoke test for the realtime layer.
    - Hits Bybit V5 public REST tickers and klines (no auth required).
    - Sanity-checks the signal-engine math against the live snapshot.
-   - Skips silently if the network is unreachable so it never breaks CI. */
+   - Reports unavailable market data explicitly; STRICT_REALTIME=1 makes outages fail CI. */
 
 const REST = "https://api.bybit.com";
 const SYMBOLS = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "TONUSDT"];
@@ -79,7 +79,9 @@ function computeSignal(t) {
     process.exit(fail ? 1 : 0);
   } catch (e) {
     console.error("[WARN] verify-realtime skipped:", e.message);
-    // Soft-skip so offline environments don't fail the build.
-    process.exit(0);
+    // Opt-in strict check for release readiness; normal offline development remains usable.
+    const strict = process.env.STRICT_REALTIME === "1";
+    console.error(strict ? "[FAIL] Strict realtime verification failed." : "[SKIP] Live market data not verified; this is NOT a passing live-data test.");
+    process.exit(strict ? 1 : 0);
   }
 })();
