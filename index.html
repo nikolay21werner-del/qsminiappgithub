@@ -24,6 +24,16 @@ button:disabled{opacity:.48;cursor:not-allowed;}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important;}}
 @media (max-width:360px){.sc-levels{gap:3px}.sig-card{padding:9px 10px}.sc-lvl .v{font-size:11px}.hl-price{font-size:14px}}
 
+/* Native-feeling terminal motion; keep the original artwork intact. */
+.scr{transform:translate3d(10px,0,0) scale(.995);transition:opacity .24s ease,transform .3s cubic-bezier(.2,.8,.2,1);will-change:opacity,transform;}
+.scr.on{transform:translate3d(0,0,0) scale(1);}
+.nb{transition:color .2s ease,transform .2s ease;}
+.nb:active{transform:scale(.92);}
+.sig-card,.mk-row,.an-row{transition:border-color .22s ease,background-color .22s ease,transform .22s ease;}
+.sig-card:active,.mk-row:active{transform:scale(.985);}
+.hl-price,.mk-price,.sc-conf-val{font-variant-numeric:tabular-nums;}
+@media (prefers-reduced-motion:reduce){.scr{transform:none!important;will-change:auto!important;}}
+
 /* ══ LOADING ══ */
 #loading{
   position:fixed;inset:0;z-index:9999;background:var(--bg);
@@ -781,6 +791,7 @@ function goScreen(id,btn){
     b.classList.remove('on');
     b.querySelectorAll('.s').forEach(el=>el.setAttribute('stroke','rgba(122,155,181,0.65)'));
   });
+  if(navigator.vibrate && !window.matchMedia('(prefers-reduced-motion: reduce)').matches){try{navigator.vibrate(8);}catch(e){}}
   btn.classList.add('on');
   btn.querySelectorAll('.s').forEach(el=>el.setAttribute('stroke','var(--teal)'));
   updateInd(btn);
