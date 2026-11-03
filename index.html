@@ -34,6 +34,7 @@ button:disabled{opacity:.48;cursor:not-allowed;}
 .hl-price,.mk-price,.sc-conf-val{font-variant-numeric:tabular-nums;}
 @media (prefers-reduced-motion:reduce){.scr{transform:none!important;will-change:auto!important;}}
 
+.home-actions{position:absolute;z-index:25;top:calc(var(--safe-top) + 66px);left:14px;right:14px;display:flex;gap:8px;justify-content:center;pointer-events:auto}.home-actions button{flex:1;min-width:0;min-height:43px;padding:9px 6px;border-radius:13px;border:1px solid rgba(0,212,255,.32);background:rgba(3,13,26,.88);color:#fff;font-size:12px;font-weight:800;box-shadow:0 8px 24px rgba(0,0,0,.3);backdrop-filter:blur(12px)}.home-actions button:active{transform:scale(.96)}
 /* ══ LOADING ══ */
 #loading{
   position:fixed;inset:0;z-index:9999;background:var(--bg);
@@ -332,8 +333,12 @@ button:disabled{opacity:.48;cursor:not-allowed;}
       <!-- HOME -->
       <div class="scr on" data-s="home">
         <img class="scr-bg" src="screens2/s05_home.png" alt=""/>
-        <!-- tap zone → signals screen -->
-        <div style="position:absolute;top:5%;right:0;width:45%;height:25%;cursor:pointer;" onclick="goScreen('analysis',document.querySelector('.nb[data-t=analysis]'))"></div>
+        <!-- Actual accessible home actions; artwork stays unchanged. -->
+        <div class="home-actions" aria-label="Быстрые действия">
+          <button type="button" onclick="goScreen('signals',document.querySelector('.nb[data-t=signals]'))">⚡ Сигналы</button>
+          <button type="button" onclick="goScreen('analysis',document.querySelector('.nb[data-t=analysis]'))">◈ Анализ</button>
+          <button type="button" onclick="goScreen('markets',document.querySelector('.nb[data-t=markets]'))">↗ Рынки</button>
+        </div>
         <div id="home-live">
           <div class="hl-row">
             <div class="hl-coin">
