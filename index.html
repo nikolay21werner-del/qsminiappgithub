@@ -671,7 +671,7 @@ function clock(){
 async function fetchData(){
   try{
     const r = await fetch(
-      'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,binancecoin,ripple,the-open-network,dogecoin,avalanche-2&vs_currencies=usd&include_24hr_change=true',
+      '/api/market',
       {signal:AbortSignal.timeout(9000)}
     );
     if(!r.ok) throw new Error('Market API '+r.status);
