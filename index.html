@@ -653,7 +653,7 @@ function initMain(){
   updateInd(document.querySelector('.nb.on'));
   clock();
   fetchData();
-  setInterval(fetchData, 60000);
+  if(!window.qsRefreshTimer) window.qsRefreshTimer=setInterval(fetchData, 60000);
 }
 
 // ═══════════════ CLOCK ═══════════════
@@ -673,7 +673,9 @@ async function fetchData(){
       'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,binancecoin,ripple,the-open-network,dogecoin,avalanche-2&vs_currencies=usd&include_24hr_change=true',
       {signal:AbortSignal.timeout(9000)}
     );
+    if(!r.ok) throw new Error('Market API '+r.status);
     const d = await r.json();
+    if(!d.bitcoin?.usd || !Number.isFinite(d.bitcoin.usd_24h_change)) throw new Error('Invalid market data');
     const state=document.getElementById('qs-data-state'); if(state)state.textContent='Обновлено '+new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
     renderHome(d); renderSignals(d); renderAnalysis(d); renderMarkets(d);
     buildTicker(d);
@@ -737,27 +739,19 @@ function buildTicker(d){
 
 // ═══════════════ RENDER SIGNALS ═══════════════
 function renderSignals(d){
-  const coins = [
-    ['bitcoin','btc','BTC/USDT'],
-    ['ethereum','eth','ETH/USDT'],
-    ['solana','sol','SOL/USDT'],
-  ];
-  coins.forEach(([id,key,pair])=>{
-    const c=d[id]; if(!c) return;
-    const p=c.usd, ch=c.usd_24h_change;
-    let type='hold', conf=65;
-    if(ch < -2.5){type='short';conf=78;}
-    else if(ch > 1.5){type='long';conf=82;}
-    else if(ch > 0.3){type='long';conf=70;}
-    const badge=document.getElementById(`s-${key}-badge`);
-    badge.textContent=type.toUpperCase();
-    badge.className=`sc-badge ${type}`;
-    document.getElementById(`s-${key}-entry`).textContent=fmt(p);
-    document.getElementById(`s-${key}-tp`).textContent=fmt(p*(type==='short'?0.94:1.065));
-    document.getElementById(`s-${key}-sl`).textContent=fmt(p*(type==='short'?1.025:0.962));
-    document.getElementById(`s-${key}-conf`).textContent='Индикатор '+conf+'%';
-    setTimeout(()=>{ document.getElementById(`s-${key}-bar`).style.width=conf+'%'; },400);
+  const coins=[['bitcoin','btc'],['ethereum','eth'],['solana','sol']];
+  coins.forEach(([id,key])=>{
+    const c=d[id]; if(!c || !Number.isFinite(c.usd)) return;
+    const badge=document.getElementById('s-'+key+'-badge');
+    badge.textContent='НЕТ СИГНАЛА';
+    badge.className='sc-badge hold';
+    document.getElementById('s-'+key+'-entry').textContent=fmt(c.usd);
+    document.getElementById('s-'+key+'-tp').textContent='—';
+    document.getElementById('s-'+key+'-sl').textContent='—';
+    document.getElementById('s-'+key+'-conf').textContent='Не рассчитано';
+    document.getElementById('s-'+key+'-bar').style.width='0%';
   });
+  const count=document.getElementById('pf-sigs'); if(count)count.textContent='0';
 }
 
 // ═══════════════ RENDER ANALYSIS ═══════════════
@@ -769,11 +763,11 @@ function renderAnalysis(d){
   const cEl=document.getElementById('an-conf');
   if(ch>1.5){
     tEl.textContent='РОСТ'; tEl.className='an-row-val val-bull';
-    sEl.textContent='ПОКУПКА'; sEl.className='an-row-val val-bull';
+    sEl.textContent='РОСТ ЗА 24 Ч'; sEl.className='an-row-val val-bull';
     cEl.textContent='Расчёт';
   } else if(ch < -2){
     tEl.textContent='ПАДЕНИЕ'; tEl.className='an-row-val val-bear';
-    sEl.textContent='ПРОДАЖА'; sEl.className='an-row-val val-bear';
+    sEl.textContent='СНИЖЕНИЕ ЗА 24 Ч'; sEl.className='an-row-val val-bear';
     cEl.textContent='Расчёт';
   } else {
     tEl.textContent='БОКОВИК'; tEl.className='an-row-val val-neutral';
@@ -784,8 +778,8 @@ function renderAnalysis(d){
 function renderAnalysisFG(v){
   const sEl=document.getElementById('an-signal');
   if(!sEl||sEl.textContent!=='—') return; // don't overwrite if already set
-  if(v<=25){sEl.textContent='ПОКУПКА';sEl.className='an-row-val val-bull';}
-  else if(v>=75){sEl.textContent='ОСТОРОЖНО';sEl.className='an-row-val val-bear';}
+  if(v<=25){sEl.textContent='СИЛЬНЫЙ СТРАХ';sEl.className='an-row-val val-neutral';}
+  else if(v>=75){sEl.textContent='СИЛЬНАЯ ЖАДНОСТЬ';sEl.className='an-row-val val-neutral';}
 }
 
 // ═══════════════ RENDER MARKETS ═══════════════
@@ -828,6 +822,7 @@ function goScreen(id,btn){
     b.querySelectorAll('.s').forEach(el=>el.setAttribute('stroke','rgba(122,155,181,0.65)'));
   });
   if(navigator.vibrate && !window.matchMedia('(prefers-reduced-motion: reduce)').matches){try{navigator.vibrate(8);}catch(e){}}
+  if(!btn) return;
   btn.classList.add('on');
   btn.querySelectorAll('.s').forEach(el=>el.setAttribute('stroke','var(--teal)'));
   updateInd(btn);
@@ -864,8 +859,13 @@ document.getElementById('screens').addEventListener('touchend',e=>{
 function togRow(row){
   const t=row.querySelector('.toggle');
   t.classList.toggle('on');
-  showToast(t.classList.contains('on')?'Включено':'Выключено');
+  const index=[...document.querySelectorAll('.pf-row')].indexOf(row);
+  try{localStorage.setItem('qs-setting-'+index,t.classList.contains('on')?'1':'0');}catch(e){}
+  showToast('Настройка сохранена на устройстве');
 }
+document.querySelectorAll('.pf-row').forEach((row,index)=>{
+  try{const v=localStorage.getItem('qs-setting-'+index);if(v!==null)row.querySelector('.toggle')?.classList.toggle('on',v==='1');}catch(e){}
+});
 
 // ═══════════════ TOAST ═══════════════
 let toastT;
