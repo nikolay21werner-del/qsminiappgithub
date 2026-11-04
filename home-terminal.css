@@ -1,6 +1,0 @@
-.scr[data-s="home"] .qs-home-dashboard{display:none!important}
-#qs-live-book{position:absolute;z-index:30;top:72px;right:10px;width:min(43%,190px);padding:9px;background:rgba(2,12,24,.9);border:1px solid rgba(28,209,214,.4);border-radius:12px;color:#e9fbff;font:10px/1.5 system-ui;backdrop-filter:blur(10px);pointer-events:auto}
-#qs-live-book .qs-book-title{font-size:10px;font-weight:800;color:#6de9e9;margin-bottom:4px}
-#qs-live-book .qs-book-row{display:flex;justify-content:space-between;gap:4px;font-variant-numeric:tabular-nums}
-#qs-live-book .ask{color:#ff888b}#qs-live-book .bid{color:#5be4b0}#qs-live-book .qs-book-foot{color:#9aaebb;font-size:9px;margin-top:4px}
-@media(max-width:370px){#qs-live-book{width:44%;font-size:9px;top:64px}}
