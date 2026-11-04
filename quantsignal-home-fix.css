@@ -1,0 +1,5 @@
+/* QUANTSIGNAL AI home tap-layer hotfix */
+.scr[data-s="home"] .qs-home-dashboard{position:absolute;z-index:45;bottom:calc(155px + env(safe-area-inset-bottom,0px));left:12px;right:12px;pointer-events:auto}
+.scr[data-s="home"] .qs-home-dashboard button{position:relative;z-index:46;pointer-events:auto;cursor:pointer;touch-action:manipulation}
+.scr[data-s="home"] #home-live{z-index:20;pointer-events:none}
+@media(max-height:700px){.scr[data-s="home"] .qs-home-dashboard{bottom:calc(143px + env(safe-area-inset-bottom,0px))}.qs-home-cta button{min-height:42px}}
