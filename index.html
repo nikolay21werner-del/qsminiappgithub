@@ -258,6 +258,15 @@ html,body{width:100%;height:100%;overflow:hidden;background:#030d1a;font-family:
   transition:opacity .28s,transform .28s;pointer-events:none;
 }
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* QUANTSIGNAL AI 2026: accessible neon interface */
+:root{--teal:#00e4db;--orange:#ff8900;--bg:#03080e;--border:rgba(0,228,219,.27)}
+#main{background:radial-gradient(ellipse at top,rgba(255,137,0,.11),transparent 48%),#03080e}
+#nav{border-top:1px solid rgba(0,228,219,.38)!important;box-shadow:0 -8px 30px rgba(0,228,219,.08)}
+.nb.on{color:#ff9b0b!important}
+.qs-extra{position:absolute;inset:0;overflow:auto;padding:18px 16px 24px;background:radial-gradient(circle at 85% 0%,rgba(255,128,0,.14),transparent 42%),#03080e;color:#f4f8fb;z-index:3}
+.qs-extra h2{font-size:22px;margin:12px 0 18px}.qs-extra h3{font-size:16px;margin:0 0 12px}.qs-extra .qs-card{background:linear-gradient(135deg,rgba(12,27,35,.98),rgba(6,11,20,.98));border:1px solid rgba(0,228,219,.35);border-radius:18px;padding:16px;margin-bottom:13px;box-shadow:0 0 18px rgba(0,228,219,.06)}
+.qs-extra .qs-gold{border-color:rgba(255,137,0,.55)}.qs-extra .qs-muted{color:#91a6b3;font-size:12px}.qs-extra .qs-price{font-size:26px;font-weight:800;margin:8px 0}.qs-extra button{border:1px solid rgba(255,137,0,.65);background:linear-gradient(130deg,#ff9d00,#ef6100);border-radius:12px;color:#101010;font-weight:800;padding:12px 14px;cursor:pointer}.qs-extra .qs-row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:9px 0}.qs-extra .qs-secondary{background:#0b1a23;color:#e9f7fa;border-color:#00e4db}.qs-extra input{width:100%;padding:12px;border-radius:10px;border:1px solid #28616b;background:#08141c;color:white;margin:10px 0}.qs-extra .qs-back{background:transparent;color:#00e4db;border:0;padding:6px 0}.qs-extra .qs-pill{display:inline-block;border:1px solid #ff8900;border-radius:30px;padding:5px 9px;font-size:11px;color:#ffb43d}.qs-extra .qs-cat{font-size:65px;text-align:center;filter:drop-shadow(0 0 14px #ff8900)}
 </style>
 <link rel="stylesheet" href="./premium-theme.css?v=3"/>
 </head>
@@ -819,6 +828,26 @@ function showToast(msg){
   t.textContent=msg; t.classList.add('show');
   clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2200);
 }
+</script>
+
+<!-- Extra functional screens: premium, strategies, portfolio, settings -->
+<script>
+(function(){
+ const pages={
+ strategies:{title:'⚡ ИИ-стратегии',body:`<div class="qs-card qs-gold"><h3>Стратегии QUANTSIGNAL AI</h3><div class="qs-muted">Обучающие инструменты — не торговые рекомендации</div></div><div class="qs-card"><h3>⚡ Скальпинг</h3><p>Короткие сделки и контроль риска.</p><button onclick="qsNotify('Демо-режим стратегии')">Подробнее</button></div><div class="qs-card"><h3>📈 Свинг-трейдинг</h3><p>Анализ движения на горизонте нескольких дней.</p><button onclick="qsNotify('Демо-режим стратегии')">Подробнее</button></div><div class="qs-card"><h3>🪙 Долгосрочная</h3><p>Планирование портфеля и распределение активов.</p><button onclick="qsOpen('portfolio')">Открыть портфель</button></div>`},
+ portfolio:{title:'◈ Мой портфель',body:`<div class="qs-card qs-gold"><div class="qs-muted">ДЕМОНСТРАЦИОННЫЙ ПОРТФЕЛЬ</div><div class="qs-price" id="qs-total">$0.00</div><div class="qs-muted">Без подключения биржи реальные активы не отображаются</div></div><div class="qs-card"><h3>Добавить демо-позицию</h3><input id="qs-coin" placeholder="Монета, например BTC" maxlength="12"><input id="qs-amount" type="number" min="0" step="any" placeholder="Количество"><button onclick="qsAddPosition()">Добавить</button></div><div class="qs-card"><h3>Мои позиции</h3><div id="qs-positions" class="qs-muted">Пока нет позиций</div></div>`},
+ premium:{title:'👑 QUANTSIGNAL PREMIUM',body:`<div class="qs-cat">🐈‍⬛</div><div class="qs-card qs-gold"><h3>Возможности Premium</h3><p>✓ Расширенная аналитика</p><p>✓ Уведомления о событиях</p><p>✓ Сохранённые стратегии</p><p>✓ Приоритетная поддержка</p><p class="qs-muted">Подключение функций и оплаты находится в разработке</p></div><div class="qs-card"><div class="qs-row"><b>1 месяц</b><span class="qs-pill">СКОРО</span></div><div class="qs-row"><b>3 месяца</b><span class="qs-pill">СКОРО</span></div><div class="qs-row"><b>12 месяцев</b><span class="qs-pill">СКОРО</span></div><button onclick="qsNotify('Оплата пока не подключена')">Узнать о запуске</button></div>`},
+ settings:{title:'⚙ Настройки',body:`<div class="qs-card"><div class="qs-row"><span>Язык</span><b>Русский</b></div><div class="qs-row"><span>Тема</span><b>Тёмная / Неон</b></div><div class="qs-row"><span>Уведомления</span><input style="width:22px" type="checkbox" id="qs-alerts" onchange="localStorage.setItem('qs-alerts',this.checked)"></div></div><div class="qs-card"><h3>Аккаунт</h3><div class="qs-muted">Telegram Mini App</div><button onclick="qsOpen('premium')">Premium</button></div>`}
+ };
+ window.qsNotify=function(m){if(typeof showToast==='function')showToast(m);else alert(m)};
+ window.qsOpen=function(name){const old=document.getElementById('qs-extra');if(old)old.remove();if(!pages[name])return;const layer=document.createElement('section');layer.id='qs-extra';layer.className='qs-extra';layer.innerHTML='<button class="qs-back" onclick="qsClose()">← Назад</button><h2>'+pages[name].title+'</h2>'+pages[name].body;document.getElementById('screens').appendChild(layer);if(name==='portfolio')qsRenderPositions();if(name==='settings'){document.getElementById('qs-alerts').checked=localStorage.getItem('qs-alerts')==='true'}};
+ window.qsClose=function(){document.getElementById('qs-extra')?.remove()};
+ window.qsAddPosition=function(){const coin=document.getElementById('qs-coin').value.trim().toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,12),amount=Number(document.getElementById('qs-amount').value);if(!coin||!Number.isFinite(amount)||amount<=0){qsNotify('Укажите монету и количество');return}const items=JSON.parse(localStorage.getItem('qs-demo-positions')||'[]');items.push({coin,amount});localStorage.setItem('qs-demo-positions',JSON.stringify(items));qsRenderPositions();qsNotify('Демо-позиция добавлена')};
+ window.qsRenderPositions=function(){const el=document.getElementById('qs-positions');if(!el)return;const items=JSON.parse(localStorage.getItem('qs-demo-positions')||'[]');el.textContent=items.length?items.map(p=>p.coin+' — '+p.amount).join(' | '):'Пока нет позиций'};
+ const nav=document.getElementById('nav');if(nav){const more=document.createElement('button');more.className='nb';more.innerHTML='<span style="font-size:23px;color:#ff8900">◈</span><span>Ещё</span>';more.onclick=function(){qsOpen('strategies')};nav.appendChild(more)};
+ const profile=document.querySelector('.scr[data-s="profile"]');if(profile){const menu=document.createElement('div');menu.style.cssText='position:absolute;top:12px;right:12px;z-index:30;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;max-width:95%';menu.innerHTML='<button onclick="qsOpen(\'portfolio\')">Портфель</button><button onclick="qsOpen(\'premium\')">Premium</button><button onclick="qsOpen(\'settings\')">⚙</button>';menu.querySelectorAll('button').forEach(b=>b.style.cssText='background:#071b22;color:#fff;border:1px solid #ff8900;border-radius:10px;padding:9px');profile.appendChild(menu)};
+ const oldGo=window.goScreen;if(typeof oldGo==='function'){window.goScreen=function(id,btn){qsClose();return oldGo(id,btn)}};
+})();
 </script>
 </body>
 </html>
